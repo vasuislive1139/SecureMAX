@@ -2,9 +2,15 @@ import * as fs from "fs";
 import * as path from "path";
 
 async function exportAbi() {
-  const abiDir = path.join(__dirname, "../abi");
-  if (!fs.existsSync(abiDir)) {
-    fs.mkdirSync(abiDir, { recursive: true });
+  const abiDirs = [
+    path.join(__dirname, "../abi"),
+    path.join(__dirname, "../../frontend/src/abi"),
+  ];
+
+  for (const dir of abiDirs) {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
   }
 
   const contracts = [
@@ -16,17 +22,23 @@ async function exportAbi() {
       name: "AssetNFT",
       path: "../artifacts/contracts/assets/AssetNFT.sol/AssetNFT.json",
     },
+    {
+      name: "AccessControlManager",
+      path: "../artifacts/contracts/access-control/AccessControlManager.sol/AccessControlManager.json",
+    },
   ];
 
   for (const item of contracts) {
     const artifactPath = path.join(__dirname, item.path);
     if (fs.existsSync(artifactPath)) {
       const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf-8"));
-      fs.writeFileSync(
-        path.join(abiDir, `${item.name}.json`),
-        JSON.stringify(artifact.abi, null, 2)
-      );
-      console.log(`✅ ${item.name} ABI exported to blockchain/abi/${item.name}.json`);
+      for (const dir of abiDirs) {
+        fs.writeFileSync(
+          path.join(dir, `${item.name}.json`),
+          JSON.stringify(artifact.abi, null, 2)
+        );
+      }
+      console.log(`✅ ${item.name} ABI exported to abi directories`);
     } else {
       console.warn(`⚠️ Artifact not found for ${item.name} at ${artifactPath}`);
     }

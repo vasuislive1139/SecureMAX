@@ -1,0 +1,14 @@
+{
+  "contractName": "AccessControlManager",
+  "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "roles": {
+    "ADMIN_ROLE": "0xa49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c21775",
+    "MANAGER_ROLE": "0x241ecf16d79d0f8dbfb92cbc07fe17840425976cf0667f022fe9877caa831b08",
+    "AUDITOR_ROLE": "0x59a1c48e5837ad7a7f3dcedcbe129bf3249ec4fbf651fd4f5e2600ead39fe2f5",
+    "USER_ROLE": "0x14823911f2da1b49f045a0929a60b8c1f2a7fc8c06c7284ca3e8ab4e193a08c8"
+  },
+  "network": "hardhat",
+  "chainId": "31337",
+  "deployedAt": "2026-09-18T17:26:38.266Z"
+}
