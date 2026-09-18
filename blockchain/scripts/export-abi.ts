@@ -2,29 +2,35 @@ import * as fs from "fs";
 import * as path from "path";
 
 async function exportAbi() {
-  const artifactPath = path.join(
-    __dirname,
-    "../artifacts/contracts/identity/IdentityRegistry.sol/IdentityRegistry.json"
-  );
-
-  if (!fs.existsSync(artifactPath)) {
-    console.error("Artifact not found! Run 'npx hardhat compile' first.");
-    process.exit(1);
-  }
-
-  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf-8"));
   const abiDir = path.join(__dirname, "../abi");
-  
   if (!fs.existsSync(abiDir)) {
     fs.mkdirSync(abiDir, { recursive: true });
   }
 
-  fs.writeFileSync(
-    path.join(abiDir, "IdentityRegistry.json"),
-    JSON.stringify(artifact.abi, null, 2)
-  );
+  const contracts = [
+    {
+      name: "IdentityRegistry",
+      path: "../artifacts/contracts/identity/IdentityRegistry.sol/IdentityRegistry.json",
+    },
+    {
+      name: "AssetNFT",
+      path: "../artifacts/contracts/assets/AssetNFT.sol/AssetNFT.json",
+    },
+  ];
 
-  console.log("✅ IdentityRegistry ABI exported to blockchain/abi/IdentityRegistry.json");
+  for (const item of contracts) {
+    const artifactPath = path.join(__dirname, item.path);
+    if (fs.existsSync(artifactPath)) {
+      const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf-8"));
+      fs.writeFileSync(
+        path.join(abiDir, `${item.name}.json`),
+        JSON.stringify(artifact.abi, null, 2)
+      );
+      console.log(`✅ ${item.name} ABI exported to blockchain/abi/${item.name}.json`);
+    } else {
+      console.warn(`⚠️ Artifact not found for ${item.name} at ${artifactPath}`);
+    }
+  }
 }
 
 exportAbi()
