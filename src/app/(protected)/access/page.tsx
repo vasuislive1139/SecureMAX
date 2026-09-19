@@ -60,7 +60,7 @@ export default function AccessRequestsPage() {
             Decryption Access Requests
           </h2>
           <p className="text-xs text-zinc-500 font-mono tracking-widest mt-1 uppercase">
-            Hardware KMS Decryption Clearances &amp; On-Chain NFT Permits
+            Server-Side KMS Decryption Clearances &amp; On-Chain NFT Permits
           </p>
         </div>
         <div className="flex items-center gap-2">
