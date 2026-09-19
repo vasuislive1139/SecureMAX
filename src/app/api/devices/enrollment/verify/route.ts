@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function POST(req: Request) {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const body = await req.json().catch(() => ({}));
     const { code } = body;

@@ -20,6 +20,9 @@ export interface AdminCreateUserResult {
 }
 
 export async function getRegisteredPersonnel() {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   const users: Array<{
     id: string;
     name: string;
@@ -59,12 +62,20 @@ export async function registerNewUserByAdmin(formData: {
     const cleanName = String(formData.name || '').trim();
 
     if (!cleanEmail || !cleanName) {
-      return { success: false, error: 'Please enter both a name and an email address.' };
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return { success: false, error: 'Please enter both a name and an email address.' };
     }
 
     const existing = await deviceStore.getUserByEmail(cleanEmail);
     if (existing) {
-      return { success: false, error: `A team member with email ${cleanEmail} is already registered.` };
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return { success: false, error: `A team member with email ${cleanEmail} is already registered.` };
     }
 
     const userId = 'usr_' + crypto.randomUUID().slice(0, 8);
@@ -125,6 +136,10 @@ export async function registerNewUserByAdmin(formData: {
     deviceStore.saveToDisk();
     syncUserToSupabase(newUser).catch(() => {});
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return {
       success: true,
       user: {
@@ -138,6 +153,10 @@ export async function registerNewUserByAdmin(formData: {
       },
     };
   } catch (err: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return {
       success: false,
       error: err.message || 'Failed to register user.',

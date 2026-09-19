@@ -35,6 +35,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const session = await getVerifiedSession();
     const body = await req.json().catch(() => ({}));

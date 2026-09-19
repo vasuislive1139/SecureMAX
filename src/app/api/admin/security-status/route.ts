@@ -17,6 +17,9 @@ import { UserRole } from '@/types';
  * - Admin device timeline
  */
 export async function GET() {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const session = await getVerifiedSession().catch(() => null);
     if (!session || session.role !== UserRole.ADMIN) {

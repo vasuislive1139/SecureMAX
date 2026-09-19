@@ -5,6 +5,9 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 import { supabaseAdmin } from '@/lib/db/client';
 
 export async function POST() {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const session = await getVerifiedSession().catch(() => null);
     

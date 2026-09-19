@@ -6,6 +6,9 @@ import { getVerifiedSession } from '@/lib/auth/session';
 import { UserRole } from '@/types';
 
 export async function runSecurityScanAction(userId: string) {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const session = await getVerifiedSession();
     if (session.role !== UserRole.ADMIN && session.role !== UserRole.SECURITY_ANALYST) {
@@ -13,14 +16,25 @@ export async function runSecurityScanAction(userId: string) {
     }
 
     const scanId = await executeSentinelScan(session.userId); // Use secure userId
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return { success: true, scanId };
   } catch (error: any) {
     console.error('Sentinel Scan Error:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return { success: false, error: error.message };
   }
 }
 
 export async function fetchSecurityPosture() {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const session = await getVerifiedSession();
     if (session.role !== UserRole.ADMIN && session.role !== UserRole.SECURITY_ANALYST) {
@@ -33,12 +47,20 @@ export async function fetchSecurityPosture() {
       supabaseAdmin.from('security_incidents').select('*').eq('status', 'OPEN')
     ]);
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return {
       scans: scans.data || [],
       findings: findings.data || [],
       incidents: incidents.data || []
     };
   } catch (error) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return { scans: [], findings: [], incidents: [] };
   }
 }

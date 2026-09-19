@@ -8,6 +8,9 @@ import { AuditAnchorABI } from '@/lib/blockchain/abis';
 import deployedAddresses from '../../../../../deployed-addresses.json';
 
 export async function GET(req: Request) {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const session = await getVerifiedSession();
     

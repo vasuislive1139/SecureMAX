@@ -3,6 +3,9 @@ import { getVerifiedSession } from '@/lib/auth/session';
 import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function POST(req: Request) {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const session = await getVerifiedSession();
     const formData = await req.formData().catch(() => new FormData());

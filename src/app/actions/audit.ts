@@ -6,6 +6,9 @@ import { AuditEventType } from '@/types';
 import { revalidatePath } from 'next/cache';
 
 export async function logPresentationAuditEventAction() {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     // 1. Idempotency safeguard: check if a presentation audit event was created in the last 60s
     const sixtySecondsAgo = new Date(Date.now() - 60 * 1000).toISOString();
@@ -27,7 +30,11 @@ export async function logPresentationAuditEventAction() {
     const { data: existing } = await query;
 
     if (existing && existing.length > 0) {
-      return {
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return {
         success: true,
         eventHash: existing[0].event_hash,
         eventId: existing[0].id,
@@ -59,12 +66,20 @@ export async function logPresentationAuditEventAction() {
       // revalidatePath is active only in Next.js request context
     }
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return {
       success: true,
       eventHash
     };
   } catch (error: any) {
     console.error('Failed to log presentation audit event:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return {
       success: false,
       error: error.message
@@ -73,9 +88,16 @@ export async function logPresentationAuditEventAction() {
 }
 
 export async function verifyChainIntegrityAction() {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const { deviceStore } = await import('@/lib/auth/deviceStore');
     const events = deviceStore.getAuditEvents();
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return {
       success: true,
       verifiedCount: events.length,
@@ -84,6 +106,10 @@ export async function verifyChainIntegrityAction() {
     };
   } catch (err: any) {
     console.error('Verify chain integrity error:', err);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return {
       success: false,
       error: err.message,

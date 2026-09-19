@@ -11,6 +11,9 @@ export async function logTransaction(data: {
   entity_id: string;
   status: string;
 }) {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     await getVerifiedSession(); // Ensure user is authenticated
 
@@ -26,9 +29,17 @@ export async function logTransaction(data: {
 
     if (error) throw error;
     
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return { success: true };
   } catch (err: any) {
     console.error('Failed to log blockchain transaction:', err);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return { success: false, error: err.message };
   }
 }

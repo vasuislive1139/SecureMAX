@@ -11,6 +11,9 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function POST(req: Request) {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const body = await req.json().catch(() => ({}));
     const { email, name, publicKey, deviceName, role: requestedRole, deviceType, os, browser } = body;

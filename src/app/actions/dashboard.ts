@@ -6,6 +6,9 @@ import { UserRole } from '@/types';
 import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function getDashboardMetrics() {
+  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
+    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  }
   try {
     const session = await getVerifiedSession();
     if (session.role !== UserRole.ADMIN) {
@@ -41,7 +44,11 @@ export async function getDashboardMetrics() {
       const criticalAlerts = alertsRes.count ?? 0;
       const recentAudits = (auditRes.data && auditRes.data.length > 0) ? auditRes.data : localAudits;
 
-      return {
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return {
         success: true,
         data: {
           totalUsers,
@@ -52,7 +59,11 @@ export async function getDashboardMetrics() {
         },
       };
     } catch {
-      return {
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return {
         success: true,
         data: {
           totalUsers: localUsersCount,
@@ -77,6 +88,10 @@ export async function getDashboardMetrics() {
       created_at: a.created_at,
     }));
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return {
       success: true,
       data: {

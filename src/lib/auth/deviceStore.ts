@@ -285,6 +285,9 @@ export const PREDEFINED_POSITIONS: StoredPosition[] = [
 
 // In-memory persistent state with atomic disk persistence (.securemax_db/vault_ledger.json)
 class SecureMaxStore {
+  // Track readiness so Vercel lambdas don't mutate state before cloud load finishes
+  public readyPromise: Promise<void> | null = null;
+
   public users: Map<string, StoredUser> = new Map();
   public devices: Map<string, UserDevice> = new Map();
   public enrollments: Map<string, DeviceEnrollment> = new Map();
@@ -322,7 +325,7 @@ class SecureMaxStore {
       const loaded = this.loadFromDisk();
       if (!loaded) {
         // Attempt to load from Supabase cloud storage (e.g. on Vercel cold starts)
-        this.loadFromCloud().then(cloudLoaded => {
+        this.readyPromise = this.loadFromCloud().then(cloudLoaded => {
           if (!cloudLoaded && this.users.size === 0) {
             this.seedInitialData();
             this.saveToDisk();
