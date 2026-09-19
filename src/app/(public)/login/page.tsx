@@ -1,7 +1,7 @@
 'use client';
 
-import CyberCommandLogin from '@/components/auth/CyberCommandLogin';
+import SecureMaxHeroLogin from '@/components/auth/SecureMaxHeroLogin';
 
 export default function LoginPage() {
-  return <CyberCommandLogin />;
+  return <SecureMaxHeroLogin />;
 }
