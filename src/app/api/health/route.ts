@@ -3,8 +3,9 @@ import { successResponse, errorResponse } from '@/lib/api-response';
 import { supabaseAdmin } from '@/lib/db/client';
 
 export async function GET(req: NextRequest) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     // Check DB connectivity

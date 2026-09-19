@@ -389,6 +389,13 @@ class SecureMaxStore {
       }
     }
 
+    if (Array.isArray(parsed.wrappedDEKs)) {
+      this.wrappedDEKs.clear();
+      for (const [assetId, dek] of parsed.wrappedDEKs) {
+        this.wrappedDEKs.set(assetId, dek);
+      }
+    }
+
     if (Array.isArray(parsed.assignments)) {
       this.assignments = parsed.assignments;
     }
@@ -584,6 +591,7 @@ class SecureMaxStore {
         devices: Array.from(this.devices.values()),
         enrollments: Array.from(this.enrollments.values()),
         assets: Array.from(this.assets.values()),
+        wrappedDEKs: Array.from(this.wrappedDEKs.entries()),
         assignments: this.assignments,
         accessRequests: this.accessRequests,
         liveGrants: this.liveGrants,

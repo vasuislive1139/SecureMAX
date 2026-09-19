@@ -6,8 +6,9 @@ import { getVerifiedSession } from '@/lib/auth/session';
 import { UserRole } from '@/types';
 
 export async function runSecurityScanAction(userId: string) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -32,8 +33,9 @@ export async function runSecurityScanAction(userId: string) {
 }
 
 export async function fetchSecurityPosture() {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();

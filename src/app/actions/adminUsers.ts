@@ -20,8 +20,9 @@ export interface AdminCreateUserResult {
 }
 
 export async function getRegisteredPersonnel() {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   const users: Array<{
     id: string;

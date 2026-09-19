@@ -11,8 +11,9 @@ export async function logTransaction(data: {
   entity_id: string;
   status: string;
 }) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     await getVerifiedSession(); // Ensure user is authenticated

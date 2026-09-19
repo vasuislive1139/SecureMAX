@@ -5,8 +5,9 @@ import { Readable } from 'stream';
 import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function POST(req: Request) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();

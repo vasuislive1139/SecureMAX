@@ -51,8 +51,9 @@ export async function GET() {
  * Rejects if an admin already exists or if system is locked.
  */
 export async function POST(req: Request) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     const body = await req.json().catch(() => ({}));

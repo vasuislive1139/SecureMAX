@@ -11,8 +11,9 @@ export async function submitAccessRequestAction(params: {
   reason: string;
   ttlMinutes?: number;
 }) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     let sessionUser: { userId: string; role: UserRole; name?: string; email?: string } | null = null;
@@ -73,8 +74,9 @@ export async function submitAccessRequestAction(params: {
 }
 
 export async function approveAccessRequestAction(params: { requestId: string; ttlMinutes?: number }) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     let adminUserId = 'usr_admin_001';
@@ -108,8 +110,9 @@ export async function approveAccessRequestAction(params: { requestId: string; tt
 }
 
 export async function rejectAccessRequestAction(params: { requestId: string; reason?: string }) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     let adminUserId = 'usr_admin_001';
@@ -143,8 +146,9 @@ export async function rejectAccessRequestAction(params: { requestId: string; rea
 }
 
 export async function revokeLiveGrantAction(params: { grantId: string }) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     let adminName = 'Administrator';
@@ -169,8 +173,9 @@ export async function revokeLiveGrantAction(params: { grantId: string }) {
 }
 
 export async function extendLiveGrantAction(params: { grantId: string; additionalMinutes?: number }) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     const extended = deviceStore.extendLiveGrant(params.grantId, params.additionalMinutes || 15);
@@ -189,8 +194,9 @@ export async function extendLiveGrantAction(params: { grantId: string; additiona
 }
 
 export async function fetchLiveGrantsAction() {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     
@@ -208,8 +214,9 @@ export async function fetchLiveGrantsAction() {
 }
 
 export async function fetchAllAccessRequestsAction() {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     let isAdmin = false;
@@ -240,8 +247,9 @@ export async function fetchAllAccessRequestsAction() {
 }
 
 export async function fetchAuditLedgerAction() {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     
@@ -259,8 +267,9 @@ export async function fetchAuditLedgerAction() {
 }
 
 export async function fetchCommandCenterStateAction() {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     const pending = deviceStore.getAccessRequests().filter(r => r.status === 'PENDING');

@@ -6,8 +6,9 @@ import { AuditEventType } from '@/types';
 import { revalidatePath } from 'next/cache';
 
 export async function logPresentationAuditEventAction() {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     // 1. Idempotency safeguard: check if a presentation audit event was created in the last 60s
@@ -88,8 +89,9 @@ export async function logPresentationAuditEventAction() {
 }
 
 export async function verifyChainIntegrityAction() {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     const { deviceStore } = await import('@/lib/auth/deviceStore');

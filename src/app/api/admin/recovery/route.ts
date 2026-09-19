@@ -13,8 +13,9 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'securemax
  * Uses 2-factor recovery: Offline Recovery Code (Factor A) + Deployment Secret (Factor B).
  */
 export async function POST(req: Request) {
-  if (require('@/lib/auth/deviceStore').deviceStore?.readyPromise) {
-    await require('@/lib/auth/deviceStore').deviceStore.readyPromise;
+  
+  if (require('@/lib/auth/deviceStore').deviceStore) {
+    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
   }
   try {
     const body = await req.json().catch(() => ({}));
