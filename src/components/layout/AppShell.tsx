@@ -3,39 +3,65 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Shield, Activity, HardDrive, Key, List, LayoutDashboard, ShieldCheck, LogOut, Hexagon } from 'lucide-react';
+import { LogOut, Hexagon, Smartphone } from 'lucide-react';
 import { UserRole } from '@/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { PresentationMode } from '@/components/dashboard/PresentationMode';
 
-const navItems = [
-  { name: 'SOC', href: '/dashboard/soc', roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
-  { name: 'IDENTITY', href: '/identity', roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST, UserRole.MANAGER] },
-  { name: 'SENTINEL', href: '/security/sentinel', roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
-  { name: 'INCIDENTS', href: '/security/incidents', roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
-  { name: 'AUDIT', href: '/audit', roles: [UserRole.ADMIN, UserRole.AUDITOR, UserRole.SECURITY_ANALYST] },
-  { name: 'ASSETS', href: '/assets', roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.ENGINEER] },
-  { name: 'INFRASTRUCTURE', href: '/infrastructure', roles: [UserRole.ADMIN] },
+interface TopNavItem {
+  name: string;
+  href: string;
+  roles: UserRole[];
+}
+
+const navItems: TopNavItem[] = [
+  // Admin tabs
   { name: 'ADMIN', href: '/dashboard/admin', roles: [UserRole.ADMIN] },
+  { name: 'SOC', href: '/dashboard/soc', roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
+  { name: 'IDENTITY', href: '/identity', roles: [UserRole.ADMIN] },
+  { name: 'INFRASTRUCTURE', href: '/infrastructure', roles: [UserRole.ADMIN, UserRole.AUDITOR] },
+  { name: 'SENTINEL', href: '/security/sentinel', roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
+  
+  // Shared / User / Auditor tabs
+  { name: 'MY DATA', href: '/assets', roles: [UserRole.ADMIN, UserRole.USER, UserRole.MANAGER, UserRole.ENGINEER] },
+  { name: 'DEVICES', href: '/devices', roles: [UserRole.ADMIN, UserRole.USER] },
+  { name: 'AUDIT', href: '/audit', roles: [UserRole.ADMIN, UserRole.AUDITOR] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [role, setRole] = React.useState<UserRole>(UserRole.ENGINEER);
+  const [role, setRole] = React.useState<UserRole | null>(null);
+  const [userName, setUserName] = React.useState<string>('');
+  const [deviceName, setDeviceName] = React.useState<string>('');
 
   React.useEffect(() => {
     fetch('/api/auth/session')
       .then(res => res.json())
       .then(data => {
-        if (data?.session?.role) {
-          setRole(data.session.role);
+        if (data?.session) {
+          setRole(data.session.role || UserRole.USER);
+          setUserName(data.session.name || data.session.email || 'User');
+          setDeviceName(data.session.deviceName || 'Verified Terminal');
+        } else {
+          // If no session, fallback to User mode
+          setRole(UserRole.USER);
         }
       })
-      .catch(console.error);
+      .catch(() => {
+        setRole(UserRole.USER);
+      });
   }, []);
 
-  const filteredNav = navItems.filter((item) => item.roles.includes(role));
+  const activeRole = role || UserRole.USER;
+  const filteredNav = navItems.filter((item) => item.roles.includes(activeRole));
+
+  const handleDisconnect = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
+    window.location.href = '/login';
+  };
 
   return (
     <div className="flex min-h-[100dvh] w-full flex-col bg-zinc-950 text-zinc-100 font-sans">
@@ -52,23 +78,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="hidden md:flex items-center gap-2 border-l border-zinc-800 pl-6 text-[10px] font-mono tracking-widest text-zinc-400">
             <div className="h-1.5 w-1.5 rounded-full bg-cyan-500"></div>
-            SECURITY OPERATIONS
+            CRYPTOGRAPHIC IDENTITY SYSTEM
           </div>
         </div>
         
-        {/* CENTER: Navigation */}
+        {/* CENTER: Role-filtered Navigation */}
         <nav className="hidden lg:flex flex-1 items-center justify-center gap-1 px-6">
           {filteredNav.map((item) => {
-            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+            const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href + '/'));
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'px-4 py-1.5 text-xs font-mono tracking-widest transition-colors rounded-sm',
+                  'px-3.5 py-1 text-xs font-mono tracking-wider transition-colors rounded-sm',
                   isActive 
-                    ? 'bg-zinc-900 text-cyan-400 border border-zinc-800' 
-                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50'
+                    ? 'bg-zinc-900 text-cyan-400 border border-cyan-500/30' 
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
                 )}
               >
                 {item.name}
@@ -77,23 +103,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* RIGHT: Status & Logout */}
-        <div className="flex items-center gap-6 text-[10px] font-mono tracking-widest">
-          <div className="hidden sm:flex flex-col items-end">
-            <span className="text-zinc-500">NETWORK</span>
-            <span className="text-cyan-400">SEPOLIA</span>
+        {/* RIGHT: Session, Device & Disconnect */}
+        <div className="flex items-center gap-5 text-[10px] font-mono tracking-widest">
+          {deviceName && (
+            <div className="hidden sm:flex items-center gap-1.5 text-zinc-400 border border-zinc-800 px-2.5 py-1 rounded bg-zinc-900/50">
+              <Smartphone className="w-3 h-3 text-cyan-400" />
+              <span className="max-w-[120px] truncate">{deviceName}</span>
+            </div>
+          )}
+
+          <div className="flex flex-col items-end">
+            <span className="text-zinc-500 text-[9px]">ROLE</span>
+            <span className={cn(
+              "font-bold",
+              activeRole === UserRole.ADMIN ? "text-cyan-400" : activeRole === UserRole.AUDITOR ? "text-emerald-400" : "text-zinc-200"
+            )}>
+              {activeRole}
+            </span>
           </div>
-          <div className="hidden sm:flex flex-col items-end">
-            <span className="text-zinc-500">SESSION</span>
-            <span className="text-emerald-400">{role}</span>
-          </div>
+
           <div className="h-6 w-px bg-zinc-800"></div>
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10 text-[10px] font-mono tracking-widest h-8 px-3">
-              <LogOut className="h-3.5 w-3.5 mr-2" />
-              DISCONNECT
-            </Button>
-          </Link>
+
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleDisconnect}
+            className="text-zinc-400 hover:text-red-400 hover:bg-red-500/10 text-[10px] font-mono tracking-widest h-8 px-2.5"
+          >
+            <LogOut className="h-3.5 w-3.5 mr-1.5" />
+            DISCONNECT
+          </Button>
         </div>
       </header>
       

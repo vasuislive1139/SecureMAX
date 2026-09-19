@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { SignJWT } from 'jose';
 import crypto from 'crypto';
+import { deviceStore } from '@/lib/auth/deviceStore';
 import { UserRole } from '@/types';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
@@ -9,12 +10,31 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const role = (body.role as UserRole) || UserRole.ADMIN;
-    const userId = role === UserRole.ADMIN ? 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' : crypto.randomUUID();
-    const sessionId = crypto.randomUUID();
+    const requestedRole = (body.role as UserRole) || UserRole.ADMIN;
 
-    // Issue SecureMax session token
-    const sessionToken = await new SignJWT({ userId, role, sessionId })
+    let targetEmail = 'admin@securemax.mil';
+    if (requestedRole === UserRole.USER) targetEmail = 'vasu@securemax.mil';
+    if (requestedRole === UserRole.AUDITOR) targetEmail = 'auditor@securemax.mil';
+
+    const user = deviceStore.getUserByEmail(targetEmail);
+    if (!user) {
+      return NextResponse.json({ error: 'Demo user record not found' }, { status: 404 });
+    }
+
+    const devices = deviceStore.getDevicesForUser(user.id);
+    const activeDevice = devices[0] || null;
+
+    const sessionId = crypto.randomUUID();
+    const sessionToken = await new SignJWT({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      did: user.did,
+      deviceId: activeDevice?.id || 'dev_demo_session',
+      deviceName: activeDevice?.device_name || 'Verified Demo Terminal',
+      sessionId,
+    })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('8h')
@@ -25,12 +45,22 @@ export async function POST(req: Request) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 8 * 60 * 60 // 8 hours
+      maxAge: 8 * 60 * 60, // 8 hours
     });
 
-    return NextResponse.json({ success: true, role, user: { id: userId, role } });
-  } catch (error) {
-    console.error('Demo login error:', error);
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        did: user.did,
+        device: activeDevice ? { id: activeDevice.id, name: activeDevice.device_name } : null,
+      },
+    });
+  } catch (error: any) {
+    console.error('[Demo Login Error]:', error);
     return NextResponse.json({ error: 'Failed to create demo session' }, { status: 500 });
   }
 }

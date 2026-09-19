@@ -4,10 +4,31 @@
 
 export enum UserRole {
   ADMIN = 'ADMIN',
+  USER = 'USER',
+  AUDITOR = 'AUDITOR',
   MANAGER = 'MANAGER',
   ENGINEER = 'ENGINEER',
-  AUDITOR = 'AUDITOR',
   SECURITY_ANALYST = 'SECURITY_ANALYST',
+}
+
+export interface UserDevice {
+  id: string;
+  user_id: string;
+  device_name: string;
+  public_key: string; // Base64 SPKI
+  algorithm: 'ECDSA_P256';
+  status: 'ACTIVE' | 'REVOKED';
+  is_admin_device: boolean;
+  created_at: string;
+  last_used_at: string;
+  revoked_at?: string | null;
+}
+
+export interface DeviceEnrollment {
+  code: string;
+  user_id: string;
+  expires_at: string;
+  created_at: string;
 }
 
 export enum UserStatus {
@@ -340,6 +361,7 @@ export type Permission = keyof typeof PERMISSIONS;
 
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   [UserRole.ADMIN]: Object.keys(PERMISSIONS) as Permission[],
+  [UserRole.USER]: ['request_access', 'decrypt_assets', 'view_blockchain'],
   [UserRole.MANAGER]: [
     'register_assets', 'assign_assets', 'transfer_ownership',
     'request_access', 'approve_access', 'decrypt_assets', 'view_blockchain',
