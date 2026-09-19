@@ -9,7 +9,7 @@ import { UserRole, UserStatus } from '@/types';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'securemax-dev-jwt-secret-minimum-32-chars-long-secure-padding');
 
 /**
  * GET /api/admin/bootstrap

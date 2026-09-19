@@ -85,6 +85,8 @@ export async function POST(req: Request) {
       durationHours: 8,
     });
 
+    deviceStore.saveToDisk();
+
     // Issue SecureMAX 8-Hour Session Token
     const jwtSecret = getJwtSecret();
     const sessionToken = await new SignJWT({

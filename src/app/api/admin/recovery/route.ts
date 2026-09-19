@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { deviceStore } from '@/lib/auth/deviceStore';
 import { UserRole } from '@/types';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'securemax-dev-jwt-secret-minimum-32-chars-long-secure-padding');
 
 /**
  * POST /api/admin/recovery

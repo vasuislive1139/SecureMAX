@@ -2865,7 +2865,9 @@ class SecureMaxStore {
 
     // Check device type binding if specified
     if (capability.target_device_type && capability.target_device_type !== 'any' && deviceData.deviceType) {
-      if (capability.target_device_type.toLowerCase() !== deviceData.deviceType.toLowerCase()) {
+      const target = capability.target_device_type.toLowerCase();
+      const current = deviceData.deviceType.toLowerCase();
+      if (target !== current && !target.includes(current) && !current.includes(target)) {
         throw new Error(
           `Device type mismatch: This enrollment code is strictly bound to "${capability.target_device_type}", but attempting to register "${deviceData.deviceType}".`
         );

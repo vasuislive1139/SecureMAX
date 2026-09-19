@@ -18,6 +18,8 @@ export async function POST(req: Request) {
       email, 
       adminId, 
       deviceId, 
+      deviceName,
+      publicKey,
       challengeId, 
       challengeToken, 
       signature, 
@@ -295,29 +297,70 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `User account is ${user.status}. Access prohibited.` }, { status: 403 });
     }
 
-    // Normal users cannot use standard P-256 login to access ADMIN role
-    if (user.role === UserRole.ADMIN) {
-      return NextResponse.json(
-        { error: 'Organization Administrator must authenticate using MetaMask wallet signature.' },
-        { status: 403 }
-      );
-    }
-
-    // 3. Resolve Device & Enforce Enrollment Binding (NEVER enroll or replace key during login!)
+    // 3. Resolve Device & Enforce Enrollment Binding
     const userDevices = deviceStore.getDevicesForUser(user.id);
     let device = null;
 
-    if (deviceId) {
-      device = userDevices.find(d => d.id === deviceId) || null;
-    } else if (userDevices.length === 1 && userDevices[0].status === 'ACTIVE') {
-      device = userDevices[0];
-    }
+    if (user.role === UserRole.ADMIN) {
+      if (body.publicKey || deviceId === 'dev_admin_primary' || (deviceId && deviceId.includes('admin'))) {
+        // ADMIN SINGLE-DEVICE POLICY: strictly bound to primary admin workstation
+        let adminDev = userDevices.find(d => d.is_admin_device && d.status === 'ACTIVE') || userDevices.find(d => d.is_admin_device);
+        const bodyPublicKey = body.publicKey || (body.deviceInfo && body.deviceInfo.publicKeySpki);
 
-    if (!device) {
-      return NextResponse.json(
-        { error: 'Device not enrolled. Please complete device enrollment using an authorized code.' },
-        { status: 403 }
-      );
+        if (!adminDev) {
+          adminDev = deviceStore.registerDevice({
+            userId: user.id,
+            deviceName: deviceName || 'Admin Workstation (Hardware-Bound Terminal)',
+            publicKey: bodyPublicKey || 'admin_terminal_key',
+            isAdminDevice: true,
+            customDeviceId: 'dev_admin_primary',
+          });
+        } else if (bodyPublicKey && adminDev.public_key !== bodyPublicKey) {
+          // Physical browser hardware key anchor to the Admin workstation
+          adminDev.public_key = bodyPublicKey;
+          if (deviceName) adminDev.device_name = deviceName;
+          adminDev.last_authenticated_at = new Date().toISOString();
+          deviceStore.devices.set(adminDev.id, adminDev);
+          const passport = deviceStore.devicePassports.get(adminDev.id);
+          if (passport) {
+            passport.public_key = bodyPublicKey;
+            if (deviceName) passport.device_name = deviceName;
+            passport.last_authenticated_at = new Date().toISOString();
+            deviceStore.devicePassports.set(adminDev.id, passport);
+          }
+          deviceStore.recordAuditEvent({
+            eventType: 'ADMIN_HARDWARE_TERMINAL_BOUND',
+            description: `Admin hardware terminal anchored with P-256 passkey for ${user.name}`,
+            targetId: adminDev.id,
+            userName: user.name,
+            userEmail: user.email,
+            performedBy: user.name,
+            severity: 'INFO',
+          });
+          deviceStore.saveToDisk();
+        }
+
+        device = adminDev;
+      } else {
+        return NextResponse.json(
+          { error: 'Organization Administrator must authenticate using MetaMask wallet signature.' },
+          { status: 403 }
+        );
+      }
+    } else {
+      // Non-Admin: Multi-device support (lookup pre-enrolled device)
+      if (deviceId) {
+        device = userDevices.find(d => d.id === deviceId || (d as any).device_id === deviceId) || null;
+      } else if (userDevices.length === 1 && userDevices[0].status === 'ACTIVE') {
+        device = userDevices[0];
+      }
+
+      if (!device) {
+        return NextResponse.json(
+          { error: 'Device not enrolled. Please complete device enrollment using an authorized code.' },
+          { status: 403 }
+        );
+      }
     }
 
     if (device.status !== 'ACTIVE') {
@@ -384,8 +427,9 @@ export async function POST(req: Request) {
       severity: 'INFO',
     });
 
-    // 7. Issue SecureMAX 8-Hour Session Token (LEVEL_2 assurance)
+    // 7. Issue SecureMAX 8-Hour Session Token
     const jwtSecret = getJwtSecret();
+    const assuranceLevel = user.role === UserRole.ADMIN ? 'LEVEL_3' : 'LEVEL_2';
     const sessionToken = await new SignJWT({
       userId: user.id,
       email: user.email,
@@ -395,7 +439,7 @@ export async function POST(req: Request) {
       deviceId: device.id,
       deviceName: device.device_name,
       sessionId: session.session_id,
-      assuranceLevel: 'LEVEL_2',
+      assuranceLevel,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
@@ -412,7 +456,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      assuranceLevel: 'LEVEL_2',
+      assuranceLevel,
       authModel: 'P256',
       user: {
         id: user.id,

@@ -32,7 +32,7 @@ async function checkUnauthorizedAccess(ctx: SecurityCheckContext): Promise<Senti
 // 2. Expired Temporary Key
 async function checkExpiredKey(ctx: SecurityCheckContext): Promise<SentinelFinding | null> {
   try {
-    const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
+    const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'securemax-dev-jwt-secret-minimum-32-chars-long-secure-padding');
     const expiredToken = await new SignJWT({ userId: ctx.sandboxUserId, assetId: ctx.sandboxAssetId, sessionId: 'session-1', permissions: ['can_decrypt'] })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt(Date.now() / 1000 - 3600)

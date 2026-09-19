@@ -35,7 +35,7 @@ export async function GET() {
     const adminSessions = adminUser ? deviceStore.getSessionsForUser(adminUser.id) : [];
 
     const securityAlerts = deviceStore.getAuditEvents().filter(
-      a => a.severity === 'CRITICAL' || a.severity === 'WARNING' || a.event_type.includes('ALERT')
+      a => a.severity === 'CRITICAL' || a.severity === 'WARNING' || (a.event_type && a.event_type.includes('ALERT')) || ((a as any).eventType && (a as any).eventType.includes('ALERT'))
     );
 
     return NextResponse.json({
