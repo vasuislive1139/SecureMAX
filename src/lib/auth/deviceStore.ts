@@ -482,8 +482,12 @@ class SecureMaxStore {
     try {
       const filePath = this.getDbFilePath();
       const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      try {
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+      } catch (dirErr) {
+        // Expected in serverless read-only environments
       }
 
       const isTest = process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST);
@@ -549,6 +553,20 @@ class SecureMaxStore {
               }
             }
           }
+          if (Array.isArray(onDisk.assignments)) {
+            for (const a of onDisk.assignments) {
+              if (!this.assignments.some(assign => assign.asset_id === a.asset_id && assign.user_id === a.user_id)) {
+                this.assignments.push(a);
+              }
+            }
+          }
+          if (Array.isArray(onDisk.auditEvents)) {
+            for (const ae of onDisk.auditEvents) {
+              if (!this.auditEvents.some(evt => evt.id === ae.id)) {
+                this.auditEvents.push(ae);
+              }
+            }
+          }
         } catch {}
       }
 
@@ -577,8 +595,15 @@ class SecureMaxStore {
       };
 
       const tmpPath = `${filePath}.${Date.now()}.tmp`;
-      fs.writeFileSync(tmpPath, JSON.stringify(payload, null, 2), 'utf8');
-      fs.renameSync(tmpPath, filePath);
+      try {
+        fs.writeFileSync(tmpPath, JSON.stringify(payload, null, 2), 'utf8');
+        fs.renameSync(tmpPath, filePath);
+      } catch (fsErr) {
+        // Vercel serverless read-only filesystem error is expected here.
+        // We catch it so we can continue to the Supabase Cloud sync.
+        console.warn('[SecureMaxStore] Local disk write skipped (likely Vercel environment):', fsErr);
+      }
+      
       storeEvents.emit('change', { type: 'STATE_MUTATION', timestamp: Date.now() });
 
       // Asynchronously sync to Supabase Cloud Storage (non-blocking)
@@ -586,7 +611,7 @@ class SecureMaxStore {
         syncLedgerToSupabase(payload).catch(() => {});
       }
     } catch (err) {
-      console.error('[SecureMaxStore] Disk save error:', err);
+      console.error('[SecureMaxStore] Payload generation error:', err);
     }
   }
 
