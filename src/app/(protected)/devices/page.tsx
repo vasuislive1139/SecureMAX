@@ -93,7 +93,10 @@ export default function DevicesPage() {
   // Admin initiates enrollment for a selected user
   const handleAdminStartEnrollment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPersonnelId) return;
+    if (!selectedPersonnelId) {
+      setEnrollmentError('Please select a team member to issue a pairing token.');
+      return;
+    }
 
     setEnrollmentLoading(true);
     setEnrollmentError(null);
@@ -404,8 +407,9 @@ export default function DevicesPage() {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-lg bg-[#0a0f18] border border-cyan-500/40 rounded-3xl p-7 relative shadow-[0_0_60px_rgba(6,182,212,0.25)]">
             <button
+              type="button"
               onClick={() => setShowAdminEnrollModal(false)}
-              className="absolute top-5 right-5 text-zinc-400 hover:text-white"
+              className="absolute top-5 right-5 text-zinc-400 hover:text-white cursor-pointer select-none touch-manipulation"
             >
               <X className="w-5 h-5" />
             </button>
@@ -465,8 +469,8 @@ export default function DevicesPage() {
 
               <button
                 type="submit"
-                disabled={enrollmentLoading || !selectedPersonnelId}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                disabled={enrollmentLoading}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 select-none touch-manipulation active:opacity-90 mt-2"
               >
                 {enrollmentLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
                 GENERATE PAIRING TOKEN

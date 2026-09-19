@@ -96,3 +96,37 @@
   }
 }
 
+/* ========================================================================= */
+/* UNIVERSAL INSTANT-CLICK & BUTTON RESPONSIVENESS ENHANCEMENTS              */
+/* ========================================================================= */
+
+button,
+a,
+[role="button"],
+input[type="button"],
+input[type="submit"] {
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+}
+
+/* Prevent internal SVG icons, paths, and labels from intercepting or dropping mouseup/click events */
+button svg,
+button svg *,
+button span,
+a svg,
+a svg *,
+[role="button"] svg,
+[role="button"] svg * {
+  pointer-events: none !important;
+}
+
+/* Disabled button cursor state */
+button:disabled,
+button[disabled],
+[aria-disabled="true"] {
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+

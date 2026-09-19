@@ -36,7 +36,14 @@ export function QuickUserRegistrationCard() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+    if (!name.trim()) {
+      setErrorMessage('Please provide the full name for the new team member.');
+      return;
+    }
+    if (!email.trim()) {
+      setErrorMessage('Please provide an email address for the new team member.');
+      return;
+    }
 
     setLoading(true);
     setErrorMessage('');
@@ -153,8 +160,8 @@ export function QuickUserRegistrationCard() {
         <div className="md:col-span-2">
           <button
             type="submit"
-            disabled={loading || !name.trim() || !email.trim()}
-            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold text-xs tracking-wide shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 transition-all"
+            disabled={loading}
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold text-xs tracking-wide shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 transition-all select-none touch-manipulation active:opacity-90"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

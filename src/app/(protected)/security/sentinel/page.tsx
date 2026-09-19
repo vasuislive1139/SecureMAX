@@ -123,9 +123,10 @@ export default function SentinelPage() {
                 )}
 
                 <button 
+                  type="button"
                   disabled={isRunning}
                   onClick={() => runSimulation(tc)}
-                  className={`font-mono text-xs tracking-widest uppercase px-6 py-3 rounded flex items-center gap-2 transition-colors ${isActive ? 'bg-amber-500/10 text-amber-500 border border-amber-500/30 cursor-wait' : 'bg-zinc-100 text-zinc-950 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed'}`}
+                  className={`font-mono text-xs tracking-widest uppercase px-6 py-3 rounded flex items-center gap-2 transition-colors cursor-pointer select-none touch-manipulation active:opacity-90 ${isActive ? 'bg-amber-500/10 text-amber-500 border border-amber-500/30 cursor-wait' : 'bg-zinc-100 text-zinc-950 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed'}`}
                 >
                   {isActive ? (
                      <><Activity className="w-4 h-4 animate-spin" /> EXECUTING...</>

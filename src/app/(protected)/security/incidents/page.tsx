@@ -49,15 +49,16 @@ export default function IncidentsPage() {
                        </div>
                        <h3 className={`text-xl font-bold tracking-widest uppercase ${isContained ? 'text-zinc-300' : 'text-red-400'}`}>{incident.title}</h3>
                      </div>
-                     {!isContained && (
-                       <button 
-                         onClick={() => handleResolve(incident.id)}
-                         disabled={resolving === incident.id}
-                         className="font-mono text-[10px] tracking-widest uppercase px-6 py-3 rounded bg-zinc-100 text-zinc-950 hover:bg-white transition-colors flex items-center gap-2"
-                       >
-                         {resolving === incident.id ? 'CONTAINING...' : 'CONTAIN THREAT'}
-                       </button>
-                     )}
+                      {!isContained && (
+                        <button 
+                          type="button"
+                          onClick={() => handleResolve(incident.id)}
+                          disabled={resolving === incident.id}
+                          className="font-mono text-[10px] tracking-widest uppercase px-6 py-3 rounded bg-zinc-100 text-zinc-950 hover:bg-white transition-colors flex items-center gap-2 cursor-pointer select-none touch-manipulation active:opacity-90 disabled:opacity-50"
+                        >
+                          {resolving === incident.id ? 'CONTAINING...' : 'CONTAIN THREAT'}
+                        </button>
+                      )}
                    </div>
                 </div>
 

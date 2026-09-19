@@ -75,6 +75,10 @@ export default function AssetsPage() {
     setDecryptResult(null);
     setDecryptError(null);
 
+    setTimeout(() => {
+      document.getElementById('decryption-inspector')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 60);
+
     try {
       const res = await fetch('/api/assets/decrypt', {
         method: 'POST',
@@ -324,7 +328,7 @@ export default function AssetsPage() {
       {/* DECRYPTION INSPECTOR & KMS DECRYPT MODAL / RESULT     */}
       {/* ---------------------------------------------------- */}
       {decryptingAssetId && (
-        <Card className="border-cyan-500/40 bg-[#0a0a0c] shadow-2xl animate-in fade-in slide-in-from-bottom-4">
+        <Card id="decryption-inspector" className="border-cyan-500/40 bg-[#0a0a0c] shadow-2xl animate-in fade-in slide-in-from-bottom-4 scroll-mt-6">
           <CardHeader className="pb-3 border-b border-zinc-800 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base text-zinc-100 flex items-center gap-2">

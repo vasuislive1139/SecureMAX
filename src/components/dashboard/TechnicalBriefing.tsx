@@ -33,8 +33,9 @@ export function TechnicalBriefing({ onClose }: { onClose: () => void }) {
           {SECTIONS.map((sec, i) => (
             <button 
               key={sec}
+              type="button"
               onClick={() => setActiveIdx(i)}
-              className={`w-full text-left px-4 py-3 rounded text-xs font-mono tracking-widest uppercase transition-colors ${i === activeIdx ? 'bg-zinc-900 text-cyan-400 border border-zinc-800' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`w-full text-left px-4 py-3 rounded text-xs font-mono tracking-widest uppercase transition-colors cursor-pointer select-none touch-manipulation ${i === activeIdx ? 'bg-zinc-900 text-cyan-400 border border-zinc-800' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
               {sec}
             </button>
@@ -44,7 +45,11 @@ export function TechnicalBriefing({ onClose }: { onClose: () => void }) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col relative overflow-hidden bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-zinc-900/50 via-transparent to-transparent">
-        <button onClick={onClose} className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-900 transition-colors z-10 border border-transparent hover:border-zinc-800 text-zinc-500 hover:text-zinc-300">
+        <button 
+          type="button"
+          onClick={onClose} 
+          className="absolute top-6 right-6 p-2 rounded-full hover:bg-zinc-900 transition-colors z-10 border border-transparent hover:border-zinc-800 text-zinc-500 hover:text-zinc-300 cursor-pointer select-none touch-manipulation"
+        >
           <X className="w-5 h-5" />
         </button>
 

@@ -70,14 +70,12 @@ export default function SecureMaxHeroLogin() {
     }
   };
 
-  // Initialize or discover client P-256 key on mount
+  // Initialize or discover client P-256 key once on mount
   useEffect(() => {
-    if (email) {
-      getOrCreateLocalDeviceKey('Primary Client Device', email)
-        .then(dev => setDeviceInfo(dev))
-        .catch(err => console.error('P-256 Web Crypto Init:', err));
-    }
-  }, [email]);
+    getOrCreateLocalDeviceKey('Primary Client Device', 'user@securemax.mil')
+      .then(dev => setDeviceInfo(dev))
+      .catch(err => console.error('P-256 Web Crypto Init:', err));
+  }, []);
 
   // ----------------------------------------------------
   // PRIMARY LOGIN (Connect button: "Login ->")
@@ -197,7 +195,10 @@ export default function SecureMaxHeroLogin() {
   // ----------------------------------------------------
   const handleCompleteEnrollment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!enrollCode.trim()) return;
+    if (!enrollCode.trim()) {
+      setErrorMessage('Please enter the one-time enrollment code provided by your administrator.');
+      return;
+    }
 
     setEnrollLoading(true);
     setErrorMessage('');
@@ -500,7 +501,7 @@ export default function SecureMaxHeroLogin() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:opacity-90 touch-manipulation select-none"
               >
                 <span>Login</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
@@ -597,7 +598,7 @@ export default function SecureMaxHeroLogin() {
       {/* ==================================================================== */}
       {/* RIGHT VERTICAL INDICATOR DOTS                                       */}
       {/* ==================================================================== */}
-      <div className="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 flex-col gap-6 z-20 text-[9px] font-mono tracking-widest text-cyan-400/80 select-none">
+      <div className="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 flex-col gap-6 z-20 text-[9px] font-mono tracking-widest text-cyan-400/80 select-none pointer-events-none">
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4]"></div>
           <span>SECURE PEOPLE</span>
@@ -633,8 +634,9 @@ export default function SecureMaxHeroLogin() {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-[#0a0f18] border border-cyan-500/40 rounded-3xl p-6 relative shadow-[0_0_50px_rgba(6,182,212,0.3)]">
             <button
+              type="button"
               onClick={() => setShowEnrollModal(false)}
-              className="absolute top-5 right-5 text-zinc-400 hover:text-white"
+              className="absolute top-5 right-5 text-zinc-400 hover:text-white cursor-pointer select-none touch-manipulation"
             >
               <X className="w-5 h-5" />
             </button>
@@ -685,8 +687,8 @@ export default function SecureMaxHeroLogin() {
 
               <button
                 type="submit"
-                disabled={enrollLoading || !enrollCode.trim()}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                disabled={enrollLoading}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 select-none touch-manipulation active:opacity-90"
               >
                 {enrollLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Laptop className="w-4 h-4" />}
                 REGISTER HARDWARE ENCLAVE KEY
