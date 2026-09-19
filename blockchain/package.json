@@ -4,7 +4,7 @@
   "description": "DID, Identity Registry, and Smart Contracts for Blockchain Platform",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test",
+    "test": "HARDHAT_TELEMETRY_OPTOUT=true hardhat test",
     "deploy:local": "hardhat run scripts/deploy-identity.ts --network localhost",
     "deploy:hardhat": "hardhat run scripts/deploy-identity.ts",
     "export-abi": "hardhat run scripts/export-abi.ts"

@@ -46,7 +46,6 @@ async function main() {
   if (!fs.existsSync(frontendContractsDir)) {
     fs.mkdirSync(frontendContractsDir, { recursive: true });
   }
-
   fs.writeFileSync(
     path.join(frontendContractsDir, "addresses.json"),
     JSON.stringify(addresses, null, 2)
@@ -56,13 +55,31 @@ async function main() {
   if (!fs.existsSync(backendContractsDir)) {
     fs.mkdirSync(backendContractsDir, { recursive: true });
   }
-
   fs.writeFileSync(
     path.join(backendContractsDir, "addresses.json"),
     JSON.stringify(addresses, null, 2)
   );
+  
+  const blockchainDeploymentsDir = path.join(__dirname, "../deployments");
+  if (!fs.existsSync(blockchainDeploymentsDir)) {
+    fs.mkdirSync(blockchainDeploymentsDir, { recursive: true });
+  }
+  fs.writeFileSync(
+    path.join(blockchainDeploymentsDir, "master-deployment.json"),
+    JSON.stringify(
+      {
+        deployer: deployer.address,
+        network: (await ethers.provider.getNetwork()).name,
+        chainId: (await ethers.provider.getNetwork()).chainId.toString(),
+        deployedAt: new Date().toISOString(),
+        contracts: addresses,
+      },
+      null,
+      2
+    )
+  );
 
-  console.log("✅ Contract addresses exported to frontend and backend for Ritik & Vaani integration.");
+  console.log("✅ Contract addresses exported to frontend, backend, and deployments directory.");
 }
 
 main()
