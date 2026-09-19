@@ -120,6 +120,7 @@ export interface RootAdminBootstrapParams {
   publicKey: string;
   credentialId?: string;
   bootstrapSecret?: string;
+  adminWallet?: string;
 }
 
 export interface AdminRecoveryVault {
@@ -133,6 +134,7 @@ export interface AdminRecoveryVault {
 export interface SystemSettings {
   admin_initialized: boolean;
   bootstrap_enabled: boolean;
+  admin_wallet?: string;
   system_state: 'UNINITIALIZED' | 'BOOTSTRAP_OPEN' | 'ADMIN_CREATED' | 'SYSTEM_LOCKED';
   organization?: {
     name: string;
@@ -202,7 +204,7 @@ export interface StoredDeviceSession {
   created_at: string;
   last_activity_at: string;
   expires_at: string;
-  authentication_level: 'PASSKEY' | 'WEBAUTHN' | 'P256' | AssuranceLevel;
+  authentication_level: 'PASSKEY' | 'WEBAUTHN' | 'P256' | 'METAMASK' | AssuranceLevel;
   status: 'ACTIVE' | 'REVOKED' | 'EXPIRED';
 }
 
@@ -326,6 +328,23 @@ export enum AuditEventType {
   BREAK_GLASS_GRANTED = 'BREAK_GLASS_GRANTED',
   BREAK_GLASS_DENIED = 'BREAK_GLASS_DENIED',
   TOKEN_REPLAY_ATTEMPT = 'TOKEN_REPLAY_ATTEMPT',
+  ADMIN_LOGIN_SUCCESS = 'ADMIN_LOGIN_SUCCESS',
+  ADMIN_LOGIN_FAILURE = 'ADMIN_LOGIN_FAILURE',
+  USER_LOGIN_SUCCESS = 'USER_LOGIN_SUCCESS',
+  USER_LOGIN_FAILURE = 'USER_LOGIN_FAILURE',
+  ENROLLMENT_CREATED = 'ENROLLMENT_CREATED',
+  ENROLLMENT_USED = 'ENROLLMENT_USED',
+  ENROLLMENT_FAILED = 'ENROLLMENT_FAILED',
+  CREDENTIAL_REGISTERED = 'CREDENTIAL_REGISTERED',
+  CREDENTIAL_REVOKED = 'CREDENTIAL_REVOKED',
+  SESSION_CREATED = 'SESSION_CREATED',
+  SESSION_REVOKED = 'SESSION_REVOKED',
+  USER_SUSPENDED = 'USER_SUSPENDED',
+  USER_REACTIVATED = 'USER_REACTIVATED',
+  ASSET_CREATED = 'ASSET_CREATED',
+  ASSET_ALLOCATED = 'ASSET_ALLOCATED',
+  UNAUTHORIZED_OPERATION = 'UNAUTHORIZED_OPERATION',
+  KYC_STATUS_CHANGED = 'KYC_STATUS_CHANGED',
 }
 
 export enum ChainType {

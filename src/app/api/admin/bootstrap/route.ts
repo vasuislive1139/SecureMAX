@@ -63,6 +63,7 @@ export async function POST(req: Request) {
       publicKey,
       credentialId,
       bootstrapSecret,
+      adminWallet,
     } = body;
 
     // Strict validation
@@ -93,6 +94,7 @@ export async function POST(req: Request) {
       publicKey: String(publicKey).trim(),
       credentialId: credentialId ? String(credentialId).trim() : undefined,
       bootstrapSecret: bootstrapSecret ? String(bootstrapSecret).trim() : undefined,
+      adminWallet: adminWallet ? String(adminWallet).trim().toLowerCase() : undefined,
     });
 
     // Issue SecureMAX 8-Hour Root Admin Session with LEVEL 3 assurance

@@ -8,14 +8,27 @@ export const revalidate = 0;
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const identifier = (body.identifier || body.email || body.userId || 'demo-client').toLowerCase().trim();
+    const type: 'P256' | 'ETHEREUM' = (body.type === 'ETHEREUM' || body.type === 'METAMASK' || body.walletAddress) ? 'ETHEREUM' : 'P256';
+    const walletAddress = body.walletAddress ? String(body.walletAddress).toLowerCase().trim() : undefined;
+    const identifier = (walletAddress || body.identifier || body.email || body.userId || (type === 'ETHEREUM' ? 'admin' : 'client')).toLowerCase().trim();
 
-    const challenge = createChallenge(identifier, 120);
+    const record = deviceStore.createChallengeRecord({
+      identifier,
+      type,
+      walletAddress,
+      userId: body.userId,
+      deviceId: body.deviceId,
+      ttlSeconds: 120, // 2-minute short-lived challenge
+    });
 
-    // Cache challenge in deviceStore for rapid lookup
-    deviceStore.challengeCache.set(challenge.challengeId, challenge);
-
-    return NextResponse.json(challenge, {
+    return NextResponse.json({
+      challengeId: record.challengeId,
+      challengeToken: record.nonce,
+      nonce: record.nonce,
+      message: record.message,
+      expiresAt: record.expiresAt,
+      type: record.type,
+    }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
@@ -29,12 +42,26 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const identifier = (searchParams.get('identifier') || searchParams.get('email') || 'demo-client').toLowerCase().trim();
+    const typeParam = searchParams.get('type')?.toUpperCase();
+    const type: 'P256' | 'ETHEREUM' = (typeParam === 'ETHEREUM' || typeParam === 'METAMASK' || searchParams.get('walletAddress')) ? 'ETHEREUM' : 'P256';
+    const walletAddress = searchParams.get('walletAddress')?.toLowerCase().trim();
+    const identifier = (walletAddress || searchParams.get('identifier') || searchParams.get('email') || (type === 'ETHEREUM' ? 'admin' : 'client')).toLowerCase().trim();
 
-    const challenge = createChallenge(identifier, 120);
-    deviceStore.challengeCache.set(challenge.challengeId, challenge);
+    const record = deviceStore.createChallengeRecord({
+      identifier,
+      type,
+      walletAddress,
+      ttlSeconds: 120,
+    });
 
-    return NextResponse.json(challenge, {
+    return NextResponse.json({
+      challengeId: record.challengeId,
+      challengeToken: record.nonce,
+      nonce: record.nonce,
+      message: record.message,
+      expiresAt: record.expiresAt,
+      type: record.type,
+    }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate',
       },

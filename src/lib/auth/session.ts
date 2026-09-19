@@ -64,11 +64,15 @@ export async function getVerifiedSession(): Promise<SessionPayload> {
     }
   }
 
-  // Zero-Trust Live User Account Verification
+  // Zero-Trust Live User Account Verification & Authoritative Role Freshness
   if (payload.userId) {
     const user = deviceStore.getUserById(payload.userId);
-    if (user && user.status !== UserStatus.ACTIVE) {
-      throw new Error(`Unauthorized: User account is ${user.status}. Access denied.`);
+    if (user) {
+      if (user.status !== UserStatus.ACTIVE) {
+        throw new Error(`Unauthorized: User account is ${user.status}. Access denied.`);
+      }
+      // Authoritative live role from server-side state (never trust stale JWT role alone)
+      payload.role = user.role;
     }
   }
 

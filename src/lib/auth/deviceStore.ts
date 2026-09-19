@@ -32,6 +32,22 @@ export interface StoredUser {
   did: string;
   default_access_policy?: 'PRIVATE' | 'ORGANIZATION';
   created_at: string;
+  admin_wallet?: string;
+}
+
+export interface StoredChallenge {
+  challengeId: string;
+  identifier: string;
+  nonce: string;
+  message: string;
+  type: 'P256' | 'ETHEREUM';
+  walletAddress?: string;
+  userId?: string;
+  deviceId?: string;
+  expiresAt: string;
+  consumed: boolean;
+  consumedAt?: string;
+  createdAt: string;
 }
 
 export interface AssetVersion {
@@ -269,6 +285,8 @@ class SecureMaxStore {
   public auditEvents: StoredAuditEvent[] = [];
   public wrappedDEKs: Map<string, { cipher: string; iv: string; authTag: string }> = new Map();
   public challengeCache: Map<string, { challengeId: string; identifier: string; nonce: string; message: string; expiresAt: string }> = new Map();
+  public challenges: Map<string, StoredChallenge> = new Map();
+  public adminWallet: string = (process.env.ADMIN_WALLET || '0x7FfdbB7868C127152F2007a6025FF15A5723CE08').toLowerCase();
 
   // Root Admin & System Bootstrap Settings
   public systemSettings: SystemSettings = {
@@ -323,6 +341,8 @@ class SecureMaxStore {
         devicePassports: Array.from(this.devicePassports.values()),
         systemSettings: this.systemSettings,
         recoveryVault: this.recoveryVault,
+        adminWallet: this.adminWallet,
+        challenges: Array.from(this.challenges.values()).filter(c => !c.consumed && new Date(c.expiresAt).getTime() > Date.now()),
         updatedAt: new Date().toISOString(),
       };
 
@@ -429,6 +449,26 @@ class SecureMaxStore {
         this.recoveryVault = parsed.recoveryVault;
       }
 
+      if (parsed.adminWallet) {
+        this.adminWallet = parsed.adminWallet.toLowerCase();
+      }
+
+      if (Array.isArray(parsed.challenges)) {
+        this.challenges.clear();
+        for (const c of parsed.challenges) {
+          if (!c.consumed && new Date(c.expiresAt).getTime() > Date.now()) {
+            this.challenges.set(c.challengeId, c);
+            this.challengeCache.set(c.challengeId, {
+              challengeId: c.challengeId,
+              identifier: c.identifier,
+              nonce: c.nonce,
+              message: c.message,
+              expiresAt: c.expiresAt,
+            });
+          }
+        }
+      }
+
       return true;
     } catch (err) {
       console.error('[SecureMaxStore] Disk load error:', err);
@@ -443,6 +483,9 @@ class SecureMaxStore {
     this.enrollments.clear();
     this.sessions.clear();
     this.devicePassports.clear();
+    this.challenges.clear();
+    this.challengeCache.clear();
+    this.adminWallet = (process.env.ADMIN_WALLET || '0x7FfdbB7868C127152F2007a6025FF15A5723CE08').toLowerCase();
     this.assets.clear();
     this.assignments = [];
     this.accessRequests = [];
@@ -528,6 +571,7 @@ class SecureMaxStore {
       status: UserStatus.ACTIVE,
       did: 'did:securemax:admin:001',
       created_at: '2026-09-01T00:00:00.000Z',
+      admin_wallet: this.adminWallet,
     };
     this.users.set(adminUser.id, adminUser);
     this.users.set(adminUser.email, adminUser);
@@ -535,6 +579,7 @@ class SecureMaxStore {
     this.systemSettings = {
       admin_initialized: true,
       bootstrap_enabled: false,
+      admin_wallet: this.adminWallet,
       system_state: 'SYSTEM_LOCKED',
       organization: {
         name: 'SecureMAX Defense Vault Command',
@@ -1734,6 +1779,8 @@ class SecureMaxStore {
     const adminId = params.adminId?.trim() || 'ADM-0001';
     const orgId = params.orgId?.trim() || 'ORG-' + crypto.randomBytes(3).toString('hex').toUpperCase();
 
+    const adminWallet = (params.adminWallet || this.adminWallet || process.env.ADMIN_WALLET || '0x7FfdbB7868C127152F2007a6025FF15A5723CE08').toLowerCase();
+
     const adminUser: StoredUser = {
       id: adminId,
       name: params.adminName.trim(),
@@ -1745,9 +1792,12 @@ class SecureMaxStore {
       status: UserStatus.ACTIVE,
       did: `did:securemax:admin:${adminId.toLowerCase()}`,
       created_at: new Date().toISOString(),
+      admin_wallet: adminWallet,
     };
     this.users.set(adminUser.id, adminUser);
     this.users.set(adminUser.email, adminUser);
+    this.adminWallet = adminWallet;
+    this.systemSettings.admin_wallet = adminWallet;
 
     // 6. Create Singleton Admin Device
     const deviceId = 'DEV-ADMIN-001';
@@ -2138,6 +2188,126 @@ class SecureMaxStore {
         },
       });
     }
+  }
+
+  // --- CRYPTOGRAPHIC CHALLENGE MANAGEMENT ---
+  public createChallengeRecord(params: {
+    identifier: string;
+    type?: 'P256' | 'ETHEREUM';
+    walletAddress?: string;
+    userId?: string;
+    deviceId?: string;
+    ttlSeconds?: number;
+    customMessage?: string;
+  }): StoredChallenge {
+    const challengeId = 'chal_' + crypto.randomUUID().replace(/-/g, '');
+    const nonce = crypto.randomBytes(32).toString('hex');
+    const type = params.type || 'P256';
+    const ttl = params.ttlSeconds || 120; // 2 minutes standard
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + ttl * 1000).toISOString();
+
+    let message: string;
+    if (params.customMessage) {
+      message = params.customMessage;
+    } else if (type === 'ETHEREUM') {
+      const wallet = (params.walletAddress || params.identifier).toLowerCase();
+      message = `SecureMAX Administrator Authentication\nWallet: ${wallet}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpires At: ${expiresAt}`;
+    } else {
+      message = `SecureMAX Zero-Trust Challenge\nIdentifier: ${params.identifier.toLowerCase()}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpires At: ${expiresAt}`;
+    }
+
+    const record: StoredChallenge = {
+      challengeId,
+      identifier: params.identifier.toLowerCase(),
+      nonce,
+      message,
+      type,
+      walletAddress: params.walletAddress ? params.walletAddress.toLowerCase() : undefined,
+      userId: params.userId,
+      deviceId: params.deviceId,
+      expiresAt,
+      consumed: false,
+      createdAt: now.toISOString(),
+    };
+
+    this.challenges.set(challengeId, record);
+    this.challengeCache.set(challengeId, {
+      challengeId,
+      identifier: record.identifier,
+      nonce,
+      message,
+      expiresAt,
+    });
+
+    this.saveToDisk();
+    return record;
+  }
+
+  public getChallenge(challengeId: string): StoredChallenge | null {
+    let ch = this.challenges.get(challengeId);
+    if (!ch) {
+      const cached = this.challengeCache.get(challengeId);
+      if (cached) {
+        ch = {
+          challengeId: cached.challengeId,
+          identifier: cached.identifier,
+          nonce: cached.nonce,
+          message: cached.message,
+          type: 'P256',
+          expiresAt: cached.expiresAt,
+          consumed: false,
+          createdAt: new Date().toISOString(),
+        };
+        this.challenges.set(challengeId, ch);
+      }
+    }
+    return ch || null;
+  }
+
+  public consumeChallenge(challengeId: string): { valid: boolean; challenge?: StoredChallenge; error?: string } {
+    let ch = this.challenges.get(challengeId);
+    if (!ch) {
+      const cached = this.challengeCache.get(challengeId);
+      if (cached) {
+        ch = {
+          challengeId: cached.challengeId,
+          identifier: cached.identifier,
+          nonce: cached.nonce,
+          message: cached.message,
+          type: 'P256',
+          expiresAt: cached.expiresAt,
+          consumed: false,
+          createdAt: new Date().toISOString(),
+        };
+        this.challenges.set(challengeId, ch);
+      }
+    }
+    if (!ch) {
+      return { valid: false, error: 'Challenge not found or invalid' };
+    }
+
+    if (ch.consumed) {
+      return { valid: false, error: 'Challenge has already been consumed (replay prevention)' };
+    }
+
+    if (new Date(ch.expiresAt).getTime() < Date.now()) {
+      return { valid: false, error: 'Challenge has expired' };
+    }
+
+    ch.consumed = true;
+    ch.consumedAt = new Date().toISOString();
+    this.challengeCache.delete(challengeId);
+    this.saveToDisk();
+
+    return { valid: true, challenge: ch };
+  }
+
+  public getAdminWallet(): string {
+    if (this.systemSettings.admin_wallet) return this.systemSettings.admin_wallet.toLowerCase();
+    const adminUser = this.getUserById(this.systemSettings.root_admin_id || 'usr_admin_001') || this.getUserByEmail('admin@securemax.mil');
+    if (adminUser && adminUser.admin_wallet) return adminUser.admin_wallet.toLowerCase();
+    return this.adminWallet.toLowerCase();
   }
 
   // --- DEVICE MANAGEMENT ---
@@ -3112,7 +3282,7 @@ class SecureMaxStore {
     userId: string;
     deviceId: string;
     position?: string;
-    authLevel?: 'PASSKEY' | 'WEBAUTHN' | 'P256';
+    authLevel?: 'PASSKEY' | 'WEBAUTHN' | 'P256' | 'METAMASK';
     durationHours?: number;
   }): StoredDeviceSession {
     const user = this.getUserById(params.userId);

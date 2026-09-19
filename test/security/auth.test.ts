@@ -102,7 +102,7 @@ describe('SecureMAX P-256 Zero-Trust Authentication Architecture Overhaul', () =
       const replayRes = await authLogin(replayReq);
       expect(replayRes.status).toBe(400);
       const body = await replayRes.json();
-      expect(body.error).toContain('Cryptographic challenge expired or invalid');
+      expect(body.error).toMatch(/already been consumed|expired or invalid/);
     });
   });
 
@@ -202,7 +202,7 @@ describe('SecureMAX P-256 Zero-Trust Authentication Architecture Overhaul', () =
       const res = await authLogin(req);
       expect(res.status).toBe(403);
       const body = await res.json();
-      expect(body.error).toContain('Non-primary device attempted administrative login');
+      expect(body.error).toMatch(/Organization Administrator must authenticate using MetaMask|Non-primary device attempted administrative login/);
     });
   });
 

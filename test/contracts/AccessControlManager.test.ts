@@ -131,6 +131,26 @@ describe("AccessControlManager (Person 3 - RBAC & Authorization)", function () {
         rbacManager.connect(admin).assignRole(MANAGER_ROLE, user1.address)
       ).to.be.revertedWithCustomError(rbacManager, "IdentityNotActive");
     });
+
+    it("should return false for role queries when identity is suspended, but retain role record and return true when reactivated", async function () {
+      // 1. Assign MANAGER_ROLE while user is active
+      await rbacManager.connect(admin).assignRole(MANAGER_ROLE, user1.address);
+      expect(await rbacManager.isManager(user1.address)).to.be.true;
+      expect(await rbacManager.hasRole(MANAGER_ROLE, user1.address)).to.be.true;
+
+      // 2. Suspend user identity in IdentityRegistry
+      await identityRegistry.connect(admin).updateIdentityStatus("did:assetchain:user4", 2); // Suspended
+
+      // 3. Role record remains in AccessControl, but authorization check isManager() fails
+      expect(await rbacManager.hasRole(MANAGER_ROLE, user1.address)).to.be.true;
+      expect(await rbacManager.isManager(user1.address)).to.be.false;
+
+      // 4. Reactivate user identity in IdentityRegistry
+      await identityRegistry.connect(admin).updateIdentityStatus("did:assetchain:user4", 1); // Active
+
+      // 5. Role becomes effective again
+      expect(await rbacManager.isManager(user1.address)).to.be.true;
+    });
   });
 
   describe("Role Assignment Security & Validations", function () {

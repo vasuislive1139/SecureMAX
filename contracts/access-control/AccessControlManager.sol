@@ -189,39 +189,39 @@ contract AccessControlManager is AccessControlEnumerable, Pausable, IRBACRegistr
     }
 
     /**
-     * @notice Checks if an account has the ADMIN role.
+     * @notice Checks if an account has the ADMIN role and has an active identity.
      * @param account Address to inspect
-     * @return bool True if account is an active administrator
+     * @return bool True if account is an active administrator with an active identity
      */
     function isAdmin(address account) public view override returns (bool) {
-        return hasRole(ADMIN_ROLE, account) || hasRole(DEFAULT_ADMIN_ROLE, account);
+        return (hasRole(ADMIN_ROLE, account) || hasRole(DEFAULT_ADMIN_ROLE, account)) && identityRegistry.isIdentityActive(account);
     }
 
     /**
-     * @notice Checks if an account has the MANAGER role.
+     * @notice Checks if an account has the MANAGER role and has an active identity.
      * @param account Address to inspect
-     * @return bool True if account is an active manager
+     * @return bool True if account is an active manager with an active identity
      */
     function isManager(address account) external view override returns (bool) {
-        return hasRole(MANAGER_ROLE, account);
+        return hasRole(MANAGER_ROLE, account) && identityRegistry.isIdentityActive(account);
     }
 
     /**
-     * @notice Checks if an account has the AUDITOR role.
+     * @notice Checks if an account has the AUDITOR role and has an active identity.
      * @param account Address to inspect
-     * @return bool True if account is an active auditor
+     * @return bool True if account is an active auditor with an active identity
      */
     function isAuditor(address account) external view override returns (bool) {
-        return hasRole(AUDITOR_ROLE, account);
+        return hasRole(AUDITOR_ROLE, account) && identityRegistry.isIdentityActive(account);
     }
 
     /**
-     * @notice Checks if an account has the USER role.
+     * @notice Checks if an account has the USER role and has an active identity.
      * @param account Address to inspect
-     * @return bool True if account is an active registered user
+     * @return bool True if account is an active registered user with an active identity
      */
     function isUser(address account) external view returns (bool) {
-        return hasRole(USER_ROLE, account);
+        return hasRole(USER_ROLE, account) && identityRegistry.isIdentityActive(account);
     }
 
     /**

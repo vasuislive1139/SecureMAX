@@ -24,7 +24,8 @@ import {
   ShieldCheck,
   UserPlus,
   Briefcase,
-  Settings
+  Settings,
+  Wallet
 } from 'lucide-react';
 import { 
   getOrCreateLocalDeviceKey, 
@@ -80,14 +81,33 @@ export default function SecureMaxHeroLogin() {
     checkBootstrapState();
   }, []);
 
-  // Auth Mode: Sign In vs Register
-  const [authMode, setAuthMode] = useState<'SIGN_IN' | 'REGISTER'>('SIGN_IN');
+  // Auth Mode: Admin (MetaMask) vs Team Member (P-256) vs Device Enrollment (15-Min Code)
+  const [authMode, setAuthMode] = useState<'ADMIN_METAMASK' | 'TEAM_MEMBER' | 'ENROLL_DEVICE'>('TEAM_MEMBER');
 
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
 
-  // Self-Registration State
+  // MetaMask Detection & Status
+  const [hasMetaMask, setHasMetaMask] = useState<boolean>(false);
+  const [metaMaskAccount, setMetaMaskAccount] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const eth = (window as any).ethereum;
+      if (eth) {
+        setHasMetaMask(true);
+        // Check if already connected
+        eth.request({ method: 'eth_accounts' })
+          .then((accounts: string[]) => {
+            if (accounts && accounts.length > 0) {
+              setMetaMaskAccount(accounts[0]);
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, []);
+
+  // Self-Registration / Enrollment State
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regRole, setRegRole] = useState<'USER' | 'MANAGER' | 'AUDITOR'>('USER');
@@ -175,7 +195,88 @@ export default function SecureMaxHeroLogin() {
   }, [email]);
 
   // ----------------------------------------------------
-  // ZERO-TRUST LOGIN: Role and Permissions Determined by Identity & Hardware
+  // MODEL A: ORGANIZATION ADMINISTRATOR (METAMASK EIP-191)
+  // ----------------------------------------------------
+  const handleMetaMaskAdminLogin = async () => {
+    setErrorMessage('');
+    setLoading(true);
+    setStatusMessage('Connecting to MetaMask wallet...');
+
+    try {
+      if (typeof window === 'undefined' || !(window as any).ethereum) {
+        throw new Error('MetaMask wallet extension not detected. Please install MetaMask to authenticate as Organization Administrator.');
+      }
+
+      const ethereum = (window as any).ethereum;
+
+      // 1. Request account access
+      setStatusMessage('Requesting MetaMask account access...');
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No Ethereum account selected in MetaMask.');
+      }
+      const walletAddress = accounts[0].toLowerCase();
+      setMetaMaskAccount(walletAddress);
+
+      // 2. Request cryptographic challenge for this wallet
+      setStatusMessage('Requesting administrative authentication challenge...');
+      const challengeRes = await fetch('/api/auth/challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'ETHEREUM',
+          walletAddress,
+        }),
+      });
+
+      if (!challengeRes.ok) {
+        const errData = await challengeRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to request admin challenge');
+      }
+
+      const challenge = await challengeRes.json();
+
+      // 3. Request EIP-191 personal_sign from MetaMask
+      setStatusMessage('Please sign the cryptographic challenge in MetaMask...');
+      const signature = await ethereum.request({
+        method: 'personal_sign',
+        params: [challenge.message, walletAddress],
+      });
+
+      // 4. Submit to /api/auth/login
+      setStatusMessage('Verifying cryptographic proof of wallet ownership...');
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress,
+          challengeId: challenge.challengeId,
+          signature,
+          authType: 'METAMASK',
+        }),
+      });
+
+      const result = await loginRes.json().catch(() => ({}));
+      if (!loginRes.ok) {
+        throw new Error(result.error || 'Admin authentication failed');
+      }
+
+      setStatusMessage('Administrator verified! Redirecting to Root Admin Dashboard...');
+      router.push('/dashboard/admin');
+    } catch (err: any) {
+      console.error('MetaMask Admin Login Error:', err);
+      if (err?.code === 4001) {
+        setErrorMessage('MetaMask signature request was rejected by user.');
+      } else {
+        setErrorMessage(err.message || 'MetaMask authentication failed');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ----------------------------------------------------
+  // MODEL B: NORMAL USER LOGIN (ENROLLED P-256 DEVICE KEY)
   // ----------------------------------------------------
   const handlePrimaryLogin = async (e?: React.FormEvent, overrideEmail?: string, overrideDevice?: ClientDeviceInfo) => {
     if (e) e.preventDefault();
@@ -188,19 +289,23 @@ export default function SecureMaxHeroLogin() {
     }
 
     setLoading(true);
-    setStatusMessage('Initiating zero-trust cryptographic verification...');
+    setStatusMessage('Accessing local cryptographic credential (ECDSA P-256)...');
 
     try {
-      // 1. Try hardware P-256 challenge-response first
+      // 1. Retrieve or initialize local hardware P-256 key
       const dev = overrideDevice || deviceInfo || await getOrCreateLocalDeviceKey('Local Workstation', targetEmail);
       setDeviceInfo(dev);
 
-      // 2. Request high-entropy challenge
-      setStatusMessage('Requesting challenge from server...');
+      // 2. Request single-use cryptographic challenge from server
+      setStatusMessage('Requesting cryptographic challenge from server...');
       const challengeRes = await fetch('/api/auth/challenge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: targetEmail }),
+        body: JSON.stringify({ 
+          identifier: targetEmail,
+          type: 'P256',
+          deviceId: dev.deviceId 
+        }),
       });
 
       if (!challengeRes.ok) {
@@ -210,20 +315,18 @@ export default function SecureMaxHeroLogin() {
 
       const challenge = await challengeRes.json();
 
-      // 3. Sign challenge with local device credential
+      // 3. Sign challenge with local private key using Web Crypto API
       setStatusMessage('Signing challenge with Cryptographic Device Credential (ECDSA P-256)...');
       const signature = await signChallengeWithLocalKey(challenge.message);
 
-      // 4. Verify on server
-      setStatusMessage('Verifying cryptographic signature on-chain...');
+      // 4. Verify on server: server checks against registered database public key (NO client public key sent)
+      setStatusMessage('Verifying cryptographic signature with identity registry...');
       const loginRes = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: targetEmail,
           deviceId: dev.deviceId,
-          deviceName: dev.deviceName,
-          publicKey: dev.publicKeySpki,
           challengeId: challenge.challengeId,
           signature,
         }),
@@ -248,7 +351,7 @@ export default function SecureMaxHeroLogin() {
   };
 
   // ----------------------------------------------------
-  // ZERO-TRUST REGISTRATION: Register Device (with Code or Direct Self-Reg)
+  // MODEL C: USER ENROLLMENT (15-MINUTE SINGLE-USE CODE)
   // ----------------------------------------------------
   const handleRegisterUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -256,12 +359,17 @@ export default function SecureMaxHeroLogin() {
 
     const targetEmail = regEmail.trim().toLowerCase();
     const targetName = regName.trim();
+    const cleanCode = enrollCode.trim().toUpperCase();
+
+    if (!cleanCode) {
+      setErrorMessage('Please enter the 15-minute security code issued by your Administrator.');
+      return;
+    }
+
     if (!targetName || !targetEmail) {
       setErrorMessage('Please enter both your Full Name and Email Address.');
       return;
     }
-
-    const cleanCode = enrollCode.trim().toUpperCase();
 
     setLoading(true);
     setStatusMessage('Generating Cryptographic Device Credential (ECDSA P-256) in browser...');
@@ -270,55 +378,30 @@ export default function SecureMaxHeroLogin() {
       const dev = await generateAndSaveDeviceKey(regDeviceName || 'Primary Workstation', targetEmail);
       setDeviceInfo(dev);
 
-      if (cleanCode) {
-        // Path A: Authorized enrollment code issued by Administrator
-        setStatusMessage('Verifying enrollment code and establishing Device Passport...');
-        const res = await fetch('/api/devices/enrollment/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            enrollmentCode: cleanCode,
-            deviceName: regDeviceName.trim() || 'Primary Workstation',
-            publicKey: dev.publicKeySpki,
-            deviceId: dev.deviceId,
-            name: targetName,
-            email: targetEmail,
-          }),
-        });
+      setStatusMessage('Verifying 15-minute security code and establishing Device Passport...');
+      const res = await fetch('/api/devices/enrollment/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          enrollmentCode: cleanCode,
+          deviceName: regDeviceName.trim() || 'Primary Workstation',
+          publicKey: dev.publicKeySpki,
+          deviceId: dev.deviceId,
+          name: targetName,
+          email: targetEmail,
+        }),
+      });
 
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Device registration and enrollment failed');
-        }
-
-        setStatusMessage('Identity & Device Passport verified! Redirecting to workspace...');
-        const userRole = data.user?.role || data.passport?.position?.toUpperCase();
-        if (userRole === 'ADMIN') router.push('/dashboard/admin');
-        else if (userRole === 'AUDITOR') router.push('/dashboard/auditor');
-        else router.push('/assets');
-      } else {
-        // Path B: Direct self-registration (Initial KYC: PENDING)
-        setStatusMessage('Registering decentralized identity & enrolling device credential...');
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: targetEmail,
-            name: targetName,
-            publicKey: dev.publicKeySpki,
-            deviceName: regDeviceName.trim() || 'Primary Workstation',
-            role: regRole || 'USER',
-          }),
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Identity registration failed');
-        }
-
-        setStatusMessage('Identity registered (Pending KYC)! Redirecting to workspace...');
-        router.push('/assets');
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Device registration and enrollment failed');
       }
+
+      setStatusMessage('Identity & Device Passport verified! Redirecting to workspace...');
+      const userRole = data.user?.role || data.passport?.position?.toUpperCase();
+      if (userRole === 'ADMIN') router.push('/dashboard/admin');
+      else if (userRole === 'AUDITOR') router.push('/dashboard/auditor');
+      else router.push('/assets');
     } catch (err: any) {
       setLoading(false);
       setErrorMessage(err.message || 'Registration failed');
@@ -544,225 +627,280 @@ export default function SecureMaxHeroLogin() {
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-4">
-                {authMode === 'SIGN_IN' ? 'Welcome Back' : 'Register Identity'}
+                {authMode === 'ADMIN_METAMASK' 
+                  ? 'Organization Admin' 
+                  : authMode === 'TEAM_MEMBER' 
+                    ? 'Team Member Login' 
+                    : 'Enroll New Device'}
               </h2>
               <p className="text-xs text-zinc-400 mt-1 font-light">
-                {authMode === 'SIGN_IN'
-                  ? 'Sign in to access your secure workspace'
-                  : 'Create your decentralized identity and enroll this device'}
+                {authMode === 'ADMIN_METAMASK'
+                  ? 'Cryptographic proof of wallet ownership (MetaMask EIP-191)'
+                  : authMode === 'TEAM_MEMBER'
+                    ? 'Passwordless zero-trust authentication via enrolled P-256 key'
+                    : 'Establish device credential with admin-issued 15-minute code'}
               </p>
             </div>
 
-            {/* Mode Switcher Tabs (Sign In vs Register) */}
-            <div className="flex rounded-xl bg-zinc-950/80 p-1 border border-zinc-800/80 mb-5 relative z-10">
+            {/* Mode Switcher Tabs (Admin MetaMask vs Team Member P-256 vs Enroll Device) */}
+            <div className="flex rounded-xl bg-zinc-950/80 p-1 border border-zinc-800/80 mb-5 relative z-10 text-[11px]">
               <button
                 type="button"
-                onClick={() => { setAuthMode('SIGN_IN'); setErrorMessage(''); }}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                  authMode === 'SIGN_IN'
+                onClick={() => { setAuthMode('ADMIN_METAMASK'); setErrorMessage(''); }}
+                className={`flex-1 py-2 px-1.5 rounded-lg font-semibold tracking-tight transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  authMode === 'ADMIN_METAMASK'
                     ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-400/60 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
                     : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
                 }`}
               >
-                Sign In
+                <Shield className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Admin (Wallet)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthMode('TEAM_MEMBER'); setErrorMessage(''); }}
+                className={`flex-1 py-2 px-1.5 rounded-lg font-semibold tracking-tight transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  authMode === 'TEAM_MEMBER'
+                    ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-400/60 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
+                    : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                }`}
+              >
+                <Laptop className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Team Member</span>
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setAuthMode('REGISTER');
+                  setAuthMode('ENROLL_DEVICE');
                   setErrorMessage('');
                 }}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                  authMode === 'REGISTER'
+                className={`flex-1 py-2 px-1.5 rounded-lg font-semibold tracking-tight transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  authMode === 'ENROLL_DEVICE'
                     ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-400/60 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
                     : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
                 }`}
               >
-                Register New Identity
+                <Key className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Enroll Device</span>
               </button>
             </div>
 
-            {authMode === 'SIGN_IN' ? (
-              <>
-                {/* Unified Zero-Trust Login Form (Role determined by Identity & Device) */}
-                <form onSubmit={handlePrimaryLogin} className="space-y-4 relative z-10">
-                    
-                    {/* Input 1: User ID / Email */}
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                        <Mail className="w-4 h-4" />
-                      </div>
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter User ID or Email"
-                        required
-                        className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
-                      />
-                    </div>
-
-                    {/* Input 2: Password / Device Signature */}
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                        <Lock className="w-4 h-4" />
-                      </div>
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter Password or Device Signature"
-                        required
-                        className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-10 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-
-                    {/* Status Message */}
-                    {loading && (
-                      <div className="p-3 bg-zinc-900/90 border border-cyan-500/30 rounded-xl flex items-center gap-2.5 text-xs font-mono text-cyan-300 animate-in fade-in">
-                        <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
-                        <span className="truncate">{statusMessage}</span>
-                      </div>
-                    )}
-
-                    {/* Error Message */}
-                    {errorMessage && (
-                      <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-xl space-y-2 text-red-400 text-xs font-mono animate-in fade-in">
-                        <div className="flex items-start gap-2">
-                          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                          <span>{errorMessage}</span>
-                        </div>
-                        {errorMessage.toLowerCase().includes('not registered') && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setRegEmail(email);
-                              setAuthMode('REGISTER');
-                              setErrorMessage('');
-                            }}
-                            className="text-cyan-400 hover:text-cyan-300 underline font-semibold flex items-center gap-1.5 cursor-pointer pl-6 pt-1 text-xs"
-                          >
-                            <UserPlus className="w-3.5 h-3.5" />
-                            Register &quot;{email}&quot; as a new user now →
-                          </button>
-                        )}
-                      </div>
-                    )}
-
-                    {/* CONNECT BUTTON: "Login ->" */}
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
-                    >
-                      <span>Login</span>
-                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                    </button>
-
-                    {/* Divider: "Or continue with" */}
-                    <div className="relative flex items-center justify-center my-4">
-                      <div className="border-t border-zinc-800 w-full"></div>
-                      <span className="bg-[#0a0f18] px-3 text-[10px] font-mono text-zinc-500 tracking-wider uppercase shrink-0">
-                        Or continue with
-                      </span>
-                      <div className="border-t border-zinc-800 w-full"></div>
-                    </div>
-
-                    {/* Secondary Connect Buttons */}
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <button
-                        type="button"
-                        onClick={() => setShowEnrollModal(true)}
-                        className="py-2.5 px-3 rounded-xl bg-zinc-950/80 border border-zinc-800 hover:border-cyan-500/40 hover:bg-cyan-950/20 text-zinc-300 hover:text-white text-xs font-mono tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
-                      >
-                        <QrCode className="w-3.5 h-3.5 text-cyan-400" />
-                        Pair Device
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleUseDeviceKey}
-                        disabled={loading}
-                        className="py-2.5 px-3 rounded-xl bg-zinc-950/80 border border-zinc-800 hover:border-cyan-500/40 hover:bg-cyan-950/20 text-zinc-300 hover:text-white text-xs font-mono tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
-                      >
-                        <Key className="w-3.5 h-3.5 text-cyan-400" />
-                        Use Device Key
-                      </button>
-                    </div>
-
-                    {/* State-Aware System Initialization Section (Strictly zero-admin state only) */}
-                    {!isCheckingBootstrap && !systemInitialized && adminCount === 0 && (
-                      <div className="pt-4 border-t border-zinc-800/80 mt-6">
-                        <div className="flex items-center justify-between p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30">
-                          <div className="text-left">
-                            <div className="text-xs font-semibold text-cyan-300 flex items-center gap-1.5 font-mono">
-                              <Settings className="w-3.5 h-3.5 text-cyan-400" />
-                              SYSTEM UNINITIALIZED
-                            </div>
-                            <div className="text-[11px] text-zinc-400">
-                              No Administrator configured yet
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setShowBootstrapWizard(true)}
-                            className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold font-mono tracking-wider transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.4)] cursor-pointer"
-                          >
-                            <Shield className="w-3.5 h-3.5" />
-                            ⚙ Initialize Administrator
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Register Link & Watermark */}
-                    <div className="pt-2 flex items-center justify-between text-[11px]">
-                      <span className="text-zinc-400 font-light">
-                        New user?{' '}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (email) setRegEmail(email);
-                            setAuthMode('REGISTER');
-                            setErrorMessage('');
-                          }}
-                          className="text-cyan-400 hover:text-cyan-300 underline font-medium cursor-pointer"
-                        >
-                          Register account
-                        </button>
-                      </span>
-                      <div className="text-[7px] font-mono tracking-[0.2em] text-cyan-500/40 uppercase text-right leading-tight">
-                        TRUST<br />ENCRYPT<br />EMPOWER
-                      </div>
-                    </div>
-
-                  </form>
-              </>
-            ) : (
-              /* Register Identity with Security Code Form */
-              <form onSubmit={handleRegisterUser} className="space-y-4 relative z-10">
-                {/* Zero-Trust Notice */}
-                <div className="p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30 text-xs text-zinc-300 space-y-1.5">
+            {/* MODEL A: ORGANIZATION ADMIN (METAMASK) */}
+            {authMode === 'ADMIN_METAMASK' && (
+              <div className="space-y-4 relative z-10">
+                {/* Admin Security Notice */}
+                <div className="p-3.5 rounded-xl bg-cyan-950/25 border border-cyan-500/30 text-xs text-zinc-300 space-y-1.5">
                   <div className="flex items-center gap-2 text-cyan-300 font-mono font-semibold text-[11px] uppercase tracking-wider">
-                    <Shield className="w-3.5 h-3.5 text-cyan-400" />
-                    Zero-Trust Identity &amp; Device Registration
+                    <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                    Organization Admin Authentication
                   </div>
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    Have an admin-issued 15-minute onboarding code? Enter it below to automatically bind your position and permissions. Or register directly for administrator KYC approval.
+                  <p className="text-[11px] text-zinc-400 leading-relaxed font-light">
+                    Admin access is strictly restricted to the registered Organization Administrator wallet. Authenticate by signing a server-issued challenge with MetaMask (EIP-191).
+                  </p>
+                </div>
+
+                {/* MetaMask Status Banner */}
+                <div className="p-3 bg-zinc-950/80 border border-zinc-800 rounded-xl flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center gap-2.5">
+                    <Wallet className="w-4 h-4 text-cyan-400" />
+                    <span className="text-zinc-300">
+                      {hasMetaMask ? (metaMaskAccount ? `Connected: ${metaMaskAccount.slice(0, 6)}...${metaMaskAccount.slice(-4)}` : 'MetaMask Detected') : 'MetaMask Not Detected'}
+                    </span>
+                  </div>
+                  <span className={`text-[9px] px-2 py-0.5 rounded border uppercase tracking-wider ${
+                    hasMetaMask 
+                      ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40' 
+                      : 'bg-amber-950/60 text-amber-300 border-amber-500/40'
+                  }`}>
+                    {hasMetaMask ? 'READY' : 'REQUIRED'}
+                  </span>
+                </div>
+
+                {/* Status / Loading */}
+                {loading && (
+                  <div className="p-3 bg-zinc-900/90 border border-cyan-500/30 rounded-xl flex items-center gap-2.5 text-xs font-mono text-cyan-300 animate-in fade-in">
+                    <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
+                    <span className="truncate">{statusMessage}</span>
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {errorMessage && (
+                  <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-xl flex items-start gap-2 text-red-400 text-xs font-mono animate-in fade-in">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                {/* Authenticate with MetaMask Button */}
+                {hasMetaMask ? (
+                  <button
+                    type="button"
+                    onClick={handleMetaMaskAdminLogin}
+                    disabled={loading}
+                    className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+                  >
+                    <Wallet className="w-4 h-4" />
+                    <span>Authenticate with MetaMask</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                ) : (
+                  <a
+                    href="https://metamask.io/download/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 px-6 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(245,158,11,0.35)] transition-all flex items-center justify-center gap-2 text-center"
+                  >
+                    <Wallet className="w-4 h-4" />
+                    <span>Install MetaMask Extension</span>
+                  </a>
+                )}
+
+                {/* State-Aware System Initialization (Strictly zero-admin state only) */}
+                {!isCheckingBootstrap && !systemInitialized && adminCount === 0 && (
+                  <div className="pt-4 border-t border-zinc-800/80 mt-6">
+                    <div className="flex items-center justify-between p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30">
+                      <div className="text-left">
+                        <div className="text-xs font-semibold text-cyan-300 flex items-center gap-1.5 font-mono">
+                          <Settings className="w-3.5 h-3.5 text-cyan-400" />
+                          SYSTEM UNINITIALIZED
+                        </div>
+                        <div className="text-[11px] text-zinc-400">
+                          No Administrator configured yet
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowBootstrapWizard(true)}
+                        className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold font-mono tracking-wider transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.4)] cursor-pointer"
+                      >
+                        <Shield className="w-3.5 h-3.5" />
+                        Initialize Admin
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MODEL B: TEAM MEMBER LOGIN (ENROLLED P-256) */}
+            {authMode === 'TEAM_MEMBER' && (
+              <form onSubmit={handlePrimaryLogin} className="space-y-4 relative z-10">
+                {/* Notice */}
+                <div className="p-3.5 rounded-xl bg-cyan-950/25 border border-cyan-500/30 text-xs text-zinc-300 space-y-1.5">
+                  <div className="flex items-center gap-2 text-cyan-300 font-mono font-semibold text-[11px] uppercase tracking-wider">
+                    <Fingerprint className="w-4 h-4 text-cyan-400" />
+                    Passwordless Device Authentication
+                  </div>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed font-light">
+                    Authentication uses your workstation&apos;s enrolled P-256 cryptographic key. Enter your email or User ID to sign in.
+                  </p>
+                </div>
+
+                {/* Email / User ID Input */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter User ID or Official Email"
+                    required
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                  />
+                </div>
+
+                {/* Status Message */}
+                {loading && (
+                  <div className="p-3 bg-zinc-900/90 border border-cyan-500/30 rounded-xl flex items-center gap-2.5 text-xs font-mono text-cyan-300 animate-in fade-in">
+                    <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
+                    <span className="truncate">{statusMessage}</span>
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {errorMessage && (
+                  <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-xl space-y-2 text-red-400 text-xs font-mono animate-in fade-in">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <span>{errorMessage}</span>
+                    </div>
+                    {errorMessage.toLowerCase().includes('not registered') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRegEmail(email);
+                          setAuthMode('ENROLL_DEVICE');
+                          setErrorMessage('');
+                        }}
+                        className="text-cyan-400 hover:text-cyan-300 underline font-semibold flex items-center gap-1.5 cursor-pointer pl-6 pt-1 text-xs"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        Enroll this device with security code now →
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Connect Button */}
+                <button
+                  type="submit"
+                  disabled={loading || !email.trim()}
+                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+                >
+                  <Fingerprint className="w-4 h-4" />
+                  <span>Authenticate with Enrolled Device</span>
+                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                </button>
+
+                {/* Pair Device Secondary Link */}
+                <div className="pt-2 flex items-center justify-between text-[11px]">
+                  <span className="text-zinc-400 font-light">
+                    New workstation?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (email) setRegEmail(email);
+                        setAuthMode('ENROLL_DEVICE');
+                        setErrorMessage('');
+                      }}
+                      className="text-cyan-400 hover:text-cyan-300 underline font-medium cursor-pointer"
+                    >
+                      Enroll with security code
+                    </button>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowEnrollModal(true)}
+                    className="text-zinc-400 hover:text-zinc-200 text-xs font-mono flex items-center gap-1 cursor-pointer"
+                  >
+                    <QrCode className="w-3.5 h-3.5 text-cyan-400" />
+                    Pair Device
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* MODEL C: ENROLL DEVICE (15-MIN SECURITY CODE) */}
+            {authMode === 'ENROLL_DEVICE' && (
+              <form onSubmit={handleRegisterUser} className="space-y-4 relative z-10">
+                {/* Notice */}
+                <div className="p-3.5 rounded-xl bg-cyan-950/25 border border-cyan-500/30 text-xs text-zinc-300 space-y-1.5">
+                  <div className="flex items-center gap-2 text-cyan-300 font-mono font-semibold text-[11px] uppercase tracking-wider">
+                    <Key className="w-4 h-4 text-cyan-400" />
+                    15-Minute Device Enrollment Code
+                  </div>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed font-light">
+                    Enter the single-use enrollment code issued by your Organization Administrator. Codes expire in 15 minutes and are permanently invalidated once used.
                   </p>
                 </div>
 
                 {/* 1. Security Code Input */}
                 <div>
                   <label className="text-[10px] font-mono tracking-wider text-zinc-400 uppercase block mb-1.5 flex items-center justify-between">
-                    <span>15-Minute Security Code <span className="text-zinc-500 font-normal lowercase">(optional)</span></span>
+                    <span>15-Minute Security Code</span>
                     {codeVerifying && (
                       <span className="text-cyan-400 flex items-center gap-1 text-[9px] font-mono normal-case">
                         <Loader2 className="w-3 h-3 animate-spin" /> Verifying...
@@ -785,7 +923,8 @@ export default function SecureMaxHeroLogin() {
                           setVerifiedCapability(null);
                         }
                       }}
-                      placeholder="e.g. 7K4M-92QP (if issued by admin)"
+                      placeholder="e.g. 7K4M-92QP"
+                      required
                       className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 font-mono tracking-widest uppercase focus:outline-none focus:border-cyan-400 transition-colors"
                     />
                   </div>
@@ -837,7 +976,7 @@ export default function SecureMaxHeroLogin() {
                   />
                 </div>
 
-                {/* 5. Device Name Input */}
+                {/* 4. Device Name Input */}
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
                     <Laptop className="w-4 h-4" />
@@ -868,26 +1007,26 @@ export default function SecureMaxHeroLogin() {
                   </div>
                 )}
 
-                {/* 6. SUBMIT BUTTON */}
+                {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={loading || !regName.trim() || !regEmail.trim()}
+                  disabled={loading || !regName.trim() || !regEmail.trim() || !enrollCode.trim()}
                   className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
                 >
                   <Key className="w-4 h-4" />
-                  <span>{enrollCode.trim() ? 'ENROLL WITH SECURITY CODE' : 'CREATE IDENTITY & SIGN IN'}</span>
+                  <span>ENROLL CRYPTOGRAPHIC DEVICE</span>
                 </button>
 
-                {/* Sign In Link */}
+                {/* Back to login */}
                 <div className="pt-2 flex items-center justify-between text-[11px]">
                   <span className="text-zinc-400 font-light">
-                    Already have an account?{' '}
+                    Already enrolled?{' '}
                     <button
                       type="button"
-                      onClick={() => { setAuthMode('SIGN_IN'); setErrorMessage(''); }}
+                      onClick={() => { setAuthMode('TEAM_MEMBER'); setErrorMessage(''); }}
                       className="text-cyan-400 hover:text-cyan-300 underline font-medium cursor-pointer"
                     >
-                      Sign in here
+                      Team member login
                     </button>
                   </span>
                   <button
