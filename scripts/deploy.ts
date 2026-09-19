@@ -1,6 +1,6 @@
-import { ethers } from "hardhat";
-import * as fs from "fs";
-import * as path from "path";
+const { ethers } = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
   console.log("====================================================");

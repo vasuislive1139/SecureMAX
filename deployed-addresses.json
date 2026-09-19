@@ -1,13 +1,9 @@
 {
-  "chain1": {
-    "IdentityRegistry": "0xb2Ad55fD06552E47E4304e3A48AACDdde33808d0",
-    "RBACManager": "0x9b4B628653b0Aa4dAAeccC17273b287e875C61DF",
-    "AssetRegistry": "0x41652715d743C7f9740b83526B09994e60aa61B6",
-    "AuditAnchor": "0xE0f143637d9812f624DCF634d388d6D06d712688"
-  },
-  "chain2": {
-    "KeyPolicyManager": "0xE31a493DF191fD0fD88c99820d0AfCCEC5F13f80",
-    "KeyLifecycle": "0xBd088a9cd06f59aDaB56202F335EfC300614f743",
-    "DecryptionAuth": "0x65d897450295189230bb49C2b4D83c904A36Fc07"
+  "network": "sepolia",
+  "chainId": "11155111",
+  "contracts": {
+    "IdentityRegistry": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+    "AccessControlManager": "0x67641D97fC71D76C8d5c6860A7F8B89C133AeA63",
+    "AssetNFT": "0x1C7E7E4910a2A1B655C5EF8436A21911E69CCf45"
   }
 }
