@@ -159,8 +159,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Update device last used timestamp and record success
+    // 5. Record permanent login event in database & update device
     deviceStore.updateDeviceLastUsed(device.id);
+    deviceStore.recordLogin({
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      role: user.role,
+      deviceName: device.device_name,
+      status: 'SUCCESS',
+    });
 
     if (user.role === UserRole.ADMIN) {
       deviceStore.recordAdminLogin({

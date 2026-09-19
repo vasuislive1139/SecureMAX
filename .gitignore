@@ -46,3 +46,7 @@ Thumbs.db
 
 # Vercel
 .vercel
+
+# Temp files
+*.tmp
+.securemax_db/*.tmp

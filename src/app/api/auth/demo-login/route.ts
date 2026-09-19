@@ -24,6 +24,15 @@ export async function POST(req: Request) {
     const devices = deviceStore.getDevicesForUser(user.id);
     const activeDevice = devices[0] || null;
 
+    deviceStore.recordLogin({
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      role: user.role,
+      deviceName: activeDevice?.device_name || 'Verified Demo Terminal',
+      status: 'SUCCESS',
+    });
+
     const sessionId = crypto.randomUUID();
     const sessionToken = await new SignJWT({
       userId: user.id,

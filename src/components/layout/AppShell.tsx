@@ -15,8 +15,9 @@ interface TopNavItem {
 }
 
 const navItems: TopNavItem[] = [
-  // Admin tabs
-  { name: 'ADMIN', href: '/dashboard/admin', roles: [UserRole.ADMIN] },
+  // Admin Command Center & Operations
+  { name: 'COMMAND CENTER', href: '/dashboard/admin', roles: [UserRole.ADMIN] },
+  { name: 'MY ACCESS', href: '/access', roles: [UserRole.ADMIN, UserRole.USER, UserRole.MANAGER, UserRole.ENGINEER, UserRole.AUDITOR] },
   { name: 'POSITIONS', href: '/positions', roles: [UserRole.ADMIN] },
   { name: 'SOC', href: '/dashboard/soc', roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
   { name: 'IDENTITY', href: '/identity', roles: [UserRole.ADMIN] },

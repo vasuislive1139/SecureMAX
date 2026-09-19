@@ -1,0 +1,3701 @@
+{
+  "users": [
+    {
+      "id": "ADM-0001",
+      "name": "Alpha Admin",
+      "email": "alpha@defense.org",
+      "role": "ADMIN",
+      "position": "Root Administrator",
+      "position_id": "pos_root_admin",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:admin:adm-0001",
+      "created_at": "2026-09-19T17:00:20.810Z"
+    },
+    {
+      "id": "ADM-0001",
+      "name": "Alpha Admin",
+      "email": "alpha@defense.org",
+      "role": "ADMIN",
+      "position": "Root Administrator",
+      "position_id": "pos_root_admin",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:admin:adm-0001",
+      "created_at": "2026-09-19T17:00:20.810Z"
+    },
+    {
+      "id": "usr_admin_001",
+      "name": "Vasu (Administrator)",
+      "email": "admin@securemax.mil",
+      "role": "ADMIN",
+      "position": "Root Administrator",
+      "position_id": "pos_root_admin",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:admin:001",
+      "created_at": "2026-09-01T00:00:00.000Z"
+    },
+    {
+      "id": "usr_admin_001",
+      "name": "Vasu (Administrator)",
+      "email": "admin@securemax.mil",
+      "role": "ADMIN",
+      "position": "Root Administrator",
+      "position_id": "pos_root_admin",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:admin:001",
+      "created_at": "2026-09-01T00:00:00.000Z"
+    },
+    {
+      "id": "usr_vasu_002",
+      "name": "Vasu (Lead Engineer)",
+      "email": "vasu@securemax.mil",
+      "role": "USER",
+      "position": "Manager",
+      "position_id": "pos_manager",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:002",
+      "created_at": "2026-09-02T00:00:00.000Z"
+    },
+    {
+      "id": "usr_vasu_002",
+      "name": "Vasu (Lead Engineer)",
+      "email": "vasu@securemax.mil",
+      "role": "USER",
+      "position": "Manager",
+      "position_id": "pos_manager",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:002",
+      "created_at": "2026-09-02T00:00:00.000Z"
+    },
+    {
+      "id": "usr_auditor_003",
+      "name": "Compliance Auditor",
+      "email": "auditor@securemax.mil",
+      "role": "AUDITOR",
+      "position": "Auditor",
+      "position_id": "pos_auditor",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:auditor:003",
+      "created_at": "2026-09-03T00:00:00.000Z"
+    },
+    {
+      "id": "usr_auditor_003",
+      "name": "Compliance Auditor",
+      "email": "auditor@securemax.mil",
+      "role": "AUDITOR",
+      "position": "Auditor",
+      "position_id": "pos_auditor",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:auditor:003",
+      "created_at": "2026-09-03T00:00:00.000Z"
+    },
+    {
+      "id": "usr_ritik_004",
+      "name": "Ritik (Systems Architect)",
+      "email": "ritik@securemax.mil",
+      "role": "USER",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:004",
+      "created_at": "2026-09-04T00:00:00.000Z"
+    },
+    {
+      "id": "usr_ritik_004",
+      "name": "Ritik (Systems Architect)",
+      "email": "ritik@securemax.mil",
+      "role": "USER",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:004",
+      "created_at": "2026-09-04T00:00:00.000Z"
+    },
+    {
+      "id": "usr_vaani_005",
+      "name": "Vaani (Security Analyst)",
+      "email": "vaani@securemax.mil",
+      "role": "USER",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:005",
+      "created_at": "2026-09-05T00:00:00.000Z"
+    },
+    {
+      "id": "usr_vaani_005",
+      "name": "Vaani (Security Analyst)",
+      "email": "vaani@securemax.mil",
+      "role": "USER",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:005",
+      "created_at": "2026-09-05T00:00:00.000Z"
+    },
+    {
+      "id": "usr_arjun_006",
+      "name": "Arjun Verma",
+      "email": "arjun.verma@securemax.mil",
+      "role": "USER",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:arjun006",
+      "created_at": "2026-09-10T00:00:00.000Z"
+    },
+    {
+      "id": "usr_arjun_006",
+      "name": "Arjun Verma",
+      "email": "arjun.verma@securemax.mil",
+      "role": "USER",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:arjun006",
+      "created_at": "2026-09-10T00:00:00.000Z"
+    },
+    {
+      "id": "usr_riya_007",
+      "name": "Riya Sharma",
+      "email": "riya.sharma@securemax.mil",
+      "role": "USER",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:riya007",
+      "created_at": "2026-09-10T00:00:00.000Z"
+    },
+    {
+      "id": "usr_riya_007",
+      "name": "Riya Sharma",
+      "email": "riya.sharma@securemax.mil",
+      "role": "USER",
+      "kyc_status": "VERIFIED",
+      "status": "ACTIVE",
+      "did": "did:securemax:user:riya007",
+      "created_at": "2026-09-10T00:00:00.000Z"
+    }
+  ],
+  "devices": [
+    {
+      "id": "DEV-ADMIN-001",
+      "device_id": "DEV-ADMIN-001",
+      "user_id": "ADM-0001",
+      "user_name": "Alpha Admin",
+      "user_email": "alpha@defense.org",
+      "position": "Root Administrator",
+      "device_name": "SecureMAX Admin Laptop",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "SecureMAX Hardware-Bound Terminal",
+      "credential_id": "cred_admin_fc522ccd",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:00:20.810Z",
+      "last_authenticated_at": "2026-09-19T17:00:20.810Z",
+      "last_active_at": "2026-09-19T17:00:20.810Z",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "public_key": "alpha_key",
+      "algorithm": "ECDSA_P256",
+      "status": "ACTIVE",
+      "is_admin_device": true,
+      "created_at": "2026-09-19T17:00:20.810Z",
+      "last_used_at": "2026-09-19T17:00:20.810Z",
+      "timeline": [
+        {
+          "id": "tl_boot_1",
+          "timestamp": "2026-09-19T17:00:15.810Z",
+          "event": "SYSTEM_INITIALIZATION_STARTED",
+          "details": "One-time deployment bootstrap initiated",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_2",
+          "timestamp": "2026-09-19T17:00:16.810Z",
+          "event": "ROOT_ADMIN_CREATED",
+          "details": "Root administrator created: Alpha Admin (ADM-0001)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_3",
+          "timestamp": "2026-09-19T17:00:17.810Z",
+          "event": "ADMIN_DEVICE_REGISTERED",
+          "details": "Singleton trusted device registered: SecureMAX Admin Laptop",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_4",
+          "timestamp": "2026-09-19T17:00:18.810Z",
+          "event": "ADMIN_CREDENTIAL_REGISTERED",
+          "details": "WebAuthn / Passkey cryptographic credential anchored",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_5",
+          "timestamp": "2026-09-19T17:00:19.810Z",
+          "event": "SYSTEM_INITIALIZATION_COMPLETED",
+          "details": "System initialization completed successfully",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_6",
+          "timestamp": "2026-09-19T17:00:20.810Z",
+          "event": "ADMIN_BOOTSTRAP_DISABLED",
+          "details": "Bootstrap mode permanently locked down",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "dev_admin_primary",
+      "device_id": "dev_admin_primary",
+      "user_id": "usr_admin_001",
+      "user_name": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "position": "Administrator",
+      "device_name": "Admin Laptop (Hardware-Bound)",
+      "device_type": "terminal",
+      "os": "macOS",
+      "browser": "Safari",
+      "browser_version": "18.0",
+      "model": "Admin Secure Enclave Terminal",
+      "credential_id": "cred_admin_hw_01",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-01T00:00:00.000Z",
+      "last_authenticated_at": "2026-09-19T17:00:21.533Z",
+      "last_active_at": "2026-09-19T17:00:21.533Z",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2Z37UoHq3y1V4XwH5K7oF9P9k3sZ0s7uVvWxX0y1A2bC3dE4fG5hI6jK7lM8nO9pQ0rS1tU2vW3xY4z5A6bC7w==",
+      "algorithm": "ECDSA_P256",
+      "status": "ACTIVE",
+      "is_admin_device": true,
+      "created_at": "2026-09-01T00:00:00.000Z",
+      "last_used_at": "2026-09-19T17:00:21.533Z",
+      "timeline": [
+        {
+          "id": "tl_adm_1",
+          "timestamp": "2026-09-01T00:00:00.000Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Root Administrator physical terminal bound",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_adm_2",
+          "timestamp": "2026-09-01T00:01:00.000Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "Hardware enclave P-256 key anchored",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "dev_vasu_laptop",
+      "device_id": "dev_vasu_laptop",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu — Primary MacBook",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_vasu_mbp_01",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-02T00:00:00.000Z",
+      "last_authenticated_at": "2026-09-19T17:00:21.533Z",
+      "last_active_at": "2026-09-19T17:00:21.533Z",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEq9V1zK2Y7nL6X4eQ8jB2tF0mS3wZ5xY8vU1tP2rQ3sA4bC5dE6fG7hI8jK9lM0nO1pQ2rS3tU4vW5xY6z7A8bC==",
+      "algorithm": "ECDSA_P256",
+      "status": "ACTIVE",
+      "is_admin_device": false,
+      "created_at": "2026-09-02T00:00:00.000Z",
+      "last_used_at": "2026-09-19T17:01:03.891Z",
+      "timeline": [
+        {
+          "id": "tl_7aab549b",
+          "timestamp": "2026-09-19T17:01:03.897Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from REVIEW to TRUSTED",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_06307222",
+          "timestamp": "2026-09-19T17:01:03.896Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from TRUSTED to REVIEW",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_1270b381",
+          "timestamp": "2026-09-19T17:01:03.895Z",
+          "event": "DEVICE_REACTIVATED",
+          "details": "Device restored to active trusted state by administrator",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_aa66c6b1",
+          "timestamp": "2026-09-19T17:01:03.894Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from TRUSTED to REVOKED",
+          "severity": "WARNING"
+        },
+        {
+          "id": "tl_42ddc460",
+          "timestamp": "2026-09-19T17:01:03.893Z",
+          "event": "DECRYPTION_AUTHORIZED",
+          "details": "Temporary Server-Side KMS key-release permit granted: KMS-AUTH-F59C769E-CA9",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_10f10563",
+          "timestamp": "2026-09-19T17:01:03.893Z",
+          "event": "STEP_UP_AUTH_SUCCESS",
+          "details": "Step-up WebAuthn authentication verified for asset ast_avionics",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_8aaec6ad",
+          "timestamp": "2026-09-19T17:01:03.891Z",
+          "event": "DEVICE_RECOVERED_REVOKED",
+          "details": "Device reported lost or compromised. Terminal revocation executed by administrator during recovery.",
+          "severity": "CRITICAL"
+        },
+        {
+          "id": "tl_b71efe99",
+          "timestamp": "2026-09-19T17:01:03.891Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_c3a0b69e",
+          "timestamp": "2026-09-19T17:01:03.888Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_c21ea4da",
+          "timestamp": "2026-09-19T17:01:03.887Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_2cfb82ce",
+          "timestamp": "2026-09-19T17:01:03.887Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_32bbd6fc",
+          "timestamp": "2026-09-19T17:01:03.887Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_e28ac018",
+          "timestamp": "2026-09-19T17:01:03.887Z",
+          "event": "ASSET_ACCESSED",
+          "details": "User decrypted confidential blueprint ast_alpha",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_d6dbe4a3",
+          "timestamp": "2026-09-19T17:01:03.886Z",
+          "event": "DEVICE_REACTIVATED",
+          "details": "Device restored to active trusted state by administrator",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_0e115432",
+          "timestamp": "2026-09-19T17:01:03.885Z",
+          "event": "DEVICE_SUSPENDED",
+          "details": "Device access suspended by administrator",
+          "severity": "WARNING"
+        },
+        {
+          "id": "tl_95896bbc",
+          "timestamp": "2026-09-19T17:01:03.884Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from RESTRICTED to TRUSTED",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_096f322a",
+          "timestamp": "2026-09-19T17:01:03.882Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from REVIEW to RESTRICTED",
+          "severity": "WARNING"
+        },
+        {
+          "id": "tl_d7ca1448",
+          "timestamp": "2026-09-19T17:01:03.881Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from TRUSTED to REVIEW",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_vsu_1",
+          "timestamp": "2026-09-02T00:00:00.000Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device registered via 15-minute pairing code",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_vsu_2",
+          "timestamp": "2026-09-02T00:01:00.000Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "Touch ID / Passkey enrolled",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_vsu_3",
+          "timestamp": "2026-09-02T00:02:00.000Z",
+          "event": "FIRST_LOGIN",
+          "details": "Successful biometric authentication",
+          "severity": "INFO"
+        }
+      ],
+      "revoked_at": "2026-09-19T17:01:03.894Z"
+    },
+    {
+      "id": "dev_auditor_terminal",
+      "device_id": "dev_auditor_terminal",
+      "user_id": "usr_auditor_003",
+      "user_name": "Compliance Auditor",
+      "user_email": "auditor@securemax.mil",
+      "position": "Auditor",
+      "device_name": "Audit Secure Terminal",
+      "device_type": "terminal",
+      "os": "Linux",
+      "browser": "Firefox",
+      "browser_version": "129.0",
+      "model": "Audit Hardware Station",
+      "credential_id": "cred_audit_01",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-03T00:00:00.000Z",
+      "last_authenticated_at": "2026-09-19T17:00:21.533Z",
+      "last_active_at": "2026-09-19T17:00:21.533Z",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7p9X2mR5yT8vN1qW4sE7hK0bL3zC6xY9vU2tP3rQ4sA5bC6dE7fG8hI9jK0lM1nO2pQ3rS4tU5vW6xY7z8A9bC==",
+      "algorithm": "ECDSA_P256",
+      "status": "ACTIVE",
+      "is_admin_device": false,
+      "created_at": "2026-09-03T00:00:00.000Z",
+      "last_used_at": "2026-09-19T17:00:21.533Z",
+      "timeline": [
+        {
+          "id": "tl_aud_1",
+          "timestamp": "2026-09-03T00:00:00.000Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Audit terminal registered",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_aud_2",
+          "timestamp": "2026-09-03T00:01:00.000Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "FIDO2 Hardware Key enrolled",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-28C72892",
+      "device_id": "DEV-28C72892",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu — Work Tablet",
+      "device_type": "tablet",
+      "os": "iPadOS",
+      "browser": "Safari",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_test_001",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEtest1234567890abcdef==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:01:03.868Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.868Z",
+      "last_active_at": "2026-09-19T17:01:03.868Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.868Z",
+      "last_used_at": "2026-09-19T17:01:03.868Z",
+      "timeline": [
+        {
+          "id": "tl_4b38a7d1",
+          "timestamp": "2026-09-19T17:01:03.868Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu — Work Tablet\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_3ae9d98f",
+          "timestamp": "2026-09-19T17:01:03.868Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_test_00...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-2F9E19F6",
+      "device_id": "DEV-2F9E19F6",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu Multi Device 1",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_9c5d7657-a74",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmulti1111111111111111111==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:01:03.872Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.872Z",
+      "last_active_at": "2026-09-19T17:01:03.872Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.872Z",
+      "last_used_at": "2026-09-19T17:01:03.872Z",
+      "timeline": [
+        {
+          "id": "tl_fb35fa35",
+          "timestamp": "2026-09-19T17:01:03.872Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu Multi Device 1\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_a3bb4e02",
+          "timestamp": "2026-09-19T17:01:03.872Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_9c5d765...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-3393A5C0",
+      "device_id": "DEV-3393A5C0",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu Multi Device 2",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_1b0c22fb-591",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmulti2222222222222222222==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:01:03.874Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.874Z",
+      "last_active_at": "2026-09-19T17:01:03.874Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.874Z",
+      "last_used_at": "2026-09-19T17:01:03.874Z",
+      "timeline": [
+        {
+          "id": "tl_9d02ba28",
+          "timestamp": "2026-09-19T17:01:03.874Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu Multi Device 2\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_70eafec8",
+          "timestamp": "2026-09-19T17:01:03.874Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_1b0c22f...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-2A1C2AA6",
+      "device_id": "DEV-2A1C2AA6",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu Approved Laptop",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_e19eed82-4b4",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEapprovedLaptop123456789==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:01:03.877Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.877Z",
+      "last_active_at": "2026-09-19T17:01:03.877Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.877Z",
+      "last_used_at": "2026-09-19T17:01:03.877Z",
+      "timeline": [
+        {
+          "id": "tl_5d70e88f",
+          "timestamp": "2026-09-19T17:01:03.877Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu Approved Laptop\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_542aaae6",
+          "timestamp": "2026-09-19T17:01:03.877Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_e19eed8...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-E8DC71E5",
+      "device_id": "DEV-E8DC71E5",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu — Primary MacBook",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_vasu_mbp_99",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvasuKeySpkiBase64String==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn / Platform Passkey",
+      "registered_at": "2026-09-19T17:01:03.879Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.879Z",
+      "last_active_at": "2026-09-19T17:01:03.879Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.879Z",
+      "last_used_at": "2026-09-19T17:01:03.879Z",
+      "timeline": [
+        {
+          "id": "tl_9dbcd0ab",
+          "timestamp": "2026-09-19T17:01:03.879Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu — Primary MacBook\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_c8ef63f7",
+          "timestamp": "2026-09-19T17:01:03.879Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_vasu_mb...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    }
+  ],
+  "enrollments": [
+    {
+      "code": "T4AR-J6FK-H79P",
+      "user_id": "usr_vasu_002",
+      "expires_at": "2026-09-19T17:16:03.864Z",
+      "created_at": "2026-09-19T17:01:03.864Z"
+    },
+    {
+      "code": "LRQF-PDD6-49HM",
+      "user_id": "usr_vasu_002",
+      "expires_at": "2026-09-19T17:16:03.865Z",
+      "created_at": "2026-09-19T17:01:03.865Z"
+    },
+    {
+      "code": "K72F-PPUF-NUN9",
+      "user_id": "usr_vasu_002",
+      "expires_at": "2026-09-19T17:16:03.866Z",
+      "created_at": "2026-09-19T17:01:03.866Z"
+    },
+    {
+      "code": "N8D6-HP5R-A5LG",
+      "user_id": "usr_vasu_002",
+      "expires_at": "2026-09-19T17:16:03.891Z",
+      "created_at": "2026-09-19T17:01:03.891Z"
+    }
+  ],
+  "assets": [
+    {
+      "id": "ast_alpha",
+      "asset_code": "SMX-ALPHA-001",
+      "name": "Project Alpha (Core Defense Spec)",
+      "classification": "CONFIDENTIAL",
+      "status": "ACTIVE",
+      "description": "Confidential design specifications for tactical communications and payload encapsulation.",
+      "encrypted_content": "gh24te0o1Nxe+uqynZEyB5u8hQ1EBWz2CHLoM7VDbS451b7aRhpgzeCYdKZxmwuXigACFR+PQhixLOOw+1bB4bgvqkoWPPTxEO/REuf/agjFMbiKSYgxrxXuzQxvG+0His0D/JYMVpWmayVYURAFinzfR3laYYgWvSm9j5RDkS3Z2umIHL3X8Th4xTdX1W5uUiU04Y7xpVh20RPWmPwL6KrXx/FO2jmpdZqfRHxRe4u/V+9cm05YOwy4ndNCtSdlmXoW2t2uSvP2PMtIj4A+jLLhhRQng3Rlig==",
+      "iv": "q+AYUv5NRRFC/Jc1",
+      "auth_tag": "J1KppCJm4OUB2PlzxaIfsQ==",
+      "aad": "asset_data:ast_alpha",
+      "folder": "Projects",
+      "file_type": "PDF",
+      "mime_type": "application/pdf",
+      "file_size_bytes": 2516582,
+      "owner_id": "usr_vasu_002",
+      "owner_name": "Vasu (Lead Engineer)",
+      "shared_with_all": false,
+      "default_access_policy": "PRIVATE",
+      "created_at": "2026-09-15T10:30:00.000Z",
+      "last_accessed_at": "2026-09-19T16:55:21.533Z",
+      "key_version": "v2",
+      "versions": [
+        {
+          "version": "v2.0",
+          "uploaded_by": "Vasu (Lead Engineer)",
+          "created_at": "2026-09-15T10:30:00.000Z",
+          "size": "2.4 MB",
+          "notes": "Upgraded payload encapsulation to AES-256-GCM"
+        },
+        {
+          "version": "v1.0",
+          "uploaded_by": "Vasu (Lead Engineer)",
+          "created_at": "2026-09-02T08:00:00.000Z",
+          "size": "2.1 MB",
+          "notes": "Initial cryptographic architecture draft"
+        }
+      ],
+      "access_history": [
+        {
+          "id": "log_alpha_1",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Lead Engineer)",
+          "timestamp": "2026-09-19T16:55:21.533Z",
+          "status": "SUCCESS",
+          "details": "Authorized session decrypt via P-256"
+        },
+        {
+          "id": "log_alpha_2",
+          "action": "READ",
+          "user_name": "Vasu (Lead Engineer)",
+          "timestamp": "2026-09-19T16:15:21.533Z",
+          "status": "SUCCESS"
+        }
+      ],
+      "blockchain_token_id": "NFT-SEPOLIA-#8491",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_alpha"
+    },
+    {
+      "id": "ast_beta",
+      "asset_code": "SMX-BETA-002",
+      "name": "Project Beta Architecture Blueprints",
+      "classification": "INTERNAL",
+      "status": "ACTIVE",
+      "description": "Comprehensive architectural diagrams, CAD schematics, and microservice definitions for Project Beta.",
+      "encrypted_content": "mz3sxDQX7/Ng/sPT7ZD7QdJaNwoa+Em+zh0zR1/UEIHlQqcPLS2hebASEinZMB/499AHCTR+qpDiYSbktPccqdPxoaLvaryLbudUlCVeyWh5mO1jJwhRya+CmYP9EOZ7N/1zRMeJSXPnJOvixg/vFYXhRybI8v0X0OYiAmZ0nZFJ34rtkHqV/IYZ47sXtd90ANEUM4ppgVQkiX04wsHdYqTOPTpTO7J+qYAFwNuV7OS+eE8u67Gj1Q==",
+      "iv": "b4xea12azoqVLkMf",
+      "auth_tag": "hA5W2FR/+RGgXTlAe2Irdg==",
+      "aad": "asset_data:ast_beta",
+      "folder": "Projects",
+      "file_type": "ZIP",
+      "mime_type": "application/zip",
+      "file_size_bytes": 15518976,
+      "owner_id": "usr_vasu_002",
+      "owner_name": "Vasu (Lead Engineer)",
+      "shared_with_all": false,
+      "default_access_policy": "PRIVATE",
+      "created_at": "2026-09-10T14:00:00.000Z",
+      "last_accessed_at": "2026-09-19T15:00:21.533Z",
+      "key_version": "v1",
+      "versions": [
+        {
+          "version": "v1.0",
+          "uploaded_by": "Vasu (Lead Engineer)",
+          "created_at": "2026-09-10T14:00:00.000Z",
+          "size": "14.8 MB",
+          "notes": "Initial schematics release"
+        }
+      ],
+      "access_history": [
+        {
+          "id": "log_beta_1",
+          "action": "DOWNLOAD",
+          "user_name": "Vasu (Lead Engineer)",
+          "timestamp": "2026-09-19T15:00:21.533Z",
+          "status": "SUCCESS"
+        }
+      ],
+      "blockchain_token_id": "NFT-SEPOLIA-#8492",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_beta"
+    },
+    {
+      "id": "ast_finance",
+      "asset_code": "SMX-FIN-003",
+      "name": "Financial Audit Report Q3",
+      "classification": "CONFIDENTIAL",
+      "status": "ACTIVE",
+      "description": "Quarterly financial compliance, hardware procurement, and cryptographic subsystem expenditures.",
+      "encrypted_content": "8JISlbvtiZCRhNF6sTQt9WoZE7CtxCzh5k9IqAjKMOaTXSffHssrtg918MTO24t6QoNgscjBlY6BqNIN/tzvKp/I16PBNe/E6FjdCd10NJGLb9xn4Oa61jZf8vUpetktG8PNM4RFIqvJsOYEQzON1VcGJBgYZMhXpKqvbIyJ72jkWN3h0S3mQ4rEYhIgh/RzXUH8Hx2d6hZ6sR9sNPHpCCsgbknDVQ==",
+      "iv": "+o2KOa5U+jOjDLlE",
+      "auth_tag": "YcwF+C2qKI3fcBpXgkUGyw==",
+      "aad": "asset_data:ast_finance",
+      "folder": "Finance",
+      "file_type": "XLSX",
+      "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "file_size_bytes": 1258291,
+      "owner_id": "usr_auditor_003",
+      "owner_name": "Compliance Auditor",
+      "shared_with_all": false,
+      "default_access_policy": "PRIVATE",
+      "created_at": "2026-09-08T09:15:00.000Z",
+      "last_accessed_at": "2026-09-19T16:00:21.533Z",
+      "key_version": "v1",
+      "versions": [
+        {
+          "version": "v1.0",
+          "uploaded_by": "Compliance Auditor",
+          "created_at": "2026-09-08T09:15:00.000Z",
+          "size": "1.2 MB",
+          "notes": "Signed Q3 audit statement"
+        }
+      ],
+      "access_history": [
+        {
+          "id": "log_fin_1",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Lead Engineer)",
+          "timestamp": "2026-09-19T16:00:21.533Z",
+          "status": "SUCCESS"
+        }
+      ],
+      "blockchain_token_id": "NFT-SEPOLIA-#8493",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_finance"
+    },
+    {
+      "id": "ast_procure",
+      "asset_code": "SMX-FIN-004",
+      "name": "FY27 Defense Procurement Estimates",
+      "classification": "INTERNAL",
+      "status": "ACTIVE",
+      "description": "Forecast budget models and supplier bids for next-generation cryptographic hardware.",
+      "encrypted_content": "DCtNLs+GBUQnkPmoAlem4eMaMqsEmUdxEYIxjk5f9iRdRZzzN19YF7/Er7wLNADBgb8gBwmhSTfhcp+7IbEeJEPFC54CkOyC4M5kj18dCFWBhDA1fSgWCTjuiEPOIbLUDGGAGM/boual9cvbm9smpfmGE81rkooeX7nG2NNvpD/4vshObVBF3+Zt8ZSDnKFxTB5JTQHdm7joUKAmC9x/hQ==",
+      "iv": "0R3bRF+AGHluiPdt",
+      "auth_tag": "6tstq4wWX6K0PGwm4hh6eg==",
+      "aad": "asset_data:ast_procure",
+      "folder": "Finance",
+      "file_type": "XLSX",
+      "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "file_size_bytes": 3250585,
+      "owner_id": "usr_admin_001",
+      "owner_name": "Vasu (Administrator)",
+      "shared_with_all": false,
+      "default_access_policy": "PRIVATE",
+      "created_at": "2026-09-12T11:20:00.000Z",
+      "last_accessed_at": "2026-09-19T13:00:21.533Z",
+      "key_version": "v1",
+      "versions": [
+        {
+          "version": "v1.0",
+          "uploaded_by": "Vasu (Administrator)",
+          "created_at": "2026-09-12T11:20:00.000Z",
+          "size": "3.1 MB",
+          "notes": "Initial budget projections"
+        }
+      ],
+      "access_history": [
+        {
+          "id": "log_proc_1",
+          "action": "READ",
+          "user_name": "Vasu (Lead Engineer)",
+          "timestamp": "2026-09-19T13:00:21.533Z",
+          "status": "SUCCESS"
+        }
+      ],
+      "blockchain_token_id": "NFT-SEPOLIA-#8494",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_procure"
+    },
+    {
+      "id": "ast_hr_policy",
+      "asset_code": "SMX-HR-005",
+      "name": "Global Clearance & Personnel Policy",
+      "classification": "PUBLIC",
+      "status": "ACTIVE",
+      "description": "Organizational guidelines on cryptographic key custody, zero-trust hygiene, and KYC verification.",
+      "encrypted_content": "MamzB/AvBI5oL0KiYqrrRcHpOMfFJifrGwH9AxVcuulN/4K0yLa0Aou8VnQEduDXZuNj43coVtsa5F93BagPxcuBW2K1bOvyMtPbDbcb7PCtO3qK0pJdpTvwd0AekACBA6pcuBGhCsnN/N3wEjI0+u97cW2iqXW08D/w1wCB8PCeu4HmoAlFMWzbVh/M8pr4DbyJQiOtIqEFRdbnI5pAZyFblnDdB10DBugCg2tfEfVf61bpUHyXSoko",
+      "iv": "cHOriNoSxQ9RcszL",
+      "auth_tag": "e4rwCl7BauaxwBYtmjgsDQ==",
+      "aad": "asset_data:ast_hr_policy",
+      "folder": "HR",
+      "file_type": "PDF",
+      "mime_type": "application/pdf",
+      "file_size_bytes": 870400,
+      "owner_id": "usr_admin_001",
+      "owner_name": "Vasu (Administrator)",
+      "shared_with_all": true,
+      "default_access_policy": "ORGANIZATION",
+      "created_at": "2026-09-01T09:00:00.000Z",
+      "key_version": "v1",
+      "versions": [
+        {
+          "version": "v1.0",
+          "uploaded_by": "Vasu (Administrator)",
+          "created_at": "2026-09-01T09:00:00.000Z",
+          "size": "850 KB",
+          "notes": "Standard policy baseline"
+        }
+      ],
+      "access_history": [],
+      "blockchain_token_id": "NFT-SEPOLIA-#8495",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_hr_policy"
+    },
+    {
+      "id": "ast_roster",
+      "asset_code": "SMX-HR-006",
+      "name": "Active Operatives Personnel Roster",
+      "classification": "RESTRICTED",
+      "status": "ACTIVE",
+      "description": "Field operative identity mappings, tactical assignments, and cryptographic public key fingerprints.",
+      "encrypted_content": "U9coLThNC/+FazsDwa4omkmLdy78KR8Or4XvHjTAlEoeI2fl09X+2o1PIgLfmxSNDRxtjAKX8DeHwt6aB02erSRF8jRDApg7M0t34FDFpbqjcz8PLOPd1FUjKwi6N4LNypD5s8iE8etc+AhOnb5CddCrrSxh6/Hs78FqmiLa2iLkC0yypn7UEk5LILAJ+7QSxgtp0cMX8Z67UKIrLQE=",
+      "iv": "aovGIDp+IC17wrfT",
+      "auth_tag": "WUYMJTcVaQBc+fqa48pZDQ==",
+      "aad": "asset_data:ast_roster",
+      "folder": "HR",
+      "file_type": "DOC",
+      "mime_type": "application/msword",
+      "file_size_bytes": 1887436,
+      "owner_id": "usr_admin_001",
+      "owner_name": "Vasu (Administrator)",
+      "shared_with_all": false,
+      "default_access_policy": "PRIVATE",
+      "created_at": "2026-09-14T16:45:00.000Z",
+      "last_accessed_at": "2026-09-19T16:45:21.533Z",
+      "key_version": "v2",
+      "versions": [
+        {
+          "version": "v2.0",
+          "uploaded_by": "Vasu (Administrator)",
+          "created_at": "2026-09-14T16:45:00.000Z",
+          "size": "1.8 MB",
+          "notes": "Updated tactical assignments"
+        }
+      ],
+      "access_history": [
+        {
+          "id": "log_rost_1",
+          "action": "DECRYPT_ATTEMPT",
+          "user_name": "Vasu (Lead Engineer)",
+          "timestamp": "2026-09-19T16:45:21.533Z",
+          "status": "DENIED",
+          "details": "Insufficient clearance level"
+        }
+      ],
+      "blockchain_token_id": "NFT-SEPOLIA-#8496",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_roster"
+    },
+    {
+      "id": "ast_avionics",
+      "asset_code": "SMX-AVN-007",
+      "name": "Avionics Radar Interface Specs",
+      "classification": "RESTRICTED",
+      "status": "ACTIVE",
+      "description": "Hardware interface diagrams, bus timings, and electronic warfare countermeasure protocols.",
+      "encrypted_content": "MQLy/NXr9yidoaNuIgdpuOwvurDEwtc0XqXp5aDRb0uxQaugb4CHVRab88R7eWlk0XF0DsvN/R6jdnb0oMqVDWIJivbZW1l3yK0URlyBnFTci4QgliAfUUxwRKqijEuFaL7M8ciA2DkcfkVp52drcO4eX4N039w42YuORwZ4RjmEFFRhFBre6jXB8g81e1Y9d8EeQPY9UjjHmnMK",
+      "iv": "VgJZ+BAj4ZFyPo5e",
+      "auth_tag": "BCOb/Ce6vt7DL+1+KUedbQ==",
+      "aad": "asset_data:ast_avionics",
+      "folder": "Engineering",
+      "file_type": "PDF",
+      "mime_type": "application/pdf",
+      "file_size_bytes": 5872025,
+      "owner_id": "usr_admin_001",
+      "owner_name": "Vasu (Administrator)",
+      "shared_with_all": false,
+      "default_access_policy": "PRIVATE",
+      "created_at": "2026-09-11T12:00:00.000Z",
+      "last_accessed_at": "2026-09-19T16:30:21.533Z",
+      "key_version": "v2",
+      "versions": [
+        {
+          "version": "v2.0",
+          "uploaded_by": "Vasu (Administrator)",
+          "created_at": "2026-09-11T12:00:00.000Z",
+          "size": "5.6 MB",
+          "notes": "Integrated MIL-STD-1553 specs"
+        }
+      ],
+      "access_history": [
+        {
+          "id": "log_avn_1",
+          "action": "ACCESS_REQUEST",
+          "user_name": "Vasu (Lead Engineer)",
+          "timestamp": "2026-09-19T16:30:21.533Z",
+          "status": "PENDING",
+          "details": "Awaiting Admin NFT Permit"
+        }
+      ],
+      "blockchain_token_id": "NFT-SEPOLIA-#8497",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_avionics"
+    },
+    {
+      "id": "ast_kms",
+      "asset_code": "SMX-ENG-008",
+      "name": "KMS Module Microcode v2.4",
+      "classification": "CONFIDENTIAL",
+      "status": "ACTIVE",
+      "description": "Firmware binaries and zeroization routines for the cryptographic key storage layer.",
+      "encrypted_content": "mm6BR/4eGH/TZqQ6gWRLCjKwmCvIUsNAUFnD2vm8DExD/BnO0Pd5aKZJjH1sIQrIiJXYI4hk7bLXq7O51yLTXubmwgXaTdshAThIjfL0ZyCe1xuVuq4RGMqW3x4mKKu5AdZbc6hNThoma+9vE2AarzRw/7JrXiy/wDh7pS9HpXUtxP0HVKKfvn0wJSk=",
+      "iv": "Wjxe4l16dzpBRhDp",
+      "auth_tag": "kte2l3Rwr+nLciX2PDraKQ==",
+      "aad": "asset_data:ast_kms",
+      "folder": "Engineering",
+      "file_type": "ZIP",
+      "mime_type": "application/zip",
+      "file_size_bytes": 8598323,
+      "owner_id": "usr_admin_001",
+      "owner_name": "Vasu (Administrator)",
+      "shared_with_all": false,
+      "default_access_policy": "PRIVATE",
+      "created_at": "2026-09-13T15:30:00.000Z",
+      "last_accessed_at": "2026-09-18T17:00:21.533Z",
+      "key_version": "v2",
+      "versions": [
+        {
+          "version": "v2.4",
+          "uploaded_by": "Vasu (Administrator)",
+          "created_at": "2026-09-13T15:30:00.000Z",
+          "size": "8.2 MB",
+          "notes": "Patch for envelope tamper sensor"
+        }
+      ],
+      "access_history": [
+        {
+          "id": "log_kms_1",
+          "action": "ACCESS_EXPIRED",
+          "user_name": "Vasu (Lead Engineer)",
+          "timestamp": "2026-09-18T17:00:21.533Z",
+          "status": "DENIED",
+          "details": "Temporary 24h clearance expired"
+        }
+      ],
+      "blockchain_token_id": "NFT-SEPOLIA-#8498",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_kms"
+    },
+    {
+      "id": "ast_compliance",
+      "asset_code": "SMX-LEG-009",
+      "name": "DoD Zero Trust Statutory Compliance Certificate",
+      "classification": "PUBLIC",
+      "status": "ACTIVE",
+      "description": "Statutory audit compliance certificate confirming adherence to NIST SP 800-207 standards.",
+      "encrypted_content": "ftEpakfANhxpJDMsXXuo8sM2IyEiDAijBnTZ1zPchSpzWKVpYfsp8SsGSX+t1Hw5OKNtwNWVyp+NL8as9oJz5n7XCea5uBJDzESNx7WmS2Q3Ck+sqY145UVy9o1rB098I70Ijo5K5Vh6QdT1V4NGdihRnG5W93gI8ynG2ZL6oSjxUhFh3sIvKv4IGKBd0VJRWvY8NlfVFL2veSyAENYspsAnYJI=",
+      "iv": "QIimubt51KBbgLg6",
+      "auth_tag": "vKr5/w6TVf5i1FdVRh54Gw==",
+      "aad": "asset_data:ast_compliance",
+      "folder": "Legal",
+      "file_type": "PDF",
+      "mime_type": "application/pdf",
+      "file_size_bytes": 430080,
+      "owner_id": "usr_auditor_003",
+      "owner_name": "Compliance Auditor",
+      "shared_with_all": true,
+      "default_access_policy": "ORGANIZATION",
+      "created_at": "2026-09-05T10:00:00.000Z",
+      "key_version": "v1",
+      "versions": [
+        {
+          "version": "v1.0",
+          "uploaded_by": "Compliance Auditor",
+          "created_at": "2026-09-05T10:00:00.000Z",
+          "size": "420 KB",
+          "notes": "Annual compliance certification"
+        }
+      ],
+      "access_history": [],
+      "blockchain_token_id": "NFT-SEPOLIA-#8499",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_compliance"
+    },
+    {
+      "id": "ast_nda",
+      "asset_code": "SMX-LEG-010",
+      "name": "Classified Contractor NDA & Protocols",
+      "classification": "CONFIDENTIAL",
+      "status": "ACTIVE",
+      "description": "Standard nondisclosure agreements and operational security protocols for defense contractors.",
+      "encrypted_content": "CVqwDxCv+T2+T03E2PB+5WOW7Y2gtZcOHyfvX+eC9/6TYrNsW1xcHLVaMFVmC34psRZai+V+oYnHfDKW8Y4JT9+bERKTuMlwzoqh+lBv6ZVJRdFZBF13VktFPTY0TDQ4c2wsh4ABq/yi+7hZKZ+nAJhPnGEAGAK9RtoBTtfgFPKW5VS6Ew14SI32btFKIe7qpExNST9tJP76gcMUxHNKgnSk",
+      "iv": "BBPw1gUMKBKfs064",
+      "auth_tag": "gq6olXKF6sYmzUHeiNisNg==",
+      "aad": "asset_data:ast_nda",
+      "folder": "Legal",
+      "file_type": "DOC",
+      "mime_type": "application/msword",
+      "file_size_bytes": 696320,
+      "owner_id": "usr_auditor_003",
+      "owner_name": "Compliance Auditor",
+      "shared_with_all": false,
+      "default_access_policy": "PRIVATE",
+      "created_at": "2026-09-04T11:00:00.000Z",
+      "key_version": "v1",
+      "versions": [
+        {
+          "version": "v1.0",
+          "uploaded_by": "Compliance Auditor",
+          "created_at": "2026-09-04T11:00:00.000Z",
+          "size": "680 KB",
+          "notes": "Master contractor legal framework"
+        }
+      ],
+      "access_history": [],
+      "blockchain_token_id": "NFT-SEPOLIA-#8500",
+      "blockchain_contract": "0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "did": "did:securemax:asset:ast_nda"
+    }
+  ],
+  "assignments": [
+    {
+      "asset_id": "ast_hr_policy",
+      "user_id": "ALL",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "Vasu (Administrator)",
+      "shared_with_name": "All People (Organization-Wide)"
+    },
+    {
+      "asset_id": "ast_compliance",
+      "user_id": "ALL",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-05T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "Compliance Auditor",
+      "shared_with_name": "All People (Organization-Wide)"
+    },
+    {
+      "asset_id": "ast_alpha",
+      "user_id": "usr_vasu_002",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-19T17:00:21.663Z",
+      "expires_at": null
+    },
+    {
+      "asset_id": "ast_beta",
+      "user_id": "usr_vasu_002",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-10T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "Self (Owner)",
+      "shared_with_name": "Vasu (Lead Engineer)"
+    },
+    {
+      "asset_id": "ast_finance",
+      "user_id": "usr_vasu_002",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-08T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "Compliance Auditor",
+      "shared_with_name": "Vasu (Lead Engineer)"
+    },
+    {
+      "asset_id": "ast_procure",
+      "user_id": "usr_vasu_002",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": false,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-12T00:00:00.000Z",
+      "expires_at": "2026-09-26T17:00:21.647Z",
+      "shared_by": "Vasu (Administrator)",
+      "shared_with_name": "Vasu (Lead Engineer)"
+    },
+    {
+      "asset_id": "ast_nda",
+      "user_id": "usr_vasu_002",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-04T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "Compliance Auditor",
+      "shared_with_name": "Vasu (Lead Engineer)"
+    },
+    {
+      "asset_id": "ast_avionics",
+      "user_id": "usr_vasu_002",
+      "can_read": true,
+      "can_decrypt": false,
+      "can_download": false,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-11T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "Vasu (Administrator)",
+      "shared_with_name": "Vasu (Lead Engineer)"
+    },
+    {
+      "asset_id": "ast_roster",
+      "user_id": "usr_vasu_002",
+      "can_read": true,
+      "can_decrypt": false,
+      "can_download": false,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-14T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "Vasu (Administrator)",
+      "shared_with_name": "Vasu (Lead Engineer)"
+    },
+    {
+      "asset_id": "ast_kms",
+      "user_id": "usr_vasu_002",
+      "can_read": true,
+      "can_decrypt": false,
+      "can_download": false,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "EXPIRED",
+      "assigned_at": "2026-09-13T00:00:00.000Z",
+      "expires_at": "2026-09-18T17:00:21.647Z",
+      "shared_by": "Vasu (Administrator)",
+      "shared_with_name": "Vasu (Lead Engineer)"
+    },
+    {
+      "asset_id": "ast_finance",
+      "user_id": "usr_auditor_003",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-08T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "Self (Owner)",
+      "shared_with_name": "Compliance Auditor"
+    },
+    {
+      "asset_id": "ast_nda",
+      "user_id": "usr_auditor_003",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-04T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "Self (Owner)",
+      "shared_with_name": "Compliance Auditor"
+    },
+    {
+      "asset_id": "ast_alpha",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    },
+    {
+      "asset_id": "ast_beta",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    },
+    {
+      "asset_id": "ast_finance",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    },
+    {
+      "asset_id": "ast_procure",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    },
+    {
+      "asset_id": "ast_hr_policy",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    },
+    {
+      "asset_id": "ast_roster",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    },
+    {
+      "asset_id": "ast_avionics",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    },
+    {
+      "asset_id": "ast_kms",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    },
+    {
+      "asset_id": "ast_compliance",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    },
+    {
+      "asset_id": "ast_nda",
+      "user_id": "usr_admin_001",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": true,
+      "can_delete": true,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-01T00:00:00.000Z",
+      "expires_at": null,
+      "shared_by": "System Administrator",
+      "shared_with_name": "Vasu (Administrator)"
+    }
+  ],
+  "accessRequests": [
+    {
+      "id": "req-1",
+      "user_id": "usr_arjun_006",
+      "user_email": "arjun.verma@securemax.mil",
+      "user_name": "Arjun Verma",
+      "role": "ENGINEER",
+      "request_type": "ASSET_ACCESS",
+      "asset_id": "ast_fin_002",
+      "asset_code": "SMX-FIN-002",
+      "asset_name": "Substation 4 Vendor Invoices",
+      "reason": "reconcile vendor invoices for Substation 4 works",
+      "status": "PENDING",
+      "ttl_minutes": 30,
+      "created_at": "2026-09-19T16:35:21.647Z"
+    },
+    {
+      "id": "req-2",
+      "user_id": "usr_neha_008",
+      "user_email": "neha.iyer@securemax.mil",
+      "user_name": "Neha Iyer",
+      "role": "AUDITOR",
+      "request_type": "HIGH_RISK_DATA",
+      "asset_id": "ast_hr_policy",
+      "asset_code": "SMX-HR-001",
+      "asset_name": "Statutory PF Audit Records",
+      "reason": "statutory PF audit sample check",
+      "status": "PENDING",
+      "ttl_minutes": 15,
+      "created_at": "2026-09-19T16:52:21.647Z"
+    },
+    {
+      "id": "req_001",
+      "user_id": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "role": "USER",
+      "request_type": "HIGH_RISK_DATA",
+      "asset_id": "ast_avionics",
+      "asset_code": "SMX-AVN-003",
+      "asset_name": "Avionics Radar Interface Specs",
+      "reason": "Tactical comms integration review on authorized workstation",
+      "status": "PENDING",
+      "ttl_minutes": 30,
+      "created_at": "2026-09-19T16:30:21.647Z"
+    },
+    {
+      "id": "req_002",
+      "user_id": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "role": "USER",
+      "request_type": "ASSET_ACCESS",
+      "asset_id": "ast_patent",
+      "asset_code": "SMX-AST-000134",
+      "asset_name": "Patent Filing NDAs & Claims.pdf",
+      "reason": "Dual-chain patent claims review for upcoming intellectual property filing",
+      "status": "PENDING",
+      "ttl_minutes": 20,
+      "created_at": "2026-09-19T16:15:21.647Z"
+    },
+    {
+      "id": "req_003",
+      "user_id": "usr_auditor_003",
+      "user_email": "auditor@securemax.mil",
+      "user_name": "Compliance Auditor",
+      "role": "AUDITOR",
+      "request_type": "AUDIT_UPDATE",
+      "asset_id": "ast_finance",
+      "asset_code": "SMX-AUDIT-Q3",
+      "asset_name": "Financial Ledger & Statutory Audit Records",
+      "reason": "Compliance review & permanent blockchain anchor verification",
+      "status": "PENDING",
+      "ttl_minutes": 60,
+      "created_at": "2026-09-19T16:10:21.647Z"
+    }
+  ],
+  "liveGrants": [
+    {
+      "id": "grant-1",
+      "user": "Arjun Verma",
+      "userId": "usr_arjun_006",
+      "assetCode": "SMX-ENG-003",
+      "assetName": "Substation 4 SIPROTEC relay configuration",
+      "sessionId": "1bb04bec",
+      "ip": "10.42.7.19",
+      "device": "known device",
+      "expiresAt": "2026-09-19T17:11:58.065Z",
+      "remainingSeconds": 1274,
+      "status": "ACTIVE",
+      "createdAt": "2026-09-19T16:41:58.065Z"
+    },
+    {
+      "id": "grant-2",
+      "user": "Riya Sharma",
+      "userId": "usr_riya_007",
+      "assetCode": "SMX-HR-001",
+      "assetName": "HR Statutory Master",
+      "sessionId": "7a29f041",
+      "ip": "10.42.5.88",
+      "device": "corporate device",
+      "expiresAt": "2026-09-19T16:30:44.065Z",
+      "remainingSeconds": 0,
+      "status": "IDLE",
+      "note": "key v2 · rotated 20 min ago",
+      "createdAt": "2026-09-19T16:00:44.065Z"
+    },
+    {
+      "id": "grant-1",
+      "user": "Arjun Verma",
+      "userId": "usr_arjun_006",
+      "assetCode": "SMX-ENG-003",
+      "assetName": "Substation 4 SIPROTEC relay configuration",
+      "sessionId": "1bb04bec",
+      "ip": "10.42.7.19",
+      "device": "known device",
+      "expiresAt": "2026-09-19T17:21:35.647Z",
+      "remainingSeconds": 1274,
+      "status": "ACTIVE",
+      "createdAt": "2026-09-19T16:51:35.647Z"
+    },
+    {
+      "id": "grant-2",
+      "user": "Riya Sharma",
+      "userId": "usr_riya_007",
+      "assetCode": "SMX-HR-001",
+      "assetName": "HR Statutory Master",
+      "sessionId": "7a29f041",
+      "ip": "10.42.5.88",
+      "device": "corporate device",
+      "expiresAt": "2026-09-19T16:40:21.647Z",
+      "remainingSeconds": 0,
+      "status": "IDLE",
+      "note": "key v2 · rotated 20 min ago",
+      "createdAt": "2026-09-19T16:10:21.647Z"
+    }
+  ],
+  "auditEvents": [
+    {
+      "id": "aud_7115cbad",
+      "event_type": "DEVICE_RISK_STATE_CHANGED",
+      "description": "Device \"Vasu — Primary MacBook\" (dev_vasu_laptop) risk state transitioned from REVIEW to TRUSTED",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "risk_state": "REVIEW"
+      },
+      "after": {
+        "risk_state": "TRUSTED"
+      },
+      "performed_by": "usr_admin_001",
+      "severity": "INFO",
+      "event_hash": "0x973284e6544ffc81ffd4b5391055d67dc18e50e9d15ce44c1ff5a4b5845def5a",
+      "block_number": 6849400,
+      "created_at": "2026-09-19T17:01:03.897Z"
+    },
+    {
+      "id": "aud_8ee7f898",
+      "event_type": "DEVICE_RISK_STATE_CHANGED",
+      "description": "Device \"Vasu — Primary MacBook\" (dev_vasu_laptop) risk state transitioned from TRUSTED to REVIEW",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "risk_state": "TRUSTED"
+      },
+      "after": {
+        "risk_state": "REVIEW"
+      },
+      "performed_by": "usr_admin_001",
+      "severity": "INFO",
+      "event_hash": "0x88a39feab94e36cc12d11d163f5a9165e18846626116e0cf507485b15f2d6d3e",
+      "block_number": 6849324,
+      "created_at": "2026-09-19T17:01:03.896Z"
+    },
+    {
+      "id": "aud_e86e63f6",
+      "event_type": "DEVICE_REACTIVATED",
+      "description": "Device reactivated: Vasu — Primary MacBook (ID: dev_vasu_laptop)",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "status": "SUSPENDED"
+      },
+      "after": {
+        "status": "ACTIVE"
+      },
+      "severity": "INFO",
+      "event_hash": "0x6626499c24af48d93e250fe39e444620901a16250d2d9aa4c73e478e62adfceb",
+      "block_number": 6849372,
+      "created_at": "2026-09-19T17:01:03.895Z"
+    },
+    {
+      "id": "aud_977099a7",
+      "event_type": "DEVICE_RISK_STATE_CHANGED",
+      "description": "Device \"Vasu — Primary MacBook\" (dev_vasu_laptop) risk state transitioned from TRUSTED to REVOKED",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "risk_state": "TRUSTED"
+      },
+      "after": {
+        "risk_state": "REVOKED"
+      },
+      "severity": "WARNING",
+      "event_hash": "0xede2c1719c181c7647f6676045f146614fedb9b67adc7810779f493cd826f889",
+      "block_number": 6849469,
+      "created_at": "2026-09-19T17:01:03.894Z"
+    },
+    {
+      "id": "aud_ca6147ac",
+      "event_type": "TEMPORARY_KEY_AUTHORIZED",
+      "description": "Server-Side KMS issued short-lived decryption token (KMS-AUTH-F59C769E-CA9)",
+      "target_id": "ast_avionics",
+      "target": "ast_avionics",
+      "severity": "INFO",
+      "event_hash": "0x507d02b7ddb2e656b018da08a0e23db6e15cfbe6cfb3da57cb0851288fcdb1df",
+      "block_number": 6849545,
+      "created_at": "2026-09-19T17:01:03.893Z"
+    },
+    {
+      "id": "aud_c14d7811",
+      "event_type": "STEP_UP_AUTH_SUCCESS",
+      "description": "Step-up authentication verified for device \"Vasu — Primary MacBook\" (User: Vasu (Lead Engineer))",
+      "target_id": "ast_avionics",
+      "target": "ast_avionics",
+      "severity": "INFO",
+      "event_hash": "0x4c4eab0a5d3f7cc4412bde97efbb5feafb67cb966dc2c96534fdf551c10da59e",
+      "block_number": 6849306,
+      "created_at": "2026-09-19T17:01:03.893Z"
+    },
+    {
+      "id": "aud_06c51483",
+      "event_type": "DEVICE_RECOVERY_COMPLETED",
+      "description": "Device recovery executed for Vasu (Lead Engineer): old device \"Vasu — Primary MacBook\" revoked, new 15-minute enrollment capability issued.",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "device_id": "dev_vasu_laptop",
+        "status": "ACTIVE"
+      },
+      "after": {
+        "device_id": "dev_vasu_laptop",
+        "status": "REVOKED",
+        "replacement_enrollment_id": "enr_eb7a1bef"
+      },
+      "performed_by": "usr_admin_001",
+      "severity": "WARNING",
+      "event_hash": "0xa3ff7e71376bdaa8fad8fbecaf164bea5add88d5c0a9112ea39f6d8e43b307ac",
+      "block_number": 6849244,
+      "created_at": "2026-09-19T17:01:03.892Z"
+    },
+    {
+      "id": "aud_52f9d406",
+      "event_type": "DEVICE_ENROLLMENT_CREATED",
+      "description": "Temporary 15-minute device enrollment capability issued for Vasu (Lead Engineer) (Manager)",
+      "target_id": "enr_eb7a1bef",
+      "target": "enr_eb7a1bef",
+      "before": null,
+      "after": {
+        "position": "Manager",
+        "duration_minutes": 15,
+        "max_devices": 1
+      },
+      "performed_by": "usr_admin_001",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x0e112a3f97337f1cd252d58f74848b4cc5043d9d20c13d7ad7f99739a12e807f",
+      "block_number": 6849610,
+      "created_at": "2026-09-19T17:01:03.891Z"
+    },
+    {
+      "id": "aud_941e0b0d",
+      "event_type": "USER_REACTIVATED",
+      "description": "User account reactivated: Vasu (Lead Engineer) (vasu@securemax.mil). Device access restored.",
+      "target_id": "usr_vasu_002",
+      "target": "usr_vasu_002",
+      "before": {
+        "status": "SUSPENDED"
+      },
+      "after": {
+        "status": "ACTIVE"
+      },
+      "performed_by": "usr_admin_001",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x4e54c2efa691c3c4c4ce22b9cbdf6995f23fac6312dccd4401504563a8a043e1",
+      "block_number": 6849656,
+      "created_at": "2026-09-19T17:01:03.890Z"
+    },
+    {
+      "id": "aud_03beab98",
+      "event_type": "USER_SUSPENDED",
+      "description": "User account suspended: Vasu (Lead Engineer) (vasu@securemax.mil). All active sessions terminated and device access blocked.",
+      "target_id": "usr_vasu_002",
+      "target": "usr_vasu_002",
+      "before": {
+        "status": "ACTIVE"
+      },
+      "after": {
+        "status": "SUSPENDED"
+      },
+      "performed_by": "usr_admin_001",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "WARNING",
+      "event_hash": "0xb0268420de4691edf977448d72a6830b054dd4b371344b2b957bd1b9aff72f4c",
+      "block_number": 6849344,
+      "created_at": "2026-09-19T17:01:03.889Z"
+    },
+    {
+      "id": "aud_90e61aaa",
+      "event_type": "ALL_SESSIONS_REVOKED",
+      "description": "All active sessions revoked for user usr_vasu_002",
+      "target_id": "usr_vasu_002",
+      "target": "usr_vasu_002",
+      "performed_by": "usr_admin_001",
+      "severity": "WARNING",
+      "event_hash": "0x57e2b98fbfcfb81b04241f5be664b1d2dbd7b147bd9999905aa423065e0d5cca",
+      "block_number": 6849405,
+      "created_at": "2026-09-19T17:01:03.888Z"
+    },
+    {
+      "id": "aud_e59a6005",
+      "event_type": "ALL_SESSIONS_REVOKED",
+      "description": "All active sessions revoked for user usr_vasu_002",
+      "target_id": "usr_vasu_002",
+      "target": "usr_vasu_002",
+      "severity": "WARNING",
+      "event_hash": "0x57e2b98fbfcfb81b04241f5be664b1d2dbd7b147bd9999905aa423065e0d5cca",
+      "block_number": 6849213,
+      "created_at": "2026-09-19T17:01:03.888Z"
+    },
+    {
+      "id": "aud_73730dfc",
+      "event_type": "SESSION_REVOKED",
+      "description": "Session SES-55C4C301 revoked for user Vasu (Lead Engineer)",
+      "target_id": "SES-55C4C301",
+      "target": "SES-55C4C301",
+      "severity": "INFO",
+      "event_hash": "0x4d4c246cb5836002cca44b6a0593daf0e3401046fe7dbbebae4bc819c4cc4d9c",
+      "block_number": 6849298,
+      "created_at": "2026-09-19T17:01:03.887Z"
+    },
+    {
+      "id": "aud_5b894622",
+      "event_type": "DEVICE_REACTIVATED",
+      "description": "Device reactivated: Vasu — Primary MacBook (ID: dev_vasu_laptop)",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "status": "SUSPENDED"
+      },
+      "after": {
+        "status": "ACTIVE"
+      },
+      "performed_by": "usr_admin_001",
+      "severity": "INFO",
+      "event_hash": "0xf9a7c46094c313e9e4b42a6ce41c571ae103f021bc836f34ea7de3653209edec",
+      "block_number": 6849405,
+      "created_at": "2026-09-19T17:01:03.886Z"
+    },
+    {
+      "id": "aud_f9ec8de9",
+      "event_type": "DEVICE_SUSPENDED",
+      "description": "Device access suspended: Vasu — Primary MacBook (ID: dev_vasu_laptop)",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "status": "ACTIVE"
+      },
+      "after": {
+        "status": "SUSPENDED"
+      },
+      "performed_by": "usr_admin_001",
+      "severity": "WARNING",
+      "event_hash": "0x492fd1730a581462f469bc44bc30b50c406ac2178a5d17cbb82aa08ba113eee1",
+      "block_number": 6849315,
+      "created_at": "2026-09-19T17:01:03.885Z"
+    },
+    {
+      "id": "aud_9f9479d4",
+      "event_type": "DEVICE_RISK_STATE_CHANGED",
+      "description": "Device \"Vasu — Primary MacBook\" (dev_vasu_laptop) risk state transitioned from RESTRICTED to TRUSTED",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "risk_state": "RESTRICTED"
+      },
+      "after": {
+        "risk_state": "TRUSTED"
+      },
+      "performed_by": "usr_admin_001",
+      "severity": "INFO",
+      "event_hash": "0xa3544649de1162e0a752ceec0a33794f155fe08b0632836c46b029e0c9b065a0",
+      "block_number": 6849615,
+      "created_at": "2026-09-19T17:01:03.884Z"
+    },
+    {
+      "id": "aud_fe211785",
+      "event_type": "DEVICE_RISK_STATE_CHANGED",
+      "description": "Device \"Vasu — Primary MacBook\" (dev_vasu_laptop) risk state transitioned from REVIEW to RESTRICTED",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "risk_state": "REVIEW"
+      },
+      "after": {
+        "risk_state": "RESTRICTED"
+      },
+      "performed_by": "usr_admin_001",
+      "severity": "WARNING",
+      "event_hash": "0x605f5093108441325daa9df964575818d027012aef51ce5b00fd6bd36841f63e",
+      "block_number": 6849687,
+      "created_at": "2026-09-19T17:01:03.882Z"
+    },
+    {
+      "id": "aud_84b8f2af",
+      "event_type": "DEVICE_RISK_STATE_CHANGED",
+      "description": "Device \"Vasu — Primary MacBook\" (dev_vasu_laptop) risk state transitioned from TRUSTED to REVIEW",
+      "target_id": "dev_vasu_laptop",
+      "target": "dev_vasu_laptop",
+      "before": {
+        "risk_state": "TRUSTED"
+      },
+      "after": {
+        "risk_state": "REVIEW"
+      },
+      "performed_by": "usr_admin_001",
+      "severity": "INFO",
+      "event_hash": "0x7df3614c3168fa28130eac1ff3de038af56fae035f31ae7cf6fee1fab276df12",
+      "block_number": 6849585,
+      "created_at": "2026-09-19T17:01:03.881Z"
+    },
+    {
+      "id": "aud_847b2860",
+      "event_type": "PASSKEY_REGISTERED",
+      "description": "WebAuthn / Passkey credential registered: WebAuthn / Platform Passkey for Vasu (Lead Engineer)",
+      "target_id": "cred_vasu_mbp_99",
+      "target": "cred_vasu_mbp_99",
+      "before": null,
+      "after": {
+        "credential_id": "cred_vasu_mbp_99",
+        "credential_type": "WebAuthn / Platform Passkey"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0xd8d82fff245c65e93879b74440cc2c53b9c9eef1de176b855224fc0e88cea422",
+      "block_number": 6849442,
+      "created_at": "2026-09-19T17:01:03.880Z"
+    },
+    {
+      "id": "aud_4c78dc8b",
+      "event_type": "DEVICE_REGISTERED",
+      "description": "New Device Passport issued: Vasu — Primary MacBook (ID: DEV-E8DC71E5, OS: macOS, Region: Punjab, India)",
+      "target_id": "DEV-E8DC71E5",
+      "target": "DEV-E8DC71E5",
+      "before": null,
+      "after": {
+        "device_id": "DEV-E8DC71E5",
+        "device_name": "Vasu — Primary MacBook",
+        "device_type": "laptop",
+        "os": "macOS",
+        "registration_region": "Punjab, India"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0xa2b18886d3412a97362923d5f4ae91137a810549911dc7642fc208699d6c4da4",
+      "block_number": 6849622,
+      "created_at": "2026-09-19T17:01:03.879Z"
+    },
+    {
+      "id": "aud_7937f029",
+      "event_type": "DEVICE_ENROLLMENT_CONSUMED",
+      "description": "One-time enrollment capability consumed by device \"Vasu — Primary MacBook\" for Vasu (Lead Engineer) (1/1 enrolled)",
+      "target_id": "enr_a505d33d",
+      "target": "enr_a505d33d",
+      "before": {
+        "devices_enrolled": 0,
+        "status": "ACTIVE"
+      },
+      "after": {
+        "devices_enrolled": 1,
+        "status": "CONSUMED"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0xf8a7ebdb80c121613d3a3481b95813acae25ade6f4aa4a6799cfd114a74534d3",
+      "block_number": 6849525,
+      "created_at": "2026-09-19T17:01:03.879Z"
+    },
+    {
+      "id": "aud_5a0c83b2",
+      "event_type": "DEVICE_ENROLLMENT_CREATED",
+      "description": "Temporary 15-minute device enrollment capability issued for Vasu (Lead Engineer) (Manager)",
+      "target_id": "enr_a505d33d",
+      "target": "enr_a505d33d",
+      "before": null,
+      "after": {
+        "position": "Manager",
+        "duration_minutes": 15,
+        "max_devices": 1
+      },
+      "performed_by": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x10e24098b0fb951c2fe62c98ffd4159e78af98170b8026da0d503ed449e6f403",
+      "block_number": 6849581,
+      "created_at": "2026-09-19T17:01:03.878Z"
+    },
+    {
+      "id": "aud_0bd19d1d",
+      "event_type": "PASSKEY_REGISTERED",
+      "description": "WebAuthn / Passkey credential registered: WebAuthn for Vasu (Lead Engineer)",
+      "target_id": "cred_e19eed82-4b4",
+      "target": "cred_e19eed82-4b4",
+      "before": null,
+      "after": {
+        "credential_id": "cred_e19eed82-4b4",
+        "credential_type": "WebAuthn"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x487261887040599ea5617a2681bc35331297d2dbd49c6335c41e84485e976730",
+      "block_number": 6849330,
+      "created_at": "2026-09-19T17:01:03.877Z"
+    },
+    {
+      "id": "aud_dc5cc118",
+      "event_type": "DEVICE_REGISTERED",
+      "description": "New Device Passport issued: Vasu Approved Laptop (ID: DEV-2A1C2AA6, OS: macOS, Region: Punjab, India)",
+      "target_id": "DEV-2A1C2AA6",
+      "target": "DEV-2A1C2AA6",
+      "before": null,
+      "after": {
+        "device_id": "DEV-2A1C2AA6",
+        "device_name": "Vasu Approved Laptop",
+        "device_type": "laptop",
+        "os": "macOS",
+        "registration_region": "Punjab, India"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0xa3134e139139e034aedaf9697cb17681daebdbc222d016a44027b1dc97b89244",
+      "block_number": 6849569,
+      "created_at": "2026-09-19T17:01:03.877Z"
+    },
+    {
+      "id": "aud_c7d655e9",
+      "event_type": "DEVICE_ENROLLMENT_CONSUMED",
+      "description": "One-time enrollment capability consumed by device \"Vasu Approved Laptop\" for Vasu (Lead Engineer) (1/1 enrolled)",
+      "target_id": "enr_cb9728c2",
+      "target": "enr_cb9728c2",
+      "before": {
+        "devices_enrolled": 0,
+        "status": "ACTIVE"
+      },
+      "after": {
+        "devices_enrolled": 1,
+        "status": "CONSUMED"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x0b97c3942ff353d5c5d999ef4ae3127516fcf29e516c32a82f867ca5de25719a",
+      "block_number": 6849452,
+      "created_at": "2026-09-19T17:01:03.877Z"
+    },
+    {
+      "id": "aud_d422d26f",
+      "event_type": "DEVICE_ENROLLMENT_CREATED",
+      "description": "Temporary 15-minute device enrollment capability issued for Vasu (Lead Engineer) (Manager)",
+      "target_id": "enr_cb9728c2",
+      "target": "enr_cb9728c2",
+      "before": null,
+      "after": {
+        "position": "Manager",
+        "duration_minutes": 15,
+        "max_devices": 1,
+        "target_device_type": "laptop"
+      },
+      "performed_by": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x58fbe9b2c2d69c238acb999369b72853d6d5d3d4af23882dac40eb9f8f887c30",
+      "block_number": 6849504,
+      "created_at": "2026-09-19T17:01:03.876Z"
+    },
+    {
+      "id": "aud_fea83e6a",
+      "event_type": "PASSKEY_REGISTERED",
+      "description": "WebAuthn / Passkey credential registered: WebAuthn for Vasu (Lead Engineer)",
+      "target_id": "cred_1b0c22fb-591",
+      "target": "cred_1b0c22fb-591",
+      "before": null,
+      "after": {
+        "credential_id": "cred_1b0c22fb-591",
+        "credential_type": "WebAuthn"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0xeef5921dafcc118234c48d2202d869dd15e4d61ed8c4f9482349352a4af61ee6",
+      "block_number": 6849341,
+      "created_at": "2026-09-19T17:01:03.875Z"
+    },
+    {
+      "id": "aud_8e44e616",
+      "event_type": "DEVICE_REGISTERED",
+      "description": "New Device Passport issued: Vasu Multi Device 2 (ID: DEV-3393A5C0, OS: macOS, Region: Punjab, India)",
+      "target_id": "DEV-3393A5C0",
+      "target": "DEV-3393A5C0",
+      "before": null,
+      "after": {
+        "device_id": "DEV-3393A5C0",
+        "device_name": "Vasu Multi Device 2",
+        "device_type": "laptop",
+        "os": "macOS",
+        "registration_region": "Punjab, India"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0xf1654418a5e31544e733e65344b7d0276a53e0bc98661b165126e9d43b7cb73c",
+      "block_number": 6849330,
+      "created_at": "2026-09-19T17:01:03.874Z"
+    },
+    {
+      "id": "aud_993e97e8",
+      "event_type": "DEVICE_ENROLLMENT_CONSUMED",
+      "description": "One-time enrollment capability consumed by device \"Vasu Multi Device 2\" for Vasu (Lead Engineer) (2/2 enrolled)",
+      "target_id": "enr_d59e680f",
+      "target": "enr_d59e680f",
+      "before": {
+        "devices_enrolled": 1,
+        "status": "ACTIVE"
+      },
+      "after": {
+        "devices_enrolled": 2,
+        "status": "CONSUMED"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x673313cd7fd0729b9da7020607cb246656e12f31a81fa0b6f9e94e295183897a",
+      "block_number": 6849660,
+      "created_at": "2026-09-19T17:01:03.874Z"
+    },
+    {
+      "id": "aud_2ae94a9b",
+      "event_type": "PASSKEY_REGISTERED",
+      "description": "WebAuthn / Passkey credential registered: WebAuthn for Vasu (Lead Engineer)",
+      "target_id": "cred_9c5d7657-a74",
+      "target": "cred_9c5d7657-a74",
+      "before": null,
+      "after": {
+        "credential_id": "cred_9c5d7657-a74",
+        "credential_type": "WebAuthn"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x1998de8a77c29594d5e314d4a773ed42d6cedcb166dee180bf9c791de2932508",
+      "block_number": 6849359,
+      "created_at": "2026-09-19T17:01:03.874Z"
+    },
+    {
+      "id": "aud_909110d4",
+      "event_type": "DEVICE_REGISTERED",
+      "description": "New Device Passport issued: Vasu Multi Device 1 (ID: DEV-2F9E19F6, OS: macOS, Region: Punjab, India)",
+      "target_id": "DEV-2F9E19F6",
+      "target": "DEV-2F9E19F6",
+      "before": null,
+      "after": {
+        "device_id": "DEV-2F9E19F6",
+        "device_name": "Vasu Multi Device 1",
+        "device_type": "laptop",
+        "os": "macOS",
+        "registration_region": "Punjab, India"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x32c51a16d2448973cf7e88e7fc3e1f8fe8e43207e262d70c25ffb345bfe0d21c",
+      "block_number": 6849245,
+      "created_at": "2026-09-19T17:01:03.873Z"
+    },
+    {
+      "id": "aud_5be73fa4",
+      "event_type": "DEVICE_ENROLLMENT_CONSUMED",
+      "description": "One-time enrollment capability consumed by device \"Vasu Multi Device 1\" for Vasu (Lead Engineer) (1/2 enrolled)",
+      "target_id": "enr_d59e680f",
+      "target": "enr_d59e680f",
+      "before": {
+        "devices_enrolled": 0,
+        "status": "ACTIVE"
+      },
+      "after": {
+        "devices_enrolled": 1,
+        "status": "ACTIVE"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x4872ad06cab4415f5485353cd5ae5a1fe598b617155f548bb98621433691d6e0",
+      "block_number": 6849690,
+      "created_at": "2026-09-19T17:01:03.872Z"
+    },
+    {
+      "id": "aud_87cc730a",
+      "event_type": "DEVICE_ENROLLMENT_CREATED",
+      "description": "Temporary 15-minute device enrollment capability issued for Vasu (Lead Engineer) (Manager)",
+      "target_id": "enr_d59e680f",
+      "target": "enr_d59e680f",
+      "before": null,
+      "after": {
+        "position": "Manager",
+        "duration_minutes": 15,
+        "max_devices": 2
+      },
+      "performed_by": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0xa0963a75600f6abee1e28e6a8727708ffc86d4a9785bcad1b44f3aad8498f7ec",
+      "block_number": 6849617,
+      "created_at": "2026-09-19T17:01:03.870Z"
+    },
+    {
+      "id": "aud_6f681e21",
+      "event_type": "PASSKEY_REGISTERED",
+      "description": "WebAuthn / Passkey credential registered: WebAuthn for Vasu (Lead Engineer)",
+      "target_id": "cred_test_001",
+      "target": "cred_test_001",
+      "before": null,
+      "after": {
+        "credential_id": "cred_test_001",
+        "credential_type": "WebAuthn"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0xd4d4e8b3668ce53a4eafa97fccf7035e8737f07d6b30230c4e71f4e914b5358a",
+      "block_number": 6849200,
+      "created_at": "2026-09-19T17:01:03.869Z"
+    },
+    {
+      "id": "aud_40ec1e60",
+      "event_type": "DEVICE_REGISTERED",
+      "description": "New Device Passport issued: Vasu — Work Tablet (ID: DEV-28C72892, OS: iPadOS, Region: Punjab, India)",
+      "target_id": "DEV-28C72892",
+      "target": "DEV-28C72892",
+      "before": null,
+      "after": {
+        "device_id": "DEV-28C72892",
+        "device_name": "Vasu — Work Tablet",
+        "device_type": "tablet",
+        "os": "iPadOS",
+        "registration_region": "Punjab, India"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x0a3958128ab65f892b305c23552a67bd2726769eafe3f78427351038b55ae4d8",
+      "block_number": 6849294,
+      "created_at": "2026-09-19T17:01:03.868Z"
+    },
+    {
+      "id": "aud_8ccdc589",
+      "event_type": "DEVICE_ENROLLMENT_CONSUMED",
+      "description": "One-time enrollment capability consumed by device \"Vasu — Work Tablet\" for Vasu (Lead Engineer) (1/1 enrolled)",
+      "target_id": "enr_d224cbf4",
+      "target": "enr_d224cbf4",
+      "before": {
+        "devices_enrolled": 0,
+        "status": "ACTIVE"
+      },
+      "after": {
+        "devices_enrolled": 1,
+        "status": "CONSUMED"
+      },
+      "performed_by": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0xdefac3db82dc069f26a47acd239d273215fe35fa97546e0f0f2ed9fb299785ff",
+      "block_number": 6849618,
+      "created_at": "2026-09-19T17:01:03.868Z"
+    },
+    {
+      "id": "aud_b30c1ab3",
+      "event_type": "DEVICE_ENROLLMENT_CREATED",
+      "description": "Temporary 15-minute device enrollment capability issued for Vasu (Lead Engineer) (Manager)",
+      "target_id": "enr_d224cbf4",
+      "target": "enr_d224cbf4",
+      "before": null,
+      "after": {
+        "position": "Manager",
+        "duration_minutes": 15,
+        "max_devices": 1
+      },
+      "performed_by": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x8e5d06954f11c04ecc1cee920596f79feca9f19e561b1290a404dedcf0ab0c92",
+      "block_number": 6849516,
+      "created_at": "2026-09-19T17:01:03.867Z"
+    },
+    {
+      "id": "aud_6f9178ed",
+      "event_type": "DEVICE_ENROLLMENT_CREATED",
+      "description": "Temporary 15-minute device enrollment capability issued for Vasu (Lead Engineer) (Manager)",
+      "target_id": "enr_f3d06e8e",
+      "target": "enr_f3d06e8e",
+      "before": null,
+      "after": {
+        "position": "Manager",
+        "duration_minutes": 15,
+        "max_devices": 1
+      },
+      "performed_by": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x5d493eca123d408b55bdf8d75eb99a1939c1c6bf28e88ffad129e8bb8ebea69e",
+      "block_number": 6849508,
+      "created_at": "2026-09-19T17:01:03.866Z"
+    },
+    {
+      "id": "aud_76ffaca6",
+      "event_type": "DEVICE_ENROLLMENT_CREATED",
+      "description": "Temporary 15-minute device enrollment capability issued for Vasu (Lead Engineer) (Manager)",
+      "target_id": "enr_e0cff775",
+      "target": "enr_e0cff775",
+      "before": null,
+      "after": {
+        "position": "Manager",
+        "duration_minutes": 15,
+        "max_devices": 1
+      },
+      "performed_by": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x1c40d1c7bbdf788a82a215a2eb62fa9b703fa4a8ed79a1e018ff5a254a11ecbc",
+      "block_number": 6849559,
+      "created_at": "2026-09-19T17:01:03.865Z"
+    },
+    {
+      "id": "aud_4dde98d8",
+      "event_type": "DEVICE_ENROLLMENT_CREATED",
+      "description": "Temporary 15-minute device enrollment capability issued for Vasu (Lead Engineer) (Manager)",
+      "target_id": "enr_28a1aa79",
+      "target": "enr_28a1aa79",
+      "before": null,
+      "after": {
+        "position": "Manager",
+        "duration_minutes": 15,
+        "max_devices": 1
+      },
+      "performed_by": "usr_admin_001",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x82096a60f735b15344a5c863b74ec92df497bc9d0406c4ee4a7910ad08642bb3",
+      "block_number": 6849445,
+      "created_at": "2026-09-19T17:01:03.864Z"
+    },
+    {
+      "id": "aud_2e3fe82e",
+      "event_type": "POSITION_CREATED",
+      "description": "New position created: Authorized Elevated Officer [Level: ELEVATED] by Vasu (Administrator)",
+      "target_id": "pos_d90ec038",
+      "target": "pos_d90ec038",
+      "before": null,
+      "after": {
+        "name": "Authorized Elevated Officer",
+        "privilege_level": "ELEVATED",
+        "permissions": {
+          "identity": {
+            "register": false,
+            "suspend": false,
+            "revoke": false
+          },
+          "users": {
+            "create": false,
+            "suspend": false
+          },
+          "assets": {
+            "view": true,
+            "allocate": true,
+            "transfer": true,
+            "delete": false
+          },
+          "access": {
+            "approve": true,
+            "revoke": true
+          },
+          "audit": {
+            "view": true,
+            "export": false
+          },
+          "security": {
+            "view_alerts": true,
+            "manage_devices": false
+          }
+        }
+      },
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x066128c761f3b36d5c6c3612b395d2ba7b5e5766bd46fc055c94c639ab43cc03",
+      "block_number": 6849201,
+      "created_at": "2026-09-19T17:01:03.862Z"
+    },
+    {
+      "id": "aud_8f135a98",
+      "event_type": "POSITION_CREATED",
+      "description": "New position created: Compliance Officer [Level: STANDARD] by Vasu (Administrator)",
+      "target_id": "pos_6d581115",
+      "target": "pos_6d581115",
+      "before": null,
+      "after": {
+        "name": "Compliance Officer",
+        "privilege_level": "STANDARD",
+        "permissions": {
+          "identity": {
+            "register": false,
+            "suspend": false,
+            "revoke": false
+          },
+          "users": {
+            "create": false,
+            "suspend": false
+          },
+          "assets": {
+            "view": true,
+            "allocate": false,
+            "transfer": false,
+            "delete": false
+          },
+          "access": {
+            "approve": false,
+            "revoke": false
+          },
+          "audit": {
+            "view": true,
+            "export": true
+          },
+          "security": {
+            "view_alerts": true,
+            "manage_devices": false
+          }
+        }
+      },
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x93869fce9fd24e03b1264f38d4ec2cfe74b44fe7358f6ccfe8701671f395f26f",
+      "block_number": 6849658,
+      "created_at": "2026-09-19T17:01:03.859Z"
+    },
+    {
+      "id": "aud_eeced859",
+      "event_type": "TEMPORARY_KEY_AUTHORIZED",
+      "description": "Audit Event: TEMPORARY_KEY_AUTHORIZED on ASSET:ast_alpha",
+      "target_id": "ast_alpha",
+      "target": "ast_alpha",
+      "severity": "INFO",
+      "event_hash": "0x7d62f7f09d5273bc52a13a734ead6ddd5fd0206db2ec9f689c500c55a4c808b8",
+      "block_number": 6849324,
+      "created_at": "2026-09-19T17:00:21.664Z"
+    },
+    {
+      "id": "aud_97998bba",
+      "event_type": "PERMISSION_CHANGED",
+      "description": "Cryptographic access granted for asset ast_alpha (user: usr_vasu_002).",
+      "target_id": "ast_alpha",
+      "target": "ast_alpha",
+      "before": [
+        "READ",
+        "EDIT"
+      ],
+      "after": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "performed_by": "Administrator",
+      "severity": "INFO",
+      "event_hash": "0xb8a375998ff30f50b53791ffe53cde4756ea718383001f031be7fff8ffdd45b2",
+      "block_number": 6849568,
+      "created_at": "2026-09-19T17:00:21.663Z"
+    },
+    {
+      "id": "aud_721bb992",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_alpha",
+      "target_id": "ast_alpha",
+      "target": "ast_alpha",
+      "severity": "WARNING",
+      "event_hash": "0xd305907f218e11a819432e71eef50f7d4a2a8171860fdcbbfe971e22611cbfc7",
+      "block_number": 6849231,
+      "created_at": "2026-09-19T17:00:21.662Z"
+    },
+    {
+      "id": "aud_478b6bac",
+      "event_type": "ROLE_REVOKED",
+      "description": "Audit Event: ROLE_REVOKED on USER_ASSET:usr_vasu_002",
+      "target_id": "usr_vasu_002",
+      "target": "usr_vasu_002",
+      "severity": "INFO",
+      "event_hash": "0xa7880375f698de475ddf701ccf5de1152ff4822c63a92ff2d7354c8800c470b0",
+      "block_number": 6849233,
+      "created_at": "2026-09-19T17:00:21.661Z"
+    },
+    {
+      "id": "aud_3a647afd",
+      "event_type": "PERMISSION_CHANGED",
+      "description": "Cryptographic access revoked for asset ast_alpha (user: usr_vasu_002).",
+      "target_id": "ast_alpha",
+      "target": "ast_alpha",
+      "before": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD",
+        "EDIT"
+      ],
+      "after": [
+        "READ"
+      ],
+      "performed_by": "Administrator",
+      "severity": "WARNING",
+      "event_hash": "0x944780e4645e7852e265376853d286b8f7d29bfe640282a341d9a3cf1a81d436",
+      "block_number": 6849610,
+      "created_at": "2026-09-19T17:00:21.660Z"
+    },
+    {
+      "id": "aud_e657b7b2",
+      "event_type": "TEMPORARY_KEY_AUTHORIZED",
+      "description": "Audit Event: TEMPORARY_KEY_AUTHORIZED on ASSET:ast_alpha",
+      "target_id": "ast_alpha",
+      "target": "ast_alpha",
+      "severity": "INFO",
+      "event_hash": "0x379e987f5d5c3ee0285a8873864d6a8f3743f149840b424bb0905ac9a60725f4",
+      "block_number": 6849366,
+      "created_at": "2026-09-19T17:00:21.649Z"
+    },
+    {
+      "id": "aud_cec014cd",
+      "event_type": "ADMIN_BOOTSTRAP_DISABLED",
+      "description": "Admin bootstrap permanently disabled. System state: SYSTEM_LOCKED",
+      "performed_by": "SYSTEM_SECURITY_POLICY",
+      "severity": "WARNING",
+      "event_hash": "0x9363af91e50bddd8ee745c6cef47040baa09a3071053ab8e6666a1e2b26a3ab4",
+      "block_number": 6849529,
+      "created_at": "2026-09-19T17:00:20.816Z"
+    },
+    {
+      "id": "aud_f8071b73",
+      "event_type": "SYSTEM_INITIALIZATION_COMPLETED",
+      "description": "SecureMAX system fully initialized and locked",
+      "performed_by": "Alpha Admin",
+      "severity": "INFO",
+      "event_hash": "0xd6274d068a3398fb5a859890e045d4dd144494babaa451b43859af75753414ec",
+      "block_number": 6849465,
+      "created_at": "2026-09-19T17:00:20.815Z"
+    },
+    {
+      "id": "aud_6c0656b5",
+      "event_type": "ADMIN_CREDENTIAL_REGISTERED",
+      "description": "WebAuthn / Passkey credential registered for Alpha Admin",
+      "target_id": "cred_admin_fc522ccd",
+      "target": "cred_admin_fc522ccd",
+      "performed_by": "Alpha Admin",
+      "severity": "INFO",
+      "event_hash": "0x95abb04b40e91977baf4a3c0db5af86bba62b98d793587626154664553c9a80d",
+      "block_number": 6849346,
+      "created_at": "2026-09-19T17:00:20.815Z"
+    },
+    {
+      "id": "aud_bde46d1a",
+      "event_type": "ADMIN_DEVICE_REGISTERED",
+      "description": "Singleton Admin device bound: SecureMAX Admin Laptop (ID: DEV-ADMIN-001)",
+      "target_id": "DEV-ADMIN-001",
+      "target": "DEV-ADMIN-001",
+      "performed_by": "Alpha Admin",
+      "severity": "INFO",
+      "event_hash": "0xe490e2ae99eee4bffdf7ab805f8e67a003bfa24f1b9e63a7541f6c33f3f32385",
+      "block_number": 6849333,
+      "created_at": "2026-09-19T17:00:20.812Z"
+    },
+    {
+      "id": "aud_3715f6ac",
+      "event_type": "ROOT_ADMIN_CREATED",
+      "description": "Root administrator created: Alpha Admin (ADM-0001)",
+      "target_id": "ADM-0001",
+      "target": "ADM-0001",
+      "performed_by": "Alpha Admin",
+      "severity": "INFO",
+      "event_hash": "0x35f82ad08bc734d97f00cb847f13e9ba91c669d31dbdb5853fccc0c5c4dd2832",
+      "block_number": 6849610,
+      "created_at": "2026-09-19T17:00:20.812Z"
+    },
+    {
+      "id": "aud_907e388c",
+      "event_type": "SYSTEM_INITIALIZATION_STARTED",
+      "description": "SecureMAX bootstrap started for organization: Alpha Defense (ID: ORG-FBBFB4)",
+      "performed_by": "DEPLOYMENT_BOOTSTRAP",
+      "severity": "INFO",
+      "event_hash": "0xed5a741dba739ff5a0223163daea89bc13d2fb6d4c4b83b1990934f5b1a9c19b",
+      "block_number": 6849217,
+      "created_at": "2026-09-19T17:00:20.810Z"
+    },
+    {
+      "id": "aud_seed_1",
+      "event_type": "USER_IDENTITY_REGISTERED",
+      "description": "DID generated for Vasu (Field Operator): did:securemax:user:002",
+      "target_id": "usr_vasu_002",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x3f4a9b2c8e1d5a7f9b0c2e4d6a8f1b3c5e7a9b0d2f4a6c8e1b3d5f7a9c0e2b4",
+      "block_number": 6849210,
+      "created_at": "2026-09-19T15:00:21.647Z"
+    },
+    {
+      "id": "aud_seed_2",
+      "event_type": "HARDWARE_DEVICE_ENROLLED",
+      "description": "New hardware device enrolled: Field Laptop (ECDSA P-256)",
+      "target_id": "dev_user_primary",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "INFO",
+      "event_hash": "0x8a1c3e5f7b9d2a4c6e8f0b1d3f5a7c9e1b3d5f7a9c0e2b4a6c8e1b3d5f7a9c0",
+      "block_number": 6849245,
+      "created_at": "2026-09-19T15:25:21.647Z"
+    },
+    {
+      "id": "aud_seed_3",
+      "event_type": "SEPOLIA_ANCHOR_VERIFIED",
+      "description": "State root anchored to Sepolia Contract: 0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B",
+      "target_id": "ETHEREUM_SEPOLIA",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x7e9a1b3c5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b1d3f5a7c9e1b3d5f7a9",
+      "block_number": 6849280,
+      "created_at": "2026-09-19T16:00:21.647Z"
+    },
+    {
+      "id": "aud_seed_4",
+      "event_type": "ACCESS_REQUEST_SUBMITTED",
+      "description": "High-risk access requested for Avionics Radar (SMX-AVN-003) awaiting Admin NFT Permit",
+      "target_id": "ast_avionics",
+      "user_email": "vasu@securemax.mil",
+      "user_name": "Vasu (Lead Engineer)",
+      "severity": "WARNING",
+      "event_hash": "0x4c6e8f0b1d3f5a7c9e1b3d5f7a9c0e2b4a6c8e1b3d5f7a9c0e2b4a6c8e1b3d5",
+      "block_number": 6849310,
+      "created_at": "2026-09-19T16:30:21.647Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_1",
+      "type": "ACCESS_REQUEST",
+      "title": "New Access Request",
+      "message": "Vaani requested clearance for Project Alpha.pdf",
+      "timestamp": "16:40 Today",
+      "read": false,
+      "target_id": "ast_alpha"
+    },
+    {
+      "id": "notif_2",
+      "type": "ACCESS_APPROVED",
+      "title": "Access Approved",
+      "message": "Admin granted decryption permit for Project Alpha.pdf",
+      "timestamp": "17:02 Today",
+      "read": false,
+      "target_id": "ast_alpha"
+    },
+    {
+      "id": "notif_3",
+      "type": "KEY_ROTATED",
+      "title": "Encryption Key Rotated",
+      "message": "Key version v3 active for SMX-AST-000124 (Project Alpha)",
+      "timestamp": "17:02 Today",
+      "read": false,
+      "target_id": "ast_alpha"
+    },
+    {
+      "id": "notif_4",
+      "type": "ASSET_SHARED",
+      "title": "Asset Shared With You",
+      "message": "Financial Report Q3.xlsx was shared by Finance Directorate",
+      "timestamp": "Yesterday",
+      "read": true,
+      "target_id": "ast_finance"
+    },
+    {
+      "id": "notif_5",
+      "type": "DEVICE_REGISTERED",
+      "title": "New Device Registered",
+      "message": "Workstation Laptop A enrolled with ECDSA P-256 key",
+      "timestamp": "2 days ago",
+      "read": true,
+      "target_id": "dev_vasu_laptop"
+    },
+    {
+      "id": "notif_1",
+      "type": "ACCESS_REQUEST",
+      "title": "New Access Request",
+      "message": "Arjun Verma requested access for Substation 4 Vendor Invoices",
+      "timestamp": "25 min ago",
+      "read": false,
+      "target_id": "ast_fin_002"
+    },
+    {
+      "id": "notif_2",
+      "type": "ACCESS_APPROVED",
+      "title": "Access Approved",
+      "message": "Admin granted decryption permit for Project Alpha.pdf",
+      "timestamp": "17:02 Today",
+      "read": false,
+      "target_id": "ast_alpha"
+    }
+  ],
+  "loginHistory": [
+    {
+      "id": "log_4afd6aec",
+      "userId": "usr_vasu_002",
+      "userName": "Vasu (Lead Engineer)",
+      "userEmail": "vasu@securemax.mil",
+      "role": "USER",
+      "deviceName": "Workstation Laptop A",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T16:52:18.846Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_58ddf862",
+      "userId": "usr_auditor_003",
+      "userName": "Compliance Auditor",
+      "userEmail": "auditor@securemax.mil",
+      "role": "AUDITOR",
+      "deviceName": "Audit Secure Terminal",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T16:52:18.843Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_5cf438ae",
+      "userId": "usr_admin_001",
+      "userName": "Vasu (Administrator)",
+      "userEmail": "admin@securemax.mil",
+      "role": "ADMIN",
+      "deviceName": "Admin Laptop (Hardware-Bound)",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T16:52:18.836Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_05a4166d",
+      "userId": "usr_vasu_002",
+      "userName": "Vasu (Lead Engineer)",
+      "userEmail": "vasu@securemax.mil",
+      "role": "USER",
+      "deviceName": "Workstation Laptop A",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T16:50:44.095Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_ca16f47c",
+      "userId": "usr_auditor_003",
+      "userName": "Compliance Auditor",
+      "userEmail": "auditor@securemax.mil",
+      "role": "AUDITOR",
+      "deviceName": "Audit Secure Terminal",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T16:50:44.092Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_c9f0b953",
+      "userId": "usr_admin_001",
+      "userName": "Vasu (Administrator)",
+      "userEmail": "admin@securemax.mil",
+      "role": "ADMIN",
+      "deviceName": "Admin Laptop (Hardware-Bound)",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T16:50:44.089Z",
+      "status": "SUCCESS"
+    }
+  ],
+  "positions": [
+    {
+      "id": "pos_root_admin",
+      "name": "Root Administrator",
+      "description": "Protected root organizational security identity",
+      "privilege_level": "ADMINISTRATIVE",
+      "is_predefined": true,
+      "created_at": "2026-09-01T00:00:00.000Z",
+      "permissions": {
+        "identity": {
+          "register": true,
+          "suspend": true,
+          "revoke": true
+        },
+        "users": {
+          "create": true,
+          "suspend": true
+        },
+        "assets": {
+          "view": true,
+          "allocate": true,
+          "transfer": true,
+          "delete": true
+        },
+        "access": {
+          "approve": true,
+          "revoke": true
+        },
+        "audit": {
+          "view": true,
+          "export": true
+        },
+        "security": {
+          "view_alerts": true,
+          "manage_devices": true
+        }
+      }
+    },
+    {
+      "id": "pos_admin",
+      "name": "Administrator",
+      "description": "Complete organizational administration",
+      "privilege_level": "ADMINISTRATIVE",
+      "is_predefined": true,
+      "created_at": "2026-09-01T00:00:00.000Z",
+      "permissions": {
+        "identity": {
+          "register": true,
+          "suspend": true,
+          "revoke": true
+        },
+        "users": {
+          "create": true,
+          "suspend": true
+        },
+        "assets": {
+          "view": true,
+          "allocate": true,
+          "transfer": true,
+          "delete": true
+        },
+        "access": {
+          "approve": true,
+          "revoke": true
+        },
+        "audit": {
+          "view": true,
+          "export": true
+        },
+        "security": {
+          "view_alerts": true,
+          "manage_devices": true
+        }
+      }
+    },
+    {
+      "id": "pos_manager",
+      "name": "Manager",
+      "description": "Operational asset and access management",
+      "privilege_level": "ELEVATED",
+      "is_predefined": true,
+      "created_at": "2026-09-01T00:00:00.000Z",
+      "permissions": {
+        "identity": {
+          "register": false,
+          "suspend": false,
+          "revoke": false
+        },
+        "users": {
+          "create": false,
+          "suspend": false
+        },
+        "assets": {
+          "view": true,
+          "allocate": true,
+          "transfer": true,
+          "delete": false
+        },
+        "access": {
+          "approve": true,
+          "revoke": true
+        },
+        "audit": {
+          "view": true,
+          "export": false
+        },
+        "security": {
+          "view_alerts": true,
+          "manage_devices": false
+        }
+      }
+    },
+    {
+      "id": "pos_auditor",
+      "name": "Auditor",
+      "description": "Read-only evidence and audit investigation",
+      "privilege_level": "STANDARD",
+      "is_predefined": true,
+      "created_at": "2026-09-01T00:00:00.000Z",
+      "permissions": {
+        "identity": {
+          "register": false,
+          "suspend": false,
+          "revoke": false
+        },
+        "users": {
+          "create": false,
+          "suspend": false
+        },
+        "assets": {
+          "view": true,
+          "allocate": false,
+          "transfer": false,
+          "delete": false
+        },
+        "access": {
+          "approve": false,
+          "revoke": false
+        },
+        "audit": {
+          "view": true,
+          "export": true
+        },
+        "security": {
+          "view_alerts": true,
+          "manage_devices": false
+        }
+      }
+    },
+    {
+      "id": "pos_user",
+      "name": "User",
+      "description": "Assigned organizational asset access",
+      "privilege_level": "STANDARD",
+      "is_predefined": true,
+      "created_at": "2026-09-01T00:00:00.000Z",
+      "permissions": {
+        "identity": {
+          "register": false,
+          "suspend": false,
+          "revoke": false
+        },
+        "users": {
+          "create": false,
+          "suspend": false
+        },
+        "assets": {
+          "view": true,
+          "allocate": false,
+          "transfer": false,
+          "delete": false
+        },
+        "access": {
+          "approve": false,
+          "revoke": false
+        },
+        "audit": {
+          "view": false,
+          "export": false
+        },
+        "security": {
+          "view_alerts": false,
+          "manage_devices": false
+        }
+      }
+    },
+    {
+      "id": "pos_sec_manager",
+      "name": "Security Manager",
+      "description": "Responsible for security operations and device management",
+      "privilege_level": "ELEVATED",
+      "permissions": {
+        "identity": {
+          "register": true,
+          "suspend": true,
+          "revoke": false
+        },
+        "users": {
+          "create": false,
+          "suspend": true
+        },
+        "assets": {
+          "view": true,
+          "allocate": true,
+          "transfer": false,
+          "delete": false
+        },
+        "access": {
+          "approve": true,
+          "revoke": true
+        },
+        "audit": {
+          "view": true,
+          "export": true
+        },
+        "security": {
+          "view_alerts": true,
+          "manage_devices": true
+        }
+      },
+      "is_predefined": false,
+      "created_at": "2026-09-02T00:00:00.000Z",
+      "created_by": "Vasu (Administrator)"
+    },
+    {
+      "id": "pos_6d581115",
+      "name": "Compliance Officer",
+      "description": "Oversees regulatory compliance and statutory audits",
+      "privilege_level": "STANDARD",
+      "permissions": {
+        "identity": {
+          "register": false,
+          "suspend": false,
+          "revoke": false
+        },
+        "users": {
+          "create": false,
+          "suspend": false
+        },
+        "assets": {
+          "view": true,
+          "allocate": false,
+          "transfer": false,
+          "delete": false
+        },
+        "access": {
+          "approve": false,
+          "revoke": false
+        },
+        "audit": {
+          "view": true,
+          "export": true
+        },
+        "security": {
+          "view_alerts": true,
+          "manage_devices": false
+        }
+      },
+      "is_predefined": false,
+      "created_at": "2026-09-19T17:01:03.859Z",
+      "created_by": "Vasu (Administrator)"
+    },
+    {
+      "id": "pos_d90ec038",
+      "name": "Authorized Elevated Officer",
+      "description": "Authorized operational manager",
+      "privilege_level": "ELEVATED",
+      "permissions": {
+        "identity": {
+          "register": false,
+          "suspend": false,
+          "revoke": false
+        },
+        "users": {
+          "create": false,
+          "suspend": false
+        },
+        "assets": {
+          "view": true,
+          "allocate": true,
+          "transfer": true,
+          "delete": false
+        },
+        "access": {
+          "approve": true,
+          "revoke": true
+        },
+        "audit": {
+          "view": true,
+          "export": false
+        },
+        "security": {
+          "view_alerts": true,
+          "manage_devices": false
+        }
+      },
+      "is_predefined": false,
+      "created_at": "2026-09-19T17:01:03.862Z",
+      "created_by": "Vasu (Administrator)"
+    }
+  ],
+  "devicePassports": [
+    {
+      "id": "DEV-ADMIN-001",
+      "device_id": "DEV-ADMIN-001",
+      "user_id": "ADM-0001",
+      "user_name": "Alpha Admin",
+      "user_email": "alpha@defense.org",
+      "position": "Root Administrator",
+      "device_name": "SecureMAX Admin Laptop",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "SecureMAX Hardware-Bound Terminal",
+      "credential_id": "cred_admin_fc522ccd",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:00:20.810Z",
+      "last_authenticated_at": "2026-09-19T17:00:20.810Z",
+      "last_active_at": "2026-09-19T17:00:20.810Z",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "public_key": "alpha_key",
+      "algorithm": "ECDSA_P256",
+      "status": "ACTIVE",
+      "is_admin_device": true,
+      "created_at": "2026-09-19T17:00:20.810Z",
+      "last_used_at": "2026-09-19T17:00:20.810Z",
+      "timeline": [
+        {
+          "id": "tl_boot_1",
+          "timestamp": "2026-09-19T17:00:15.810Z",
+          "event": "SYSTEM_INITIALIZATION_STARTED",
+          "details": "One-time deployment bootstrap initiated",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_2",
+          "timestamp": "2026-09-19T17:00:16.810Z",
+          "event": "ROOT_ADMIN_CREATED",
+          "details": "Root administrator created: Alpha Admin (ADM-0001)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_3",
+          "timestamp": "2026-09-19T17:00:17.810Z",
+          "event": "ADMIN_DEVICE_REGISTERED",
+          "details": "Singleton trusted device registered: SecureMAX Admin Laptop",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_4",
+          "timestamp": "2026-09-19T17:00:18.810Z",
+          "event": "ADMIN_CREDENTIAL_REGISTERED",
+          "details": "WebAuthn / Passkey cryptographic credential anchored",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_5",
+          "timestamp": "2026-09-19T17:00:19.810Z",
+          "event": "SYSTEM_INITIALIZATION_COMPLETED",
+          "details": "System initialization completed successfully",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_boot_6",
+          "timestamp": "2026-09-19T17:00:20.810Z",
+          "event": "ADMIN_BOOTSTRAP_DISABLED",
+          "details": "Bootstrap mode permanently locked down",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "dev_admin_primary",
+      "device_id": "dev_admin_primary",
+      "user_id": "usr_admin_001",
+      "user_name": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "position": "Administrator",
+      "device_name": "Admin Laptop (Hardware-Bound)",
+      "device_type": "terminal",
+      "os": "macOS",
+      "browser": "Safari",
+      "browser_version": "18.0",
+      "model": "Admin Secure Enclave Terminal",
+      "credential_id": "cred_admin_hw_01",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-01T00:00:00.000Z",
+      "last_authenticated_at": "2026-09-19T17:00:21.533Z",
+      "last_active_at": "2026-09-19T17:00:21.533Z",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2Z37UoHq3y1V4XwH5K7oF9P9k3sZ0s7uVvWxX0y1A2bC3dE4fG5hI6jK7lM8nO9pQ0rS1tU2vW3xY4z5A6bC7w==",
+      "algorithm": "ECDSA_P256",
+      "status": "ACTIVE",
+      "is_admin_device": true,
+      "created_at": "2026-09-01T00:00:00.000Z",
+      "last_used_at": "2026-09-19T17:00:21.533Z",
+      "timeline": [
+        {
+          "id": "tl_adm_1",
+          "timestamp": "2026-09-01T00:00:00.000Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Root Administrator physical terminal bound",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_adm_2",
+          "timestamp": "2026-09-01T00:01:00.000Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "Hardware enclave P-256 key anchored",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "dev_vasu_laptop",
+      "device_id": "dev_vasu_laptop",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu — Primary MacBook",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_vasu_mbp_01",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-02T00:00:00.000Z",
+      "last_authenticated_at": "2026-09-19T17:00:21.533Z",
+      "last_active_at": "2026-09-19T17:00:21.533Z",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEq9V1zK2Y7nL6X4eQ8jB2tF0mS3wZ5xY8vU1tP2rQ3sA4bC5dE6fG7hI8jK9lM0nO1pQ2rS3tU4vW5xY6z7A8bC==",
+      "algorithm": "ECDSA_P256",
+      "status": "ACTIVE",
+      "is_admin_device": false,
+      "created_at": "2026-09-02T00:00:00.000Z",
+      "last_used_at": "2026-09-19T17:00:21.533Z",
+      "timeline": [
+        {
+          "id": "tl_7aab549b",
+          "timestamp": "2026-09-19T17:01:03.897Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from REVIEW to TRUSTED",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_06307222",
+          "timestamp": "2026-09-19T17:01:03.896Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from TRUSTED to REVIEW",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_1270b381",
+          "timestamp": "2026-09-19T17:01:03.895Z",
+          "event": "DEVICE_REACTIVATED",
+          "details": "Device restored to active trusted state by administrator",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_aa66c6b1",
+          "timestamp": "2026-09-19T17:01:03.894Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from TRUSTED to REVOKED",
+          "severity": "WARNING"
+        },
+        {
+          "id": "tl_42ddc460",
+          "timestamp": "2026-09-19T17:01:03.893Z",
+          "event": "DECRYPTION_AUTHORIZED",
+          "details": "Temporary Server-Side KMS key-release permit granted: KMS-AUTH-F59C769E-CA9",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_10f10563",
+          "timestamp": "2026-09-19T17:01:03.893Z",
+          "event": "STEP_UP_AUTH_SUCCESS",
+          "details": "Step-up WebAuthn authentication verified for asset ast_avionics",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_8aaec6ad",
+          "timestamp": "2026-09-19T17:01:03.891Z",
+          "event": "DEVICE_RECOVERED_REVOKED",
+          "details": "Device reported lost or compromised. Terminal revocation executed by administrator during recovery.",
+          "severity": "CRITICAL"
+        },
+        {
+          "id": "tl_b71efe99",
+          "timestamp": "2026-09-19T17:01:03.891Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_c3a0b69e",
+          "timestamp": "2026-09-19T17:01:03.888Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_c21ea4da",
+          "timestamp": "2026-09-19T17:01:03.887Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_2cfb82ce",
+          "timestamp": "2026-09-19T17:01:03.887Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_32bbd6fc",
+          "timestamp": "2026-09-19T17:01:03.887Z",
+          "event": "LOGIN_SUCCESS",
+          "details": "Authenticated session established via PASSKEY",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_e28ac018",
+          "timestamp": "2026-09-19T17:01:03.887Z",
+          "event": "ASSET_ACCESSED",
+          "details": "User decrypted confidential blueprint ast_alpha",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_d6dbe4a3",
+          "timestamp": "2026-09-19T17:01:03.886Z",
+          "event": "DEVICE_REACTIVATED",
+          "details": "Device restored to active trusted state by administrator",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_0e115432",
+          "timestamp": "2026-09-19T17:01:03.885Z",
+          "event": "DEVICE_SUSPENDED",
+          "details": "Device access suspended by administrator",
+          "severity": "WARNING"
+        },
+        {
+          "id": "tl_95896bbc",
+          "timestamp": "2026-09-19T17:01:03.884Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from RESTRICTED to TRUSTED",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_096f322a",
+          "timestamp": "2026-09-19T17:01:03.882Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from REVIEW to RESTRICTED",
+          "severity": "WARNING"
+        },
+        {
+          "id": "tl_d7ca1448",
+          "timestamp": "2026-09-19T17:01:03.881Z",
+          "event": "RISK_STATE_CHANGED",
+          "details": "Risk state changed from TRUSTED to REVIEW",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_vsu_1",
+          "timestamp": "2026-09-02T00:00:00.000Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device registered via 15-minute pairing code",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_vsu_2",
+          "timestamp": "2026-09-02T00:01:00.000Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "Touch ID / Passkey enrolled",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_vsu_3",
+          "timestamp": "2026-09-02T00:02:00.000Z",
+          "event": "FIRST_LOGIN",
+          "details": "Successful biometric authentication",
+          "severity": "INFO"
+        }
+      ],
+      "revoked_at": "2026-09-19T17:01:03.894Z"
+    },
+    {
+      "id": "dev_auditor_terminal",
+      "device_id": "dev_auditor_terminal",
+      "user_id": "usr_auditor_003",
+      "user_name": "Compliance Auditor",
+      "user_email": "auditor@securemax.mil",
+      "position": "Auditor",
+      "device_name": "Audit Secure Terminal",
+      "device_type": "terminal",
+      "os": "Linux",
+      "browser": "Firefox",
+      "browser_version": "129.0",
+      "model": "Audit Hardware Station",
+      "credential_id": "cred_audit_01",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-03T00:00:00.000Z",
+      "last_authenticated_at": "2026-09-19T17:00:21.533Z",
+      "last_active_at": "2026-09-19T17:00:21.533Z",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7p9X2mR5yT8vN1qW4sE7hK0bL3zC6xY9vU2tP3rQ4sA5bC6dE7fG8hI9jK0lM1nO2pQ3rS4tU5vW6xY7z8A9bC==",
+      "algorithm": "ECDSA_P256",
+      "status": "ACTIVE",
+      "is_admin_device": false,
+      "created_at": "2026-09-03T00:00:00.000Z",
+      "last_used_at": "2026-09-19T17:00:21.533Z",
+      "timeline": [
+        {
+          "id": "tl_aud_1",
+          "timestamp": "2026-09-03T00:00:00.000Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Audit terminal registered",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_aud_2",
+          "timestamp": "2026-09-03T00:01:00.000Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "FIDO2 Hardware Key enrolled",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-28C72892",
+      "device_id": "DEV-28C72892",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu — Work Tablet",
+      "device_type": "tablet",
+      "os": "iPadOS",
+      "browser": "Safari",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_test_001",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEtest1234567890abcdef==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:01:03.868Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.868Z",
+      "last_active_at": "2026-09-19T17:01:03.868Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.868Z",
+      "last_used_at": "2026-09-19T17:01:03.868Z",
+      "timeline": [
+        {
+          "id": "tl_4b38a7d1",
+          "timestamp": "2026-09-19T17:01:03.868Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu — Work Tablet\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_3ae9d98f",
+          "timestamp": "2026-09-19T17:01:03.868Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_test_00...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-2F9E19F6",
+      "device_id": "DEV-2F9E19F6",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu Multi Device 1",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_9c5d7657-a74",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmulti1111111111111111111==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:01:03.872Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.872Z",
+      "last_active_at": "2026-09-19T17:01:03.872Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.872Z",
+      "last_used_at": "2026-09-19T17:01:03.872Z",
+      "timeline": [
+        {
+          "id": "tl_fb35fa35",
+          "timestamp": "2026-09-19T17:01:03.872Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu Multi Device 1\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_a3bb4e02",
+          "timestamp": "2026-09-19T17:01:03.872Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_9c5d765...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-3393A5C0",
+      "device_id": "DEV-3393A5C0",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu Multi Device 2",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_1b0c22fb-591",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmulti2222222222222222222==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:01:03.874Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.874Z",
+      "last_active_at": "2026-09-19T17:01:03.874Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.874Z",
+      "last_used_at": "2026-09-19T17:01:03.874Z",
+      "timeline": [
+        {
+          "id": "tl_9d02ba28",
+          "timestamp": "2026-09-19T17:01:03.874Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu Multi Device 2\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_70eafec8",
+          "timestamp": "2026-09-19T17:01:03.874Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_1b0c22f...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-2A1C2AA6",
+      "device_id": "DEV-2A1C2AA6",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu Approved Laptop",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_e19eed82-4b4",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEapprovedLaptop123456789==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn",
+      "registered_at": "2026-09-19T17:01:03.877Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.877Z",
+      "last_active_at": "2026-09-19T17:01:03.877Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.877Z",
+      "last_used_at": "2026-09-19T17:01:03.877Z",
+      "timeline": [
+        {
+          "id": "tl_5d70e88f",
+          "timestamp": "2026-09-19T17:01:03.877Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu Approved Laptop\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_542aaae6",
+          "timestamp": "2026-09-19T17:01:03.877Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_e19eed8...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    },
+    {
+      "id": "DEV-E8DC71E5",
+      "device_id": "DEV-E8DC71E5",
+      "user_id": "usr_vasu_002",
+      "user_name": "Vasu (Lead Engineer)",
+      "user_email": "vasu@securemax.mil",
+      "position": "Manager",
+      "device_name": "Vasu — Primary MacBook",
+      "device_type": "laptop",
+      "os": "macOS",
+      "browser": "Chrome",
+      "browser_version": "128.0",
+      "model": "MacBook Pro",
+      "credential_id": "cred_vasu_mbp_99",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvasuKeySpkiBase64String==",
+      "algorithm": "ECDSA_P256",
+      "credential_type": "WebAuthn / Platform Passkey",
+      "registered_at": "2026-09-19T17:01:03.879Z",
+      "last_authenticated_at": "2026-09-19T17:01:03.879Z",
+      "last_active_at": "2026-09-19T17:01:03.879Z",
+      "status": "ACTIVE",
+      "risk_state": "TRUSTED",
+      "registration_region": "Punjab, India",
+      "is_admin_device": false,
+      "created_at": "2026-09-19T17:01:03.879Z",
+      "last_used_at": "2026-09-19T17:01:03.879Z",
+      "timeline": [
+        {
+          "id": "tl_9dbcd0ab",
+          "timestamp": "2026-09-19T17:01:03.879Z",
+          "event": "DEVICE_REGISTERED",
+          "details": "Device \"Vasu — Primary MacBook\" cryptographically registered to Vasu (Lead Engineer)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_c8ef63f7",
+          "timestamp": "2026-09-19T17:01:03.879Z",
+          "event": "PASSKEY_ENROLLED",
+          "details": "WebAuthn / Passkey credential (cred_vasu_mb...) bound to hardware enclave",
+          "severity": "INFO"
+        }
+      ]
+    }
+  ],
+  "systemSettings": {
+    "admin_initialized": true,
+    "bootstrap_enabled": false,
+    "system_state": "SYSTEM_LOCKED",
+    "organization": {
+      "name": "SecureMAX Defense Vault Command",
+      "org_id": "ORG-SMX-001",
+      "org_type": "Defense / Enterprise",
+      "country": "India",
+      "timezone": "Asia/Kolkata",
+      "created_at": "2026-09-01T00:00:00.000Z"
+    },
+    "root_admin_id": "usr_admin_001",
+    "admin_locked": false,
+    "failed_admin_logins": 0,
+    "last_admin_login": {
+      "timestamp": "2026-09-19T17:00:21.533Z",
+      "region": "Punjab, India",
+      "device_name": "Admin Laptop (Hardware-Bound)",
+      "auth_method": "WEBAUTHN"
+    },
+    "last_security_change": "2026-09-19T19:42:00.000Z"
+  },
+  "recoveryVault": {
+    "recoveryId": "REC-8A92-491F",
+    "recoveryCodeHash": "0e288a369f95ac39c6c07b12120fa6978e59485d119de506dbbdbbcb1a07bebc",
+    "createdAt": "2026-09-01T00:00:00.000Z",
+    "used": false
+  },
+  "updatedAt": "2026-09-19T17:01:03.898Z"
+}

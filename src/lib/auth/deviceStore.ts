@@ -1,5 +1,7 @@
 import 'server-only';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { 
   UserRole, 
   UserStatus, 
@@ -105,9 +107,48 @@ export interface StoredAccessRequest {
   asset_name?: string;
   reason: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  ttl_minutes?: number;
   nft_token_id?: string;
   created_at: string;
   approved_at?: string;
+}
+
+export interface LiveGrant {
+  id: string;
+  user: string;
+  userId?: string;
+  assetCode: string;
+  assetName?: string;
+  sessionId: string;
+  ip: string;
+  device: string;
+  expiresAt: string;
+  remainingSeconds?: number;
+  status: 'ACTIVE' | 'IDLE' | 'REVOKED' | 'EXPIRED';
+  note?: string;
+  createdAt: string;
+}
+
+export interface LoginHistoryRecord {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  role: string;
+  deviceName: string;
+  ip: string;
+  timestamp: string;
+  status: 'SUCCESS' | 'FAILED';
+}
+
+export interface StoredNotification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  target_id?: string;
 }
 
 export interface StoredAuditEvent {
@@ -210,7 +251,7 @@ export const PREDEFINED_POSITIONS: StoredPosition[] = [
   },
 ];
 
-// In-memory persistent state (persists across hot-reloads within the server instance)
+// In-memory persistent state with atomic disk persistence (.securemax_db/vault_ledger.json)
 class SecureMaxStore {
   public users: Map<string, StoredUser> = new Map();
   public devices: Map<string, UserDevice> = new Map();
@@ -222,6 +263,7 @@ class SecureMaxStore {
   public assets: Map<string, StoredAsset> = new Map();
   public assignments: StoredAssignment[] = [];
   public accessRequests: StoredAccessRequest[] = [];
+  public liveGrants: LiveGrant[] = [];
   public auditEvents: StoredAuditEvent[] = [];
   public wrappedDEKs: Map<string, { cipher: string; iv: string; authTag: string }> = new Map();
   public challengeCache: Map<string, { challengeId: string; identifier: string; nonce: string; message: string; expiresAt: string }> = new Map();
@@ -235,10 +277,149 @@ class SecureMaxStore {
     failed_admin_logins: 0,
   };
   public recoveryVault: AdminRecoveryVault | null = null;
+  public notifications: StoredNotification[] = [];
+  public loginHistory: LoginHistoryRecord[] = [];
 
   constructor() {
-    // Zero demo data: all users, devices, assets, and audit logs are entered manually at runtime.
-    // For automated test suites, use seedTestDataForTesting().
+    if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
+      const loaded = this.loadFromDisk();
+      if (!loaded) {
+        this.seedInitialData();
+        this.saveToDisk();
+      }
+    }
+  }
+
+  private getDbFilePath(): string {
+    return path.join(process.cwd(), '.securemax_db', 'vault_ledger.json');
+  }
+
+  public saveToDisk(): void {
+    if (process.env.NODE_ENV === 'test' || process.env.VITEST) return;
+    try {
+      const filePath = this.getDbFilePath();
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      const payload = {
+        users: Array.from(this.users.values()),
+        devices: Array.from(this.devices.values()),
+        enrollments: Array.from(this.enrollments.values()),
+        assets: Array.from(this.assets.values()),
+        assignments: this.assignments,
+        accessRequests: this.accessRequests,
+        liveGrants: this.liveGrants,
+        auditEvents: this.auditEvents,
+        notifications: this.notifications,
+        loginHistory: this.loginHistory,
+        positions: Array.from(this.positions.values()),
+        devicePassports: Array.from(this.devicePassports.values()),
+        systemSettings: this.systemSettings,
+        recoveryVault: this.recoveryVault,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const tmpPath = `${filePath}.${Date.now()}.tmp`;
+      fs.writeFileSync(tmpPath, JSON.stringify(payload, null, 2), 'utf8');
+      fs.renameSync(tmpPath, filePath);
+    } catch (err) {
+      console.error('[SecureMaxStore] Disk save error:', err);
+    }
+  }
+
+  public loadFromDisk(): boolean {
+    try {
+      const filePath = this.getDbFilePath();
+      if (!fs.existsSync(filePath)) {
+        return false;
+      }
+      const raw = fs.readFileSync(filePath, 'utf8');
+      const parsed = JSON.parse(raw);
+
+      if (Array.isArray(parsed.users) && parsed.users.length > 0) {
+        this.users.clear();
+        for (const u of parsed.users) {
+          this.users.set(u.id, u);
+          this.users.set(u.email, u);
+        }
+      } else {
+        return false;
+      }
+
+      if (Array.isArray(parsed.devices)) {
+        this.devices.clear();
+        for (const d of parsed.devices) {
+          this.devices.set(d.id, d);
+        }
+      }
+
+      if (Array.isArray(parsed.enrollments)) {
+        this.enrollments.clear();
+        for (const e of parsed.enrollments) {
+          this.enrollments.set(e.code, e);
+        }
+      }
+
+      if (Array.isArray(parsed.assets)) {
+        this.assets.clear();
+        for (const a of parsed.assets) {
+          this.assets.set(a.id, a);
+        }
+      }
+
+      if (Array.isArray(parsed.assignments)) {
+        this.assignments = parsed.assignments;
+      }
+
+      if (Array.isArray(parsed.accessRequests)) {
+        this.accessRequests = parsed.accessRequests;
+      }
+
+      if (Array.isArray(parsed.liveGrants)) {
+        this.liveGrants = parsed.liveGrants;
+      }
+
+      if (Array.isArray(parsed.auditEvents)) {
+        this.auditEvents = parsed.auditEvents;
+      }
+
+      if (Array.isArray(parsed.notifications)) {
+        this.notifications = parsed.notifications;
+      }
+
+      if (Array.isArray(parsed.loginHistory)) {
+        this.loginHistory = parsed.loginHistory;
+      }
+
+      if (Array.isArray(parsed.positions)) {
+        this.positions.clear();
+        for (const p of parsed.positions) {
+          this.positions.set(p.id, p);
+        }
+      }
+
+      if (Array.isArray(parsed.devicePassports)) {
+        this.devicePassports.clear();
+        for (const dp of parsed.devicePassports) {
+          this.devicePassports.set(dp.id || dp.device_id, dp);
+        }
+      }
+
+      if (parsed.systemSettings) {
+        this.systemSettings = parsed.systemSettings;
+      }
+
+      if (parsed.recoveryVault) {
+        this.recoveryVault = parsed.recoveryVault;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('[SecureMaxStore] Disk load error:', err);
+      return false;
+    }
   }
 
   public resetForTesting(): void {
@@ -285,8 +466,8 @@ class SecureMaxStore {
     return this.wrappedDEKs.get(assetId);
   }
 
-  public seedTestDataForTesting(): void {
-    if (this.users.has('usr_admin_001')) return;
+  public seedTestDataForTesting(force: boolean = false): void {
+    if (!force && this.users.has('usr_admin_001') && this.assets.has('ast_kms')) return;
 
     // Seed Positions
     for (const p of PREDEFINED_POSITIONS) {
@@ -497,6 +678,62 @@ class SecureMaxStore {
     };
     this.devices.set(auditorDevice.id, auditorDevice);
     this.devicePassports.set(auditorDevice.id, auditorDevice);
+
+    // 4. TEAM MEMBER: Ritik (Systems Architect)
+    const ritikUser: StoredUser = {
+      id: 'usr_ritik_004',
+      name: 'Ritik (Systems Architect)',
+      email: 'ritik@securemax.mil',
+      role: UserRole.USER,
+      kyc_status: 'VERIFIED',
+      status: UserStatus.ACTIVE,
+      did: 'did:securemax:user:004',
+      created_at: '2026-09-04T00:00:00.000Z',
+    };
+    this.users.set(ritikUser.id, ritikUser);
+    this.users.set(ritikUser.email, ritikUser);
+
+    // 5. TEAM MEMBER: Vaani (Security Analyst)
+    const vaaniUser: StoredUser = {
+      id: 'usr_vaani_005',
+      name: 'Vaani (Security Analyst)',
+      email: 'vaani@securemax.mil',
+      role: UserRole.USER,
+      kyc_status: 'VERIFIED',
+      status: UserStatus.ACTIVE,
+      did: 'did:securemax:user:005',
+      created_at: '2026-09-05T00:00:00.000Z',
+    };
+    this.users.set(vaaniUser.id, vaaniUser);
+    this.users.set(vaaniUser.email, vaaniUser);
+
+    // 6. ENGINEER: Arjun Verma (Substation / Systems Engineer)
+    const arjunUser: StoredUser = {
+      id: 'usr_arjun_006',
+      name: 'Arjun Verma',
+      email: 'arjun.verma@securemax.mil',
+      role: UserRole.USER,
+      kyc_status: 'VERIFIED',
+      status: UserStatus.ACTIVE,
+      did: 'did:securemax:user:arjun006',
+      created_at: '2026-09-10T00:00:00.000Z',
+    };
+    this.users.set(arjunUser.id, arjunUser);
+    this.users.set(arjunUser.email, arjunUser);
+
+    // 7. HR MANAGER: Riya Sharma
+    const riyaUser: StoredUser = {
+      id: 'usr_riya_007',
+      name: 'Riya Sharma',
+      email: 'riya.sharma@securemax.mil',
+      role: UserRole.USER,
+      kyc_status: 'VERIFIED',
+      status: UserStatus.ACTIVE,
+      did: 'did:securemax:user:riya007',
+      created_at: '2026-09-10T00:00:00.000Z',
+    };
+    this.users.set(riyaUser.id, riyaUser);
+    this.users.set(riyaUser.email, riyaUser);
 
     // Active Sessions
     this.sessions.set('SES-8821', {
@@ -1039,7 +1276,41 @@ class SecureMaxStore {
       });
     }
 
-    // 6. INITIAL ACCESS REQUESTS & AUDIT LOGS
+    // ----------------------------------------------------
+    // INITIAL ACCESS REQUESTS (From Page 1 & Page 2 Spec)
+    // ----------------------------------------------------
+    this.accessRequests.push({
+      id: 'req-1',
+      user_id: arjunUser.id,
+      user_email: arjunUser.email,
+      user_name: 'Arjun Verma',
+      role: 'ENGINEER',
+      request_type: 'ASSET_ACCESS',
+      asset_id: 'ast_fin_002',
+      asset_code: 'SMX-FIN-002',
+      asset_name: 'Substation 4 Vendor Invoices',
+      reason: 'reconcile vendor invoices for Substation 4 works',
+      status: 'PENDING',
+      ttl_minutes: 30,
+      created_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+    });
+
+    this.accessRequests.push({
+      id: 'req-2',
+      user_id: 'usr_neha_008',
+      user_email: 'neha.iyer@securemax.mil',
+      user_name: 'Neha Iyer',
+      role: 'AUDITOR',
+      request_type: 'HIGH_RISK_DATA',
+      asset_id: 'ast_hr_policy',
+      asset_code: 'SMX-HR-001',
+      asset_name: 'Statutory PF Audit Records',
+      reason: 'statutory PF audit sample check',
+      status: 'PENDING',
+      ttl_minutes: 15,
+      created_at: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
+    });
+
     this.accessRequests.push({
       id: 'req_001',
       user_id: standardUser.id,
@@ -1052,11 +1323,29 @@ class SecureMaxStore {
       asset_name: 'Avionics Radar Interface Specs',
       reason: 'Tactical comms integration review on authorized workstation',
       status: 'PENDING',
+      ttl_minutes: 30,
       created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
     });
 
     this.accessRequests.push({
       id: 'req_002',
+      user_id: standardUser.id,
+      user_email: standardUser.email,
+      user_name: standardUser.name,
+      role: 'USER',
+      request_type: 'ASSET_ACCESS',
+      asset_id: 'ast_patent',
+      asset_code: 'SMX-AST-000134',
+      asset_name: 'Patent Filing NDAs & Claims.pdf',
+      reason: 'Dual-chain patent claims review for upcoming intellectual property filing',
+      status: 'PENDING',
+      ttl_minutes: 20,
+      created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    });
+
+    this.accessRequests.push({
+      id: 'req_003',
+
       user_id: auditorUser.id,
       user_email: auditorUser.email,
       user_name: auditorUser.name,
@@ -1067,8 +1356,68 @@ class SecureMaxStore {
       asset_name: 'Financial Ledger & Statutory Audit Records',
       reason: 'Compliance review & permanent blockchain anchor verification',
       status: 'PENDING',
+      ttl_minutes: 60,
       created_at: new Date(Date.now() - 50 * 60 * 1000).toISOString(),
     });
+
+    // ----------------------------------------------------
+    // LIVE ACTIVE GRANTS (Ticking Real-Time Decryption Sessions)
+    // ----------------------------------------------------
+    this.liveGrants.push(
+      {
+        id: 'grant-1',
+        user: 'Arjun Verma',
+        userId: arjunUser.id,
+        assetCode: 'SMX-ENG-003',
+        assetName: 'Substation 4 SIPROTEC relay configuration',
+        sessionId: '1bb04bec',
+        ip: '10.42.7.19',
+        device: 'known device',
+        expiresAt: new Date(Date.now() + 1274 * 1000).toISOString(), // 21:14 remaining
+        remainingSeconds: 1274,
+        status: 'ACTIVE',
+        createdAt: new Date(Date.now() - 526 * 1000).toISOString(),
+      },
+      {
+        id: 'grant-2',
+        user: 'Riya Sharma',
+        userId: riyaUser.id,
+        assetCode: 'SMX-HR-001',
+        assetName: 'HR Statutory Master',
+        sessionId: '7a29f041',
+        ip: '10.42.5.88',
+        device: 'corporate device',
+        expiresAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+        remainingSeconds: 0,
+        status: 'IDLE',
+        note: 'key v2 · rotated 20 min ago',
+        createdAt: new Date(Date.now() - 50 * 60 * 1000).toISOString(),
+      }
+    );
+
+    // ----------------------------------------------------
+    // NOTIFICATIONS
+    // ----------------------------------------------------
+    this.notifications.push(
+      {
+        id: 'notif_1',
+        type: 'ACCESS_REQUEST',
+        title: 'New Access Request',
+        message: 'Arjun Verma requested access for Substation 4 Vendor Invoices',
+        timestamp: '25 min ago',
+        read: false,
+        target_id: 'ast_fin_002',
+      },
+      {
+        id: 'notif_2',
+        type: 'ACCESS_APPROVED',
+        title: 'Access Approved',
+        message: 'Admin granted decryption permit for Project Alpha.pdf',
+        timestamp: '17:02 Today',
+        read: false,
+        target_id: 'ast_alpha',
+      }
+    );
 
     // Seed permanent audit ledger
     this.auditEvents.push(
@@ -1672,6 +2021,7 @@ class SecureMaxStore {
       severity: 'INFO',
     });
 
+    this.saveToDisk();
     return device;
   }
 
@@ -1732,12 +2082,15 @@ class SecureMaxStore {
       performedBy: callerUserId,
       severity: 'WARNING',
     });
+
+    this.saveToDisk();
   }
 
   public updateDeviceLastUsed(deviceId: string): void {
     const dev = this.devices.get(deviceId);
     if (dev) {
       dev.last_used_at = new Date().toISOString();
+      this.saveToDisk();
     }
   }
 
@@ -1942,7 +2295,9 @@ class SecureMaxStore {
       severity: 'INFO',
     });
 
+    this.saveToDisk();
     return { enrollment: capability, plaintextCode };
+
   }
 
   public verifyEnrollmentCapability(code: string): {
@@ -2192,6 +2547,7 @@ class SecureMaxStore {
     verified.enrollment.used_at = new Date().toISOString();
     this.enrollments.delete(code.toUpperCase().trim());
 
+    this.saveToDisk();
     return verified.enrollment.user_id;
   }
 
@@ -2233,6 +2589,7 @@ class SecureMaxStore {
         },
       ],
     };
+    this.devicePassports.set(deviceId, converted);
     return converted;
   }
 
@@ -2289,6 +2646,7 @@ class SecureMaxStore {
       severity: riskState === 'REVOKED' || riskState === 'RESTRICTED' ? 'WARNING' : 'INFO',
     });
 
+    this.saveToDisk();
     return passport;
   }
 
@@ -2325,6 +2683,7 @@ class SecureMaxStore {
       severity: 'WARNING',
     });
 
+    this.saveToDisk();
     return passport;
   }
 
@@ -2358,6 +2717,7 @@ class SecureMaxStore {
       severity: 'INFO',
     });
 
+    this.saveToDisk();
     return passport;
   }
 
@@ -2710,7 +3070,9 @@ class SecureMaxStore {
       severity: 'INFO',
     });
 
+    this.saveToDisk();
     return { authorized: true, token, expiresAt };
+
   }
 
   // --- ASSET ASSIGNMENTS & ACCESS ENFORCEMENT ---
@@ -3033,6 +3395,7 @@ class SecureMaxStore {
       });
     }
 
+
     this.recordAuditEvent({
       eventType: 'PERMISSION_CHANGED',
       description: `Cryptographic access revoked for asset ${assetId} (user: ${userId}).`,
@@ -3043,6 +3406,7 @@ class SecureMaxStore {
       performedBy: 'Administrator',
       severity: 'WARNING',
     });
+    this.saveToDisk();
   }
 
   // --- VAULT ASSET MANAGEMENT (UPLOAD, SHARE, RENAME, MOVE, DELETE) ---
@@ -3172,7 +3536,7 @@ class SecureMaxStore {
       const targetUser = this.getUserById(params.targetUserId);
       this.assignments.push({
         asset_id: assetId,
-        user_id: params.targetUserId,
+        user_id: targetUserId,
         can_read: true,
         can_decrypt: params.canDecryptShared !== false,
         can_download: params.canDownloadShared !== false,
@@ -3194,48 +3558,64 @@ class SecureMaxStore {
       severity: 'INFO',
     });
 
+    this.saveToDisk();
     return newAsset;
   }
 
   public shareAsset(params: {
     assetId: string;
-    targetUserId: string; // specific userId or 'ALL'
-    callerUserId: string;
+    targetUserId?: string;
+    toUserId?: string;
+    callerUserId?: string;
+    fromUserId?: string;
     canRead?: boolean;
     canDecrypt?: boolean;
     canDownload?: boolean;
     canEdit?: boolean;
     canDelete?: boolean;
+    canShare?: boolean;
+    canTransfer?: boolean;
+    permissions?: {
+      canRead?: boolean;
+      canDecrypt?: boolean;
+      canDownload?: boolean;
+      canEdit?: boolean;
+      canShare?: boolean;
+      canTransfer?: boolean;
+      canDelete?: boolean;
+    };
     expiresAt?: string | null;
   }): StoredAssignment {
+    const callerUserId = params.callerUserId || params.fromUserId || 'usr_admin_001';
+    const targetUserId = params.targetUserId || params.toUserId || 'ALL';
     const asset = this.assets.get(params.assetId);
     if (!asset) throw new Error('Asset not found');
 
     const caller = this.getUserById(params.callerUserId);
-    const callerAssignment = this.getAssignment(params.callerUserId, params.assetId);
+    const callerAssignment = this.getAssignment(callerUserId, params.assetId);
     const isCallerAdmin = caller?.role === UserRole.ADMIN;
-    const isOwner = asset.owner_id === params.callerUserId || asset.owner_name === caller?.name;
+    const isOwner = asset.owner_id === callerUserId || asset.owner_name === caller?.name;
 
     if (!isCallerAdmin && !isOwner && (!callerAssignment || !callerAssignment.can_edit)) {
       throw new Error('Unauthorized: You do not have permission to share or manage access to this asset.');
     }
 
-    const isAll = params.targetUserId === 'ALL';
+    const isAll = targetUserId === 'ALL';
     if (isAll) {
       asset.shared_with_all = true;
     }
 
-    const targetUser = isAll ? null : this.getUserById(params.targetUserId);
-    const targetName = isAll ? 'All People (Organization-Wide)' : (targetUser?.name || params.targetUserId);
+    const targetUser = isAll ? null : this.getUserById(targetUserId);
+    const targetName = isAll ? 'All People (Organization-Wide)' : (targetUser?.name || targetUserId);
 
     const assignment = this.setAssignment(
       params.assetId,
       params.targetUserId,
-      params.canRead !== false,
-      params.canDecrypt !== false,
-      params.canDownload !== false,
-      Boolean(params.canEdit),
-      Boolean(params.canDelete),
+      (params.permissions?.canRead ?? params.canRead ?? true) !== false,
+      (params.permissions?.canDecrypt ?? params.canDecrypt ?? true) !== false,
+      (params.permissions?.canDownload ?? params.canDownload ?? false) !== false,
+      Boolean(params.permissions?.canEdit ?? params.canEdit),
+      Boolean(params.permissions?.canDelete ?? params.canDelete),
       params.expiresAt || null,
       caller?.name || 'Authorized User',
       targetName
@@ -3392,6 +3772,7 @@ class SecureMaxStore {
       severity: 'INFO',
     });
 
+    this.saveToDisk();
     return asset;
   }
 
@@ -3418,7 +3799,24 @@ class SecureMaxStore {
       severity: 'INFO',
     });
 
+    this.saveToDisk();
     return asset;
+  }
+
+  public archiveAsset(assetId: string, userId: string, archive = true): void {
+    const asset = this.assets.get(assetId);
+    if (!asset) throw new Error('Asset not found');
+    const user = this.getUserById(userId);
+    asset.is_archived = archive;
+
+    this.recordAuditEvent({
+      eventType: archive ? 'ASSET_ARCHIVED' : 'ASSET_RESTORED',
+      description: `Asset "${asset.name}" was ${archive ? 'archived' : 'restored'} by ${user?.name || 'User'}`,
+      targetId: assetId,
+      userName: user?.name,
+      severity: 'INFO',
+    });
+    this.saveToDisk();
   }
 
   public recordAssetAccess(
@@ -3444,6 +3842,41 @@ class SecureMaxStore {
     if (!asset.access_history) asset.access_history = [];
     asset.access_history.unshift(logEntry);
     asset.last_accessed_at = logEntry.timestamp;
+    this.saveToDisk();
+  }
+
+  public logAssetAccess(
+    assetId: string,
+    userName: string,
+    action: string,
+    status: 'SUCCESS' | 'DENIED' | 'PENDING'
+  ): void {
+    const asset = this.assets.get(assetId);
+    if (asset) {
+      if (!asset.access_history) asset.access_history = [];
+      asset.access_history.unshift({
+        id: 'log_' + crypto.randomUUID().slice(0, 8),
+        action,
+        user_name: userName,
+        timestamp: new Date().toISOString(),
+        status,
+      });
+      asset.last_accessed_at = new Date().toISOString();
+      this.saveToDisk();
+    }
+  }
+
+  // --- NOTIFICATIONS ---
+  public getNotifications(): StoredNotification[] {
+    return this.notifications;
+  }
+
+  public markNotificationRead(id: string): void {
+    const n = this.notifications.find(item => item.id === id);
+    if (n) {
+      n.read = true;
+      this.saveToDisk();
+    }
   }
 
   // --- PERMANENT AUDIT TRAIL ---
@@ -3478,6 +3911,7 @@ class SecureMaxStore {
       created_at: new Date().toISOString(),
     };
     this.auditEvents.unshift(event);
+    this.saveToDisk();
     return event;
   }
 
@@ -3533,10 +3967,22 @@ class SecureMaxStore {
       severity: 'WARNING',
     });
 
+    this.notifications.unshift({
+      id: 'notif_' + crypto.randomUUID().slice(0, 8),
+      type: 'ACCESS_REQUEST',
+      title: 'New Access Request',
+      message: `${user.name} requested clearance for ${assetName}`,
+      timestamp: 'Just now',
+      read: false,
+      target_id: params.assetId,
+    });
+
+    this.saveToDisk();
+
     return accessReq;
   }
 
-  public approveAccessRequest(requestId: string, adminUserId: string): StoredAccessRequest {
+  public approveAccessRequest(requestId: string, adminUserId: string, ttlMinutes: number = 30): StoredAccessRequest {
     const admin = this.getUserById(adminUserId);
     if (admin?.role !== UserRole.ADMIN) {
       throw new Error('Only Administrator can approve access and mint NFT permits');
@@ -3547,6 +3993,7 @@ class SecureMaxStore {
 
     req.status = 'APPROVED';
     req.approved_at = new Date().toISOString();
+    req.ttl_minutes = ttlMinutes;
     req.nft_token_id = `NFT-SEPOLIA-#${Math.floor(1000 + Math.random() * 9000)}`;
 
     // If it was for an asset, grant decryption access in assignments
@@ -3554,20 +4001,200 @@ class SecureMaxStore {
       this.setAssignment(req.asset_id, req.user_id, true, true);
     }
 
+    // Create an active Live Grant with TTL
+    this.createLiveGrant({
+      user: req.user_name,
+      userId: req.user_id,
+      assetCode: req.asset_code || 'SMX-ASSET',
+      assetName: req.asset_name || 'Authorized Secure Document',
+      ttlMinutes,
+      sessionId: crypto.randomBytes(4).toString('hex'),
+      ip: '10.42.7.' + Math.floor(Math.random() * 200 + 1),
+      device: 'known device',
+    });
+
     this.recordAuditEvent({
       eventType: 'NFT_ACCESS_PERMIT_MINTED',
-      description: `Admin approved access for ${req.user_name}. NFT Permit: ${req.nft_token_id}`,
+      description: `Admin approved access for ${req.user_name} (${ttlMinutes}m TTL). NFT Permit: ${req.nft_token_id}`,
       targetId: req.asset_id || req.nft_token_id,
       userEmail: req.user_email,
       userName: req.user_name,
       severity: 'INFO',
     });
 
+    this.notifications.unshift({
+      id: 'notif_' + crypto.randomUUID().slice(0, 8),
+      type: 'ACCESS_APPROVED',
+      title: 'Access Request Approved',
+      message: `Access granted for ${req.asset_name}. On-chain permit ${req.nft_token_id} minted.`,
+      timestamp: 'Just now',
+      read: false,
+      target_id: req.asset_id,
+    });
+
+    this.saveToDisk();
+    return req;
+  }
+
+  public rejectAccessRequest(requestId: string, adminUserId: string, reason?: string): StoredAccessRequest {
+    const admin = this.getUserById(adminUserId);
+    if (admin?.role !== UserRole.ADMIN) {
+      throw new Error('Only Administrator can reject access requests');
+    }
+
+    const req = this.accessRequests.find(r => r.id === requestId);
+    if (!req) throw new Error('Access request not found');
+
+    req.status = 'REJECTED';
+    req.rejected_at = new Date().toISOString();
+
+    if (req.asset_id) {
+      this.logAssetAccess(req.asset_id, req.user_name, `Access request denied: ${reason || 'Security policy restriction'}`, 'DENIED');
+    }
+
+    this.recordAuditEvent({
+      eventType: 'ACCESS_REQUEST_REJECTED',
+      description: `Admin rejected clearance for ${req.user_name} on ${req.asset_name}`,
+      targetId: req.asset_id || requestId,
+      userEmail: req.user_email,
+      userName: req.user_name,
+      severity: 'WARNING',
+    });
+
+    this.saveToDisk();
+
     return req;
   }
 
   public getAccessRequests(): StoredAccessRequest[] {
     return this.accessRequests;
+  }
+
+  // --- LIVE GRANTS MANAGEMENT (ACTIVE SESSIONS & TIMERS) ---
+  public getLiveGrants(): LiveGrant[] {
+    const now = Date.now();
+    return this.liveGrants.map(g => {
+      const remainingMs = new Date(g.expiresAt).getTime() - now;
+      const remainingSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+      return {
+        ...g,
+        remainingSeconds,
+        status: g.status === 'REVOKED' ? 'REVOKED' : (remainingSeconds <= 0 && g.status === 'ACTIVE' ? 'EXPIRED' : g.status),
+      };
+    });
+  }
+
+  public createLiveGrant(params: {
+    user: string;
+    userId?: string;
+    assetCode: string;
+    assetName?: string;
+    ttlMinutes: number;
+    sessionId?: string;
+    ip?: string;
+    device?: string;
+  }): LiveGrant {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + params.ttlMinutes * 60 * 1000).toISOString();
+    const grant: LiveGrant = {
+      id: 'grant-' + crypto.randomUUID().slice(0, 8),
+      user: params.user,
+      userId: params.userId,
+      assetCode: params.assetCode,
+      assetName: params.assetName,
+      sessionId: params.sessionId || crypto.randomBytes(4).toString('hex'),
+      ip: params.ip || '10.42.7.' + Math.floor(Math.random() * 200 + 1),
+      device: params.device || 'known device',
+      expiresAt,
+      remainingSeconds: params.ttlMinutes * 60,
+      status: 'ACTIVE',
+      createdAt: now.toISOString(),
+    };
+
+    this.liveGrants.unshift(grant);
+    this.saveToDisk();
+    return grant;
+  }
+
+  public revokeLiveGrant(grantId: string, adminUserId?: string): LiveGrant | null {
+    const grant = this.liveGrants.find(g => g.id === grantId);
+    if (!grant) return null;
+    grant.status = 'REVOKED';
+
+    this.recordAuditEvent({
+      eventType: 'ACCESS_PERMISSION_REVOKED',
+      description: `Live grant revoked for ${grant.user} on ${grant.assetCode} (Session ${grant.sessionId})`,
+      targetId: grant.assetCode,
+      userName: adminUserId || 'Administrator',
+      severity: 'WARNING',
+    });
+
+    this.saveToDisk();
+    return grant;
+  }
+
+  public extendLiveGrant(grantId: string, additionalMinutes: number): LiveGrant | null {
+    const grant = this.liveGrants.find(g => g.id === grantId);
+    if (!grant) return null;
+    const currentExp = new Date(grant.expiresAt).getTime();
+    const base = Math.max(Date.now(), currentExp);
+    grant.expiresAt = new Date(base + additionalMinutes * 60 * 1000).toISOString();
+    grant.status = 'ACTIVE';
+
+    this.recordAuditEvent({
+      eventType: 'ACCESS_PERMISSION_EXTENDED',
+      description: `Decryption session extended by ${additionalMinutes} min for ${grant.user} on ${grant.assetCode}`,
+      targetId: grant.assetCode,
+      userName: grant.user,
+      severity: 'INFO',
+    });
+
+    this.saveToDisk();
+    return grant;
+  }
+
+  // --- LOGIN HISTORY & SESSION AUDIT ---
+  public recordLogin(params: {
+    userId: string;
+    userName: string;
+    userEmail: string;
+    role: string;
+    deviceName: string;
+    ip?: string;
+    status: 'SUCCESS' | 'FAILED';
+  }): LoginHistoryRecord {
+    const record: LoginHistoryRecord = {
+      id: 'log_' + crypto.randomUUID().slice(0, 8),
+      userId: params.userId,
+      userName: params.userName,
+      userEmail: params.userEmail,
+      role: params.role,
+      deviceName: params.deviceName,
+      ip: params.ip || '127.0.0.1',
+      timestamp: new Date().toISOString(),
+      status: params.status,
+    };
+
+    this.loginHistory.unshift(record);
+    if (this.loginHistory.length > 500) {
+      this.loginHistory.pop();
+    }
+
+    this.recordAuditEvent({
+      eventType: params.status === 'SUCCESS' ? 'USER_LOGIN_SUCCESS' : 'USER_LOGIN_FAILED',
+      description: `${params.userName} (${params.role}) logged in via ${params.deviceName} [${record.ip}]`,
+      targetId: params.userId,
+      userEmail: params.userEmail,
+      userName: params.userName,
+      severity: params.status === 'SUCCESS' ? 'INFO' : 'WARNING',
+    });
+
+    this.saveToDisk();
+    return record;
+  }
+
+  public getLoginHistory(): LoginHistoryRecord[] {
+    return this.loginHistory;
   }
 }
 
