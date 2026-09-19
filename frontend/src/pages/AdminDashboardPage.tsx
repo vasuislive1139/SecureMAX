@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { fetchAllAssets, mintAsset } from "../services/assets/assetService";
-import { getAllMockUsers, updateMockUserRole } from "../services/auth/authService";
-import { AssetRecord, UserIdentity, UserRole } from "../types";
-import { formatAddress, formatDID } from "../utils/formatters";
+import { fetchAllAssets } from "../services/assets/assetService";
+import { getAllMockUsers } from "../services/auth/authService";
+import { AssetRecord, UserIdentity } from "../types";
+import { Copy, Shield, Key, Lock, Unlock, AlertTriangle, Check, Clock, ChevronRight } from "lucide-react";
 
 export const AdminDashboardPage: React.FC = () => {
   const [assets, setAssets] = useState<AssetRecord[]>([]);
@@ -18,229 +18,290 @@ export const AdminDashboardPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 font-sans">
+      
       {/* Top 4 Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Card 1 */}
-        <div className="bg-[#111827] border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-lg">
-          <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Identities</h3>
-          <div className="flex items-end gap-3">
-            <span className="text-4xl font-bold text-white">{users.length}</span>
-            <span className="text-xs text-slate-500 mb-1">1 suspended</span>
+        <div className="bg-[#080c16]/80 backdrop-blur-sm border border-slate-800/80 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Identities</h3>
+          <div className="flex items-end justify-between">
+            <span className="text-5xl font-light text-white tracking-tight">{users.length}</span>
+            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">1 Suspended</span>
           </div>
         </div>
 
-        {/* Card 2 */}
-        <div className="bg-[#111827] border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-lg">
-          <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Active Assets</h3>
-          <div className="flex items-end gap-3">
-            <span className="text-4xl font-bold text-white">{assets.length}</span>
-            <span className="text-xs text-slate-500 mb-1">AES-256-GCM</span>
+        <div className="bg-[#080c16]/80 backdrop-blur-sm border border-slate-800/80 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Assets</h3>
+          <div className="flex items-end justify-between">
+            <span className="text-5xl font-light text-white tracking-tight">{assets.length}</span>
+            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">AES-256-GCM</span>
           </div>
         </div>
 
-        {/* Card 3 (Yellow glow) */}
-        <div className="bg-[#111827] border border-amber-500/30 rounded-lg p-5 flex flex-col justify-between relative overflow-hidden shadow-[0_0_15px_rgba(245,158,11,0.1)]">
-          <h3 className="text-[10px] text-amber-500/80 font-bold uppercase tracking-wider mb-2">Pending Requests</h3>
-          <div className="flex items-end gap-3">
-            <span className="text-4xl font-bold text-amber-400">2</span>
-            <span className="text-xs text-slate-500 mb-1">oldest 25 min</span>
+        <div className="bg-[#080c16]/80 backdrop-blur-sm border border-amber-500/20 rounded-2xl p-6 shadow-[0_0_15px_rgba(245,158,11,0.05)]">
+          <h3 className="text-[10px] text-amber-500/80 font-bold uppercase tracking-widest mb-1">Requests</h3>
+          <div className="flex items-end justify-between">
+            <span className="text-5xl font-light text-amber-400 tracking-tight">2</span>
+            <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Pending</span>
           </div>
         </div>
 
-        {/* Card 4 (Red glow) */}
-        <div className="bg-[#111827] border border-rose-500/30 rounded-lg p-5 flex flex-col justify-between relative overflow-hidden shadow-[0_0_15px_rgba(243,64,105,0.1)]">
-          <h3 className="text-[10px] text-rose-500/80 font-bold uppercase tracking-wider mb-2">Open Incidents</h3>
-          <div className="flex items-end gap-3">
-            <span className="text-4xl font-bold text-rose-400">2</span>
-            <span className="text-xs text-slate-500 mb-1">both CRITICAL</span>
+        <div className="bg-[#080c16]/80 backdrop-blur-sm border border-rose-500/20 rounded-2xl p-6 shadow-[0_0_15px_rgba(243,64,105,0.05)]">
+          <h3 className="text-[10px] text-rose-500/80 font-bold uppercase tracking-widest mb-1">Incidents</h3>
+          <div className="flex items-end justify-between">
+            <span className="text-5xl font-light text-rose-400 tracking-tight">2</span>
+            <span className="text-[10px] font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 flex items-center gap-1"><AlertTriangle className="w-3 h-3"/> Critical</span>
           </div>
         </div>
       </div>
 
-      {/* Sub-status text row */}
-      <div className="grid grid-cols-5 gap-4 px-2 pt-2">
-        <div className="text-[9px] font-bold tracking-widest text-emerald-400">IDENTITY<br/>VERIFIED</div>
-        <div className="text-[9px] font-bold tracking-widest text-emerald-400">RBAC<br/>ENFORCED</div>
-        <div className="text-[9px] font-bold tracking-widest text-emerald-400">ASSET REGISTRY<br/>ANCHORED</div>
-        <div className="text-[9px] font-bold tracking-widest text-emerald-400">KEY DOMAIN<br/>PROTECTED</div>
-        <div className="text-[9px] font-bold tracking-widest text-amber-400">SENTINEL<br/>2 OPEN ALERTS</div>
+      {/* Security Pipeline */}
+      <div className="bg-[#080c16]/50 border border-slate-800/50 rounded-xl p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 group relative cursor-help">
+          <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400"><Check className="w-3 h-3" /></div>
+          <span className="text-[11px] font-bold tracking-widest text-cyan-400">IDENTITY</span>
+        </div>
+        <div className="h-px bg-slate-800/80 flex-1 mx-4"></div>
+        <div className="flex items-center gap-2 group relative cursor-help">
+          <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400"><Check className="w-3 h-3" /></div>
+          <span className="text-[11px] font-bold tracking-widest text-cyan-400">RBAC</span>
+        </div>
+        <div className="h-px bg-slate-800/80 flex-1 mx-4"></div>
+        <div className="flex items-center gap-2 group relative cursor-help">
+          <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400"><Check className="w-3 h-3" /></div>
+          <span className="text-[11px] font-bold tracking-widest text-cyan-400">ASSET</span>
+        </div>
+        <div className="h-px bg-slate-800/80 flex-1 mx-4"></div>
+        <div className="flex items-center gap-2 group relative cursor-help">
+          <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400"><Check className="w-3 h-3" /></div>
+          <span className="text-[11px] font-bold tracking-widest text-cyan-400">KEY</span>
+        </div>
+        <div className="h-px bg-slate-800/80 flex-1 mx-4"></div>
+        <div className="flex items-center gap-2 group relative cursor-help">
+          <div className="w-5 h-5 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-400 animate-pulse"><AlertTriangle className="w-3 h-3" /></div>
+          <span className="text-[11px] font-bold tracking-widest text-rose-400">SENTINEL (2)</span>
+        </div>
       </div>
 
       {/* Main Grid Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Left Column (2/3 width) */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Left Column (7 cols) */}
+        <div className="lg:col-span-7 space-y-8">
           
-          {/* Access Requests & Live Grants */}
-          <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden flex flex-col shadow-lg">
-            <div className="flex justify-between items-center px-5 py-3 border-b border-slate-800/80">
-              <h3 className="text-xs font-bold text-white">Access requests & live grants</h3>
-              <span className="text-[10px] text-slate-500">Approve signs on Chain-1</span>
+          {/* Access Control */}
+          <div className="bg-[#080c16] border border-slate-800/60 rounded-xl overflow-hidden shadow-md transition-all">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-800/60">
+              <h3 className="text-[13px] font-bold text-white tracking-wide">ACCESS CONTROL</h3>
             </div>
-            <div className="p-5 space-y-5">
-              {/* Request 1 */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold text-white mb-0.5">Arjun Verma → SMX-FIN-002</div>
-                  <div className="text-[10px] text-slate-400 mb-0.5">Purpose: reconcile vendor invoices for Substation 4 works</div>
-                  <div className="text-[9px] font-mono text-slate-500">ENGINEER - RESTRICTED - requested 25 min ago</div>
+            
+            <div className="p-6 space-y-6">
+              {/* Requests */}
+              <div className="flex items-center justify-between group">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded bg-slate-800/50 flex items-center justify-center text-slate-400 mt-1"><Lock className="w-4 h-4" /></div>
+                  <div>
+                    <div className="text-[13px] font-semibold text-white mb-1">Arjun Verma <span className="text-slate-500 font-normal mx-1">→</span> SMX-FIN-002</div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[9px] font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">ENGINEER</span>
+                      <span className="text-[9px] font-mono text-slate-400 bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-700">RESTRICTED</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 flex items-center gap-1"><Clock className="w-3 h-3"/> Requested 25m ago</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">TTL <span className="px-2 py-1 bg-[#06090e] border border-slate-700 rounded">30 min</span></div>
-                  <button className="px-3 py-1.5 bg-cyan-400 hover:bg-cyan-300 text-[#06090e] text-[10px] font-bold rounded shadow-[0_0_10px_rgba(34,211,238,0.4)] transition">Approve</button>
-                  <button className="px-3 py-1.5 border border-slate-700 text-slate-400 hover:text-white rounded text-[10px] font-bold transition">Deny</button>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">TTL <span className="text-white">30m</span></div>
+                  <div className="flex gap-2">
+                    <button className="px-4 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold rounded-md transition shadow-[0_0_8px_rgba(6,182,212,0.1)]">APPROVE</button>
+                    <button className="px-4 py-1.5 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md text-[10px] font-bold transition">DENY</button>
+                  </div>
                 </div>
               </div>
 
-              {/* Request 2 */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold text-white mb-0.5">Neha Iyer → SMX-HR-001</div>
-                  <div className="text-[10px] text-slate-400 mb-0.5">Purpose: statutory PF audit sample check</div>
-                  <div className="text-[9px] font-mono text-slate-500">AUDITOR - CONFIDENTIAL - requested 8 min ago</div>
+              <div className="flex items-center justify-between group">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded bg-slate-800/50 flex items-center justify-center text-slate-400 mt-1"><Lock className="w-4 h-4" /></div>
+                  <div>
+                    <div className="text-[13px] font-semibold text-white mb-1">Neha Iyer <span className="text-slate-500 font-normal mx-1">→</span> SMX-HR-001</div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[9px] font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">AUDITOR</span>
+                      <span className="text-[9px] font-mono text-slate-400 bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-700">CONFIDENTIAL</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 flex items-center gap-1"><Clock className="w-3 h-3"/> Requested 8m ago</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">TTL <span className="px-2 py-1 bg-[#06090e] border border-slate-700 rounded">15 min</span></div>
-                  <button className="px-3 py-1.5 bg-cyan-400 hover:bg-cyan-300 text-[#06090e] text-[10px] font-bold rounded shadow-[0_0_10px_rgba(34,211,238,0.4)] transition">Approve</button>
-                  <button className="px-3 py-1.5 border border-slate-700 text-slate-400 hover:text-white rounded text-[10px] font-bold transition">Deny</button>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">TTL <span className="text-white">15m</span></div>
+                  <div className="flex gap-2">
+                    <button className="px-4 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold rounded-md transition shadow-[0_0_8px_rgba(6,182,212,0.1)]">APPROVE</button>
+                    <button className="px-4 py-1.5 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 rounded-md text-[10px] font-bold transition">DENY</button>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-800">
-                <h4 className="text-[9px] font-bold text-slate-500 tracking-widest uppercase mb-3">Live Grants</h4>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs font-bold text-white mb-0.5">Arjun Verma · SMX-ENG-003</div>
-                    <div className="text-[9px] font-mono text-slate-500">session 1bb04bec · 10.42.7.19 · known device</div>
+              <div className="pt-6 border-t border-slate-800/60">
+                <h4 className="text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-4">LIVE GRANTS</h4>
+                
+                <div className="flex items-center justify-between bg-slate-900/30 p-3 rounded-lg border border-slate-800/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded bg-emerald-500/10 flex items-center justify-center text-emerald-400"><Unlock className="w-3 h-3" /></div>
+                    <div>
+                      <div className="text-[12px] font-semibold text-white">Arjun Verma <span className="text-slate-500 font-normal mx-1">→</span> SMX-ENG-003</div>
+                    </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-mono text-cyan-400">expires in 21:14</span>
-                    <button className="px-3 py-1.5 border border-rose-500/50 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded text-[10px] font-bold transition shadow-[0_0_10px_rgba(244,63,94,0.1)]">Revoke now</button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    <div className="text-xs font-bold text-white mb-0.5">Riya Sharma · SMX-HR-001</div>
-                    <div className="text-[9px] font-mono text-slate-500">key v2 · rotated 20 min ago</div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-mono text-slate-500">idle</span>
-                    <button className="px-3 py-1.5 border border-slate-700 text-slate-400 hover:text-white rounded text-[10px] font-bold transition">Revoke</button>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span className="text-[10px] font-mono text-emerald-400">ACTIVE</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400">Exp 21:14</span>
+                    <button className="px-3 py-1 border border-slate-700 text-slate-400 hover:text-rose-400 hover:border-rose-500/50 hover:bg-rose-500/10 rounded text-[9px] font-bold transition">REVOKE</button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Audit Chain Log */}
-          <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden shadow-lg">
-            <div className="flex justify-between items-center px-5 py-3 border-b border-slate-800/80">
-              <h3 className="text-xs font-bold text-white">Audit chain</h3>
-              <button className="px-3 py-1 text-[10px] border border-slate-700 text-slate-300 rounded font-bold hover:bg-slate-800">Verify chain</button>
+          {/* Audit Log */}
+          <div className="bg-[#080c16] border border-slate-800/60 rounded-xl overflow-hidden shadow-md">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-800/60">
+              <h3 className="text-[13px] font-bold text-white tracking-wide">AUDIT LOG</h3>
+              <button className="px-3 py-1 bg-slate-800/50 hover:bg-slate-800 text-[9px] border border-slate-700 text-slate-300 rounded-md font-bold transition">Verify Chain</button>
             </div>
-            <div className="p-5 font-mono text-[10px] space-y-3">
-              <div className="grid grid-cols-12 gap-2 text-slate-300 items-center">
-                <div className="col-span-2">14:02</div>
-                <div className="col-span-3 text-white font-bold">BREAK_GLASS_GRANTED</div>
-                <div className="col-span-5 text-slate-500">0x461a99e3...e0c5efb1</div>
-                <div className="col-span-2 text-right text-slate-400">prev linked</div>
-              </div>
-              <div className="grid grid-cols-12 gap-2 text-slate-300 items-center">
-                <div className="col-span-2">13:27</div>
-                <div className="col-span-3 text-rose-400 font-bold">ACCESS_DENIED</div>
-                <div className="col-span-5 text-slate-500">0x8c1f04ba...77d3a916</div>
-                <div className="col-span-2 text-right text-slate-400">Domain 1 / RBAC</div>
-              </div>
-              <div className="grid grid-cols-12 gap-2 text-slate-300 items-center">
-                <div className="col-span-2">13:26</div>
-                <div className="col-span-3 text-rose-400 font-bold">KEY_ACCESS_DENIED</div>
-                <div className="col-span-5 text-slate-500">0x2ad7ee51...b40c8e02</div>
-                <div className="col-span-2 text-right text-slate-400">Domain 2 / KMS</div>
-              </div>
-              <div className="grid grid-cols-12 gap-2 text-slate-300 items-center">
-                <div className="col-span-2">11:14</div>
-                <div className="col-span-3 text-emerald-400 font-bold">DECRYPTION_COMPLETED</div>
-                <div className="col-span-5 text-slate-500">0xf03bd7c2...19ae5d44</div>
-                <div className="col-span-2 text-right text-slate-400">anchored</div>
+            <div className="p-6 font-mono text-[11px] relative">
+              {/* Vertical line */}
+              <div className="absolute left-[70px] top-8 bottom-8 w-px bg-slate-800/80"></div>
+              
+              <div className="space-y-5 relative z-10">
+                <div className="flex items-center gap-6 group">
+                  <div className="w-10 text-slate-500 text-right">14:02</div>
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_5px_#22d3ee]"></div>
+                  <div className="flex-1 flex justify-between items-center bg-slate-900/30 px-3 py-2 rounded border border-slate-800/30">
+                    <span className="text-cyan-400 font-bold">BREAK_GLASS_GRANTED</span>
+                    <div className="flex items-center gap-2 text-slate-500">
+                      <span>0x46a199...fb1</span>
+                      <Copy className="w-3 h-3 cursor-pointer hover:text-white transition" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 group">
+                  <div className="w-10 text-slate-500 text-right">13:27</div>
+                  <div className="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_5px_#fb7185]"></div>
+                  <div className="flex-1 flex justify-between items-center bg-slate-900/30 px-3 py-2 rounded border border-slate-800/30">
+                    <span className="text-rose-400 font-bold">ACCESS_DENIED</span>
+                    <div className="flex items-center gap-2 text-slate-500">
+                      <span>0x8c1f04...916</span>
+                      <Copy className="w-3 h-3 cursor-pointer hover:text-white transition" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 group">
+                  <div className="w-10 text-slate-500 text-right">13:26</div>
+                  <div className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_5px_#fbbf24]"></div>
+                  <div className="flex-1 flex justify-between items-center bg-slate-900/30 px-3 py-2 rounded border border-slate-800/30">
+                    <span className="text-amber-400 font-bold">KEY_ACCESS_DENIED</span>
+                    <div className="flex items-center gap-2 text-slate-500">
+                      <span>0x2ad7ee...e02</span>
+                      <Copy className="w-3 h-3 cursor-pointer hover:text-white transition" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column (1/3 width) */}
-        <div className="space-y-6">
+        {/* Right Column (5 cols) */}
+        <div className="lg:col-span-5 space-y-8">
           
-          {/* Sentinel Box */}
-          <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden shadow-lg">
-             <div className="flex justify-between items-center px-5 py-3 border-b border-slate-800/80">
-              <h3 className="text-xs font-bold text-white">Sentinel</h3>
-              <span className="text-[9px] font-mono text-emerald-400">5 / 5 PASSED · 40 min ago</span>
+          {/* Sentinel Box - MOST IMPORTANT */}
+          <div className="bg-[#080c16] border border-slate-800/60 rounded-xl overflow-hidden shadow-lg relative">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"></div>
+            
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-800/60">
+              <h3 className="text-[13px] font-bold text-white tracking-wide">SENTINEL</h3>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="text-[9px] font-mono font-bold text-emerald-400">MONITORING</span>
+              </div>
             </div>
-            <div className="p-5 space-y-3 text-[10px] font-mono">
-              <div className="flex justify-between text-slate-400"><span>Unauthorized asset access</span><span className="text-emerald-400">blocked</span></div>
-              <div className="flex justify-between text-slate-400"><span>Expired temporary key</span><span className="text-emerald-400">blocked</span></div>
-              <div className="flex justify-between text-slate-400"><span>Revoked permission access</span><span className="text-emerald-400">blocked</span></div>
-              <div className="flex justify-between text-slate-400"><span>Privilege escalation</span><span className="text-emerald-400">blocked</span></div>
-              <div className="flex justify-between text-slate-400"><span>Token replay</span><span className="text-emerald-400">blocked</span></div>
+            
+            <div className="p-6 space-y-6">
+              {/* Security Checks */}
+              <div className="space-y-2 text-[11px] font-mono">
+                <div className="flex justify-between items-center text-slate-400 bg-slate-900/30 px-3 py-1.5 rounded">
+                  <span className="flex items-center gap-2"><Check className="w-3 h-3 text-slate-600"/> Unauthorized access</span>
+                  <span className="text-slate-500">BLOCKED</span>
+                </div>
+                <div className="flex justify-between items-center text-slate-400 bg-slate-900/30 px-3 py-1.5 rounded">
+                  <span className="flex items-center gap-2"><Check className="w-3 h-3 text-slate-600"/> Expired key</span>
+                  <span className="text-slate-500">BLOCKED</span>
+                </div>
+                <div className="flex justify-between items-center text-slate-400 bg-slate-900/30 px-3 py-1.5 rounded">
+                  <span className="flex items-center gap-2"><Check className="w-3 h-3 text-slate-600"/> Revoked permission</span>
+                  <span className="text-slate-500">BLOCKED</span>
+                </div>
+              </div>
 
               {/* Critical Alert Sub-box */}
-              <div className="mt-5 border border-rose-500/50 bg-rose-500/10 p-4 rounded shadow-[0_0_15px_rgba(243,64,105,0.05)]">
-                <div className="flex items-center gap-2 text-rose-400 font-bold mb-2 text-[11px]">
-                  <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span> CRITICAL · decoy asset opened
+              <div className="border border-rose-500/30 bg-rose-500/5 p-5 rounded-xl shadow-[0_0_20px_rgba(243,64,105,0.05)]">
+                <div className="flex items-center gap-2 text-rose-400 font-bold mb-3 text-[11px] tracking-widest uppercase">
+                  <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse shadow-[0_0_8px_#f43f5e]"></span> 
+                  CRITICAL
                 </div>
-                <p className="text-[10px] text-slate-300 mb-4 font-sans leading-relaxed">
-                  Kabir Rao attempted to decrypt SMX-HNY-008. No user has a business need for this asset. Session frozen automatically.
-                </p>
-                <div className="flex gap-2 font-sans">
-                  <button className="flex-1 bg-rose-500/20 text-rose-400 border border-rose-500/50 py-1.5 rounded hover:bg-rose-500/30 transition">Suspend identity</button>
-                  <button className="flex-1 text-slate-300 border border-slate-700 py-1.5 rounded hover:bg-slate-800 transition">Open incident</button>
+                
+                <h4 className="text-white font-bold text-sm mb-1">DECRYPTION ATTEMPT</h4>
+                <div className="text-[11px] font-mono text-rose-400/80 mb-4">SMX-HNY-008 <span className="mx-2 text-slate-600">|</span> UNAUTHORIZED KEY REQUEST</div>
+                
+                <div className="flex gap-3 font-sans">
+                  <button className="flex-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 py-2 rounded-md text-[10px] font-bold tracking-wider transition">SUSPEND</button>
+                  <button className="flex-1 text-slate-300 border border-slate-700 hover:bg-slate-800 py-2 rounded-md text-[10px] font-bold tracking-wider transition">VIEW INCIDENT</button>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Key Lifecycle Box */}
-          <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden shadow-lg">
-            <div className="flex justify-between items-center px-5 py-3 border-b border-slate-800/80">
-              <h3 className="text-xs font-bold text-white">Key lifecycle</h3>
+          {/* Key Domain Box */}
+          <div className="bg-[#080c16] border border-slate-800/60 rounded-xl overflow-hidden shadow-md">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-800/60">
+              <h3 className="text-[13px] font-bold text-white tracking-wide">KEY DOMAIN</h3>
             </div>
-            <div className="p-5 space-y-4">
-              
-              <div>
-                <div className="flex justify-between items-start mb-1">
-                  <div className="text-xs font-bold text-white">SMX-HR-001</div>
-                  <div className="text-[9px] font-mono text-emerald-400 font-bold">v2 ACTIVE</div>
+            
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/30 border border-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded bg-emerald-500/10 flex items-center justify-center text-emerald-400"><Key className="w-3 h-3" /></div>
+                  <div>
+                    <div className="text-[12px] font-bold text-white flex items-center gap-2">
+                      SMX-HR-001 <span className="text-[9px] font-mono text-emerald-400">v2 ACTIVE</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5">MANAGER</div>
+                  </div>
                 </div>
-                <div className="text-[9px] font-mono text-slate-500 mb-2">role-bound · MANAGER, ADMIN · rotate 30d</div>
                 <div className="flex gap-2">
-                  <button className="px-3 py-1 border border-slate-700 text-slate-300 text-[9px] font-bold rounded hover:bg-slate-800">Rotate</button>
-                  <button className="px-3 py-1 border border-slate-700 text-slate-300 text-[9px] font-bold rounded hover:bg-slate-800">Revoke key</button>
+                  <button className="px-2 py-1 border border-slate-700 text-slate-400 hover:text-white rounded text-[9px] font-bold transition">ROTATE</button>
+                  <button className="px-2 py-1 border border-slate-700 text-slate-400 hover:text-rose-400 hover:border-rose-500/50 rounded text-[9px] font-bold transition">REVOKE</button>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-800">
-                <div className="flex justify-between items-start mb-1">
-                  <div className="text-xs font-bold text-white">SMX-ENG-003</div>
-                  <div className="text-[9px] font-mono text-emerald-400 font-bold">v1 ACTIVE</div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/30 border border-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded bg-rose-500/10 flex items-center justify-center text-rose-400"><AlertTriangle className="w-3 h-3" /></div>
+                  <div>
+                    <div className="text-[12px] font-bold text-white flex items-center gap-2">
+                      SMX-HNY-008 <span className="text-[9px] font-mono text-rose-400">DECOY</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5">TRIPWIRE</div>
+                  </div>
                 </div>
-                <div className="text-[9px] font-mono text-slate-500">time-bound · TTL 30m · session-bound</div>
+                <ChevronRight className="w-4 h-4 text-slate-600" />
               </div>
-
-              <div className="pt-3 border-t border-slate-800">
-                <div className="flex justify-between items-start mb-1">
-                  <div className="text-xs font-bold text-white">SMX-HNY-008</div>
-                  <div className="text-[9px] font-mono text-rose-400 font-bold">DECOY</div>
-                </div>
-                <div className="text-[9px] font-mono text-slate-500">alert on any access · severity CRITICAL</div>
-              </div>
-
             </div>
           </div>
 
         </div>
-
       </div>
     </div>
   );
