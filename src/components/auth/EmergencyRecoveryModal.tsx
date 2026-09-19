@@ -69,14 +69,35 @@ export default function EmergencyRecoveryModal({ isOpen, onClose, onSuccess }: E
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'Emergency recovery ceremony failed');
+        const errorMsg =
+          typeof data?.error === 'string'
+            ? data.error
+            : typeof data?.error?.message === 'string'
+              ? data.error.message
+              : typeof data?.message === 'string'
+                ? data.message
+                : data?.error
+                  ? JSON.stringify(data.error)
+                  : `Recovery failed with HTTP ${res.status}`;
+        throw new Error(errorMsg);
       }
 
       setNewRecoveryPackage(data.newRecoveryPackage);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Emergency recovery failed');
+      console.error('[Emergency Recovery Error]:', err);
+      const msg =
+        typeof err === 'string'
+          ? err
+          : typeof err?.message === 'string'
+            ? err.message
+            : typeof err?.error === 'string'
+              ? err.error
+              : typeof err?.error === 'object' && err.error !== null
+                ? (err.error.message || JSON.stringify(err.error))
+                : String(err);
+      setErrorMessage(msg || 'Emergency recovery failed');
     } finally {
       setLoading(false);
     }

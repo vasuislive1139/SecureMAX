@@ -87,7 +87,18 @@ export async function generateAndSaveDeviceKey(
   deviceName: string,
   userEmail?: string
 ): Promise<ClientDeviceInfo> {
-  const subtle = window.crypto.subtle;
+  if (typeof window === 'undefined') {
+    throw new Error('Web Crypto is only available in the browser.');
+  }
+
+  const subtle = window.crypto?.subtle;
+  if (!subtle) {
+    if (!window.isSecureContext) {
+      throw new Error('Web Crypto / Passkeys require a Secure Context (HTTPS or http://localhost). Please access SecureMAX via http://localhost:3000.');
+    }
+    throw new Error('Hardware cryptographic engine (Web Crypto Subtle) is not supported or disabled in this browser.');
+  }
+
   const keyPair = await subtle.generateKey(
     { name: 'ECDSA', namedCurve: 'P-256' },
     true, // extractable for local browser vault storage

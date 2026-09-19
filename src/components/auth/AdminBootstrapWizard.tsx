@@ -125,15 +125,36 @@ export default function AdminBootstrapWizard({ isOpen, onClose, onSuccess }: Adm
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to initialize root administrator');
+        const errorMsg =
+          typeof data?.error === 'string'
+            ? data.error
+            : typeof data?.error?.message === 'string'
+              ? data.error.message
+              : typeof data?.message === 'string'
+                ? data.message
+                : data?.error
+                  ? JSON.stringify(data.error)
+                  : `Bootstrap failed with HTTP ${res.status}`;
+        throw new Error(errorMsg);
       }
 
       setRecoveryPackage(data.recoveryPackage);
       setStep(5);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Passkey creation failed');
+      console.error('[Admin Bootstrap Error]:', err);
+      const msg =
+        typeof err === 'string'
+          ? err
+          : typeof err?.message === 'string'
+            ? err.message
+            : typeof err?.error === 'string'
+              ? err.error
+              : typeof err?.error === 'object' && err.error !== null
+                ? (err.error.message || JSON.stringify(err.error))
+                : String(err);
+      setErrorMessage(msg || 'Passkey creation failed');
     } finally {
       setLoading(false);
     }

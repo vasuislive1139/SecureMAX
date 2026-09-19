@@ -32,8 +32,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Protect dashboard and api routes (except auth)
-  if (pathname.startsWith('/dashboard') || (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth/'))) {
+  // Public API endpoints that don't require an active session
+  const isPublicApi = 
+    pathname.startsWith('/api/auth/') ||
+    pathname === '/api/admin/bootstrap' ||
+    pathname === '/api/admin/recovery' ||
+    pathname.startsWith('/api/devices/enrollment/verify') ||
+    pathname.startsWith('/api/devices/enrollment/complete') ||
+    pathname === '/api/health';
+
+  // Protect dashboard and api routes (except public APIs)
+  if (pathname.startsWith('/dashboard') || (pathname.startsWith('/api/') && !isPublicApi)) {
     const session = await validateSession(request);
     
     if (!session) {
