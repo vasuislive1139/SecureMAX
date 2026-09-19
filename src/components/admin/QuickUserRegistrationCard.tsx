@@ -100,12 +100,6 @@ export function QuickUserRegistrationCard() {
             Create an account, assign their access level, and issue a secure digital identity.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-mono text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-full bg-cyan-950/40 flex items-center gap-1.5">
-            <Sparkles className="w-3 h-3 text-cyan-400" />
-            Judge Demonstration Feature
-          </span>
-        </div>
       </div>
 
       {/* Registration Form */}
@@ -216,10 +210,10 @@ export function QuickUserRegistrationCard() {
         </h3>
         
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[550px]">
             <thead>
               <tr className="border-b border-zinc-800/80 text-zinc-500 text-[10px] uppercase font-mono tracking-wider">
-                <th className="pb-2">Name & Email</th>
+                <th className="pb-2">Name &amp; Email</th>
                 <th className="pb-2">Access Role</th>
                 <th className="pb-2">Digital ID</th>
                 <th className="pb-2 text-right">Status</th>
@@ -228,12 +222,12 @@ export function QuickUserRegistrationCard() {
             <tbody className="divide-y divide-zinc-800/40 font-light">
               {members.map((member) => (
                 <tr key={member.id} className="hover:bg-zinc-900/40 transition-colors">
-                  <td className="py-2.5">
-                    <div className="font-semibold text-zinc-200">{member.name}</div>
-                    <div className="text-[11px] text-zinc-500 font-mono">{member.email}</div>
+                  <td className="py-2.5 pr-3">
+                    <div className="font-semibold text-zinc-200 max-w-[200px] truncate">{member.name}</div>
+                    <div className="text-[11px] text-zinc-500 font-mono max-w-[200px] truncate">{member.email}</div>
                   </td>
-                  <td className="py-2.5">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono ${
+                  <td className="py-2.5 pr-3">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap ${
                       member.role === 'ADMIN' 
                         ? 'bg-purple-950/60 text-purple-300 border border-purple-500/30' 
                         : member.role === 'AUDITOR'
@@ -243,10 +237,10 @@ export function QuickUserRegistrationCard() {
                       {member.role === 'ADMIN' ? 'Administrator' : member.role === 'AUDITOR' ? 'Auditor' : 'Team Member'}
                     </span>
                   </td>
-                  <td className="py-2.5 text-zinc-400 font-mono text-[11px]">
+                  <td className="py-2.5 text-zinc-400 font-mono text-[11px] max-w-[180px] truncate pr-3" title={member.did}>
                     {member.did}
                   </td>
-                  <td className="py-2.5 text-right">
+                  <td className="py-2.5 text-right whitespace-nowrap">
                     <span className="inline-flex items-center gap-1.5 text-emerald-400 text-[11px]">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                       Active

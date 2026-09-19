@@ -60,7 +60,7 @@ export default function AccessRequestsPage() {
             Decryption Access Requests
           </h2>
           <p className="text-xs text-zinc-500 font-mono tracking-widest mt-1 uppercase">
-            Server-Side KMS Controlled Decryption &amp; On-Chain NFT Permits
+            Hardware KMS Decryption Clearances &amp; On-Chain NFT Permits
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -114,9 +114,11 @@ export default function AccessRequestsPage() {
                       {new Date(req.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  <CardTitle className="text-sm font-bold text-zinc-100 mt-2">{req.asset_name}</CardTitle>
+                  <CardTitle className="text-sm font-bold text-zinc-100 mt-2">
+                    {req.asset_name || req.asset_id || 'System Asset Access'}
+                  </CardTitle>
                   <CardDescription className="text-xs font-mono text-zinc-500 mt-0.5">
-                    CODE: {req.asset_code}
+                    CODE: {req.asset_code || req.asset_id || req.id}
                   </CardDescription>
                 </CardHeader>
 
@@ -124,8 +126,8 @@ export default function AccessRequestsPage() {
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <div className="text-[10px] text-zinc-500 uppercase font-semibold">Requester Identity:</div>
-                      <div className="text-zinc-200 font-bold">{req.user_name}</div>
-                      <div className="text-[10px] text-cyan-400">ROLE: {req.role} ({req.user_email})</div>
+                      <div className="text-zinc-200 font-bold">{req.user_name || req.user_email || 'Authorized User'}</div>
+                      <div className="text-[10px] text-cyan-400">ROLE: {req.role || 'USER'} {req.user_email ? `(${req.user_email})` : ''}</div>
                     </div>
 
                     <div className="bg-zinc-900/60 rounded-lg p-3 text-zinc-300 border border-zinc-800/80 leading-relaxed text-[11px]">

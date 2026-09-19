@@ -3,6 +3,8 @@ import { Fingerprint, ShieldCheck, Key, Lock, Activity, User, ChevronDown } from
 import { supabaseAdmin } from '@/lib/db/client';
 import { Badge } from '@/components/ui/badge';
 
+import { deviceStore } from '@/lib/auth/deviceStore';
+
 export const dynamic = 'force-dynamic';
 
 export default async function IdentityPage() {
@@ -14,17 +16,21 @@ export default async function IdentityPage() {
       .order('role', { ascending: true });
     users = res.data || [];
   } catch (e) {
-    console.warn('Supabase offline, using verified demo identities');
+    // Supabase offline, fall back to deviceStore
   }
 
-  const defaultIdentities = [
-    { id: '1', name: 'Security Administrator', role: 'ADMIN', wallet_address: '0x7FfdbB7868C127152F2007a6025FF15A5723CE08', status: 'ACTIVE' },
-    { id: '2', name: 'Lead Auditor', role: 'AUDITOR', wallet_address: '0x4444000000000000000000000000000000004444', status: 'ACTIVE' },
-    { id: '3', name: 'Operational Manager', role: 'MANAGER', wallet_address: '0x3333000000000000000000000000000000003333', status: 'ACTIVE' },
-    { id: '4', name: 'Avionics Engineer', role: 'ENGINEER', wallet_address: '0x2222000000000000000000000000000000002222', status: 'ACTIVE' },
-  ];
+  const storeUsers = Array.from(new Set([...deviceStore.users.values()].map(u => u.id)))
+    .map(id => deviceStore.getUserById(id))
+    .filter(Boolean)
+    .map(u => ({
+      id: u!.id,
+      name: u!.name,
+      role: u!.role,
+      wallet_address: u!.did || `did:securemax:user:${u!.id.slice(-6)}`,
+      status: u!.status || 'ACTIVE'
+    }));
 
-  const activeIdentities = users.length > 0 ? users : defaultIdentities;
+  const activeIdentities = users.length > 0 ? users : storeUsers;
 
   return (
     <div className="space-y-8 font-sans selection:bg-cyan-500/30 pb-12">

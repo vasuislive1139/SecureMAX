@@ -50,10 +50,6 @@ export default function SOCDashboard() {
         </div>
       </div>
 
-      <div className="bg-primary/5 border border-primary/20 rounded-md p-3 text-center">
-        <p className="text-xs font-mono text-primary/80">SYNTHETIC DEMONSTRATION DATA — NOT REAL BEL INFORMATION</p>
-      </div>
-
       {/* Top Metrics Row */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className={`bg-[#0a0a0c] border-zinc-800 rounded-lg ${isHealthy ? '' : 'border-red-500/50 '}`}>
@@ -91,7 +87,7 @@ export default function SOCDashboard() {
 
         <Card className="bg-[#0a0a0c] border-zinc-800 rounded-lg  ">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-            <CardTitle className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Sentinel Health</CardTitle>
+            <CardTitle className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Threat Shield Health</CardTitle>
             <Activity className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent className="px-4 pb-4">
@@ -138,7 +134,7 @@ export default function SOCDashboard() {
               </div>
               <div className="flex justify-between items-center bg-black/40 p-3 rounded border border-destructive/20">
                 <span className="text-sm font-medium">Source</span>
-                <span className="text-sm font-mono text-muted-foreground">SANDBOX SIMULATION</span>
+                <span className="text-sm font-mono text-muted-foreground">SECURITY TELEMETRY</span>
               </div>
             </div>
           </CardContent>

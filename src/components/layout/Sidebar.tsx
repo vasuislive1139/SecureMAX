@@ -31,7 +31,6 @@ const navItems: NavItem[] = [
   { name: 'SOC Dashboard', href: '/dashboard/soc', icon: LayoutDashboard, roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
   { name: 'Identity Registry', href: '/identity', icon: Fingerprint, roles: [UserRole.ADMIN] },
   { name: 'Sepolia Infra', href: '/infrastructure', icon: Server, roles: [UserRole.ADMIN, UserRole.AUDITOR] },
-  { name: 'Sentinel Defense', href: '/security/sentinel', icon: Activity, roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
   { name: 'Incident Center', href: '/security/incidents', icon: Shield, roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST, UserRole.AUDITOR] },
   
   // Auditor

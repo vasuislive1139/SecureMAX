@@ -72,7 +72,7 @@ export function InfrastructureHealth() {
     { label: 'DOMAIN 1', state: domain1State, color: domain1Color },
     { label: 'DOMAIN 2', state: domain2State, color: domain2Color },
     { label: 'KMS', state: kmsState, color: kmsColor },
-    { label: 'SENTINEL', state: sentinelState, color: sentinelColor },
+    { label: 'THREAT SHIELD', state: sentinelState, color: sentinelColor },
     { label: 'AUDIT', state: 'VERIFIED', color: 'text-emerald-500' },
   ];
 

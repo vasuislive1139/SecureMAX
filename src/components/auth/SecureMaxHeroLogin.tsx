@@ -98,7 +98,7 @@ export default function SecureMaxHeroLogin() {
 
     const targetEmail = (overrideEmail || email).trim().toLowerCase();
     if (!targetEmail) {
-      setErrorMessage('Please enter your account email or select a demo role above.');
+      setErrorMessage('Please enter your account email address.');
       return;
     }
 
@@ -157,11 +157,9 @@ export default function SecureMaxHeroLogin() {
       }
 
       setStatusMessage('Signature verified! Establishing secure session...');
-      setTimeout(() => {
-        if (result.user.role === 'ADMIN') router.push('/dashboard/admin');
-        else if (result.user.role === 'AUDITOR') router.push('/dashboard/auditor');
-        else router.push('/assets');
-      }, 500);
+      if (result.user.role === 'ADMIN') router.push('/dashboard/admin');
+      else if (result.user.role === 'AUDITOR') router.push('/dashboard/auditor');
+      else router.push('/assets');
 
     } catch (err: any) {
       setLoading(false);
@@ -209,11 +207,9 @@ export default function SecureMaxHeroLogin() {
       }
 
       setStatusMessage('Identity registered! Establishing secure session...');
-      setTimeout(() => {
-        if (data.user.role === 'ADMIN') router.push('/dashboard/admin');
-        else if (data.user.role === 'AUDITOR') router.push('/dashboard/auditor');
-        else router.push('/assets');
-      }, 500);
+      if (data.user.role === 'ADMIN') router.push('/dashboard/admin');
+      else if (data.user.role === 'AUDITOR') router.push('/dashboard/auditor');
+      else router.push('/assets');
 
     } catch (err: any) {
       setLoading(false);
@@ -284,15 +280,13 @@ export default function SecureMaxHeroLogin() {
       if (!res.ok) throw new Error(data.error || 'Enrollment failed');
 
       setEnrollSuccess(true);
-      setTimeout(() => {
-        setShowEnrollModal(false);
-        if (data.user?.email) {
-          setEmail(data.user.email);
-          handlePrimaryLogin(undefined, data.user.email, newKey);
-        } else {
-          handlePrimaryLogin(undefined, undefined, newKey);
-        }
-      }, 1000);
+      setShowEnrollModal(false);
+      if (data.user?.email) {
+        setEmail(data.user.email);
+        handlePrimaryLogin(undefined, data.user.email, newKey);
+      } else {
+        handlePrimaryLogin(undefined, undefined, newKey);
+      }
     } catch (err: any) {
       setErrorMessage(err.message || 'Enrollment error');
     } finally {
@@ -796,38 +790,6 @@ export default function SecureMaxHeroLogin() {
 
               </form>
             )}
-
-            {/* Quick Demo Switcher Strip (Reviewer Fast-Access) */}
-            <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[10px] font-mono text-zinc-500">
-              <span className="flex items-center gap-1 text-zinc-400">
-                <Sparkles className="w-3 h-3 text-cyan-400" /> Fast Demo:
-              </span>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleFallbackDemoLogin('ADMIN')}
-                  className="text-cyan-400 hover:underline cursor-pointer"
-                >
-                  Admin
-                </button>
-                <span>•</span>
-                <button
-                  type="button"
-                  onClick={() => handleFallbackDemoLogin('USER')}
-                  className="text-cyan-400 hover:underline cursor-pointer"
-                >
-                  User
-                </button>
-                <span>•</span>
-                <button
-                  type="button"
-                  onClick={() => handleFallbackDemoLogin('AUDITOR')}
-                  className="text-cyan-400 hover:underline cursor-pointer"
-                >
-                  Auditor
-                </button>
-              </div>
-            </div>
 
           </div>
 

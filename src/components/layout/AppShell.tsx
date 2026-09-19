@@ -7,7 +7,6 @@ import { LogOut, Hexagon, Smartphone } from 'lucide-react';
 import { UserRole } from '@/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { PresentationMode } from '@/components/dashboard/PresentationMode';
 
 interface TopNavItem {
   name: string;
@@ -21,7 +20,6 @@ const navItems: TopNavItem[] = [
   { name: 'SOC', href: '/dashboard/soc', roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
   { name: 'IDENTITY', href: '/identity', roles: [UserRole.ADMIN] },
   { name: 'INFRASTRUCTURE', href: '/infrastructure', roles: [UserRole.ADMIN, UserRole.AUDITOR] },
-  { name: 'SENTINEL', href: '/security/sentinel', roles: [UserRole.ADMIN, UserRole.SECURITY_ANALYST] },
   
   // Shared / User / Auditor tabs
   { name: 'MY DATA', href: '/assets', roles: [UserRole.ADMIN, UserRole.USER, UserRole.MANAGER, UserRole.ENGINEER] },
@@ -65,8 +63,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-[100dvh] w-full flex-col bg-zinc-950 text-zinc-100 font-sans">
-      <PresentationMode />
-
       {/* Top Header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800 bg-[#0a0a0c] px-6">
         

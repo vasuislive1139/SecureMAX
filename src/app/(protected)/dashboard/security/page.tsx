@@ -73,7 +73,7 @@ export default function SecurityCenterPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Security Center</h2>
-          <p className="text-muted-foreground mt-1">Sentinel Deterministic Sandbox Engine</p>
+          <p className="text-muted-foreground mt-1">Continuous Security &amp; Policy Enforcement Engine</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-4 sm:mt-0">
           <Badge variant="outline" className="border-cyan-500/50 text-cyan-400 px-4 py-1.5 font-mono">
@@ -171,7 +171,7 @@ export default function SecurityCenterPage() {
             <CardTitle className="flex items-center gap-2">
                <Activity className="w-5 h-5 text-primary" /> Scan History
             </CardTitle>
-            <CardDescription>Execution telemetry of the Sentinel engine.</CardDescription>
+            <CardDescription>Execution telemetry of the Security engine.</CardDescription>
           </CardHeader>
           <CardContent>
              {loading ? (

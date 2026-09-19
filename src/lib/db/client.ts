@@ -8,24 +8,51 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Missing Supabase environment variables. Database client is unavailable.');
 }
 
-// Client for public operations and browser environments
-export const supabaseClient = createClient(
-  supabaseUrl || 'http://localhost:8000',
-  supabaseAnonKey || 'dummy_key'
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl &&
+  !supabaseUrl.includes('localhost:8000') &&
+  !supabaseUrl.includes('your-project') &&
+  supabaseServiceKey &&
+  !supabaseServiceKey.includes('dummy') &&
+  !supabaseServiceKey.includes('your-service-role-key')
 );
 
+const createMockChain = () => {
+  const chain: any = {
+    select: () => chain,
+    insert: () => Promise.resolve({ data: null, error: new Error('Supabase offline / not configured') }),
+    update: () => Promise.resolve({ data: null, error: new Error('Supabase offline / not configured') }),
+    delete: () => Promise.resolve({ data: null, error: new Error('Supabase offline / not configured') }),
+    eq: () => chain,
+    order: () => chain,
+    limit: () => chain,
+    single: () => Promise.resolve({ data: null, error: new Error('Supabase offline / not configured') }),
+    maybeSingle: () => Promise.resolve({ data: null, error: null }),
+  };
+  return chain;
+};
+
+const mockClient: any = {
+  from: () => createMockChain(),
+};
+
+// Client for public operations and browser environments
+export const supabaseClient = isSupabaseConfigured
+  ? createClient(supabaseUrl!, supabaseAnonKey!)
+  : mockClient;
+
 // Client strictly for server-side secure operations (bypasses RLS)
-export const supabaseAdmin = createClient(
-  supabaseUrl || 'http://localhost:8000',
-  supabaseServiceKey || 'dummy_service_key'
-);
+export const supabaseAdmin = isSupabaseConfigured
+  ? createClient(supabaseUrl!, supabaseServiceKey!)
+  : mockClient;
 
 // Function to generate a client dynamically bound to a user's JWT
 // This enforces RLS and prevents IDOR (as per Hostile Review Architecture updates)
 export const createAuthenticatedClient = (jwt: string) => {
+  if (!isSupabaseConfigured) return mockClient;
   return createClient(
-    supabaseUrl || 'http://localhost:8000',
-    supabaseAnonKey || 'dummy_key',
+    supabaseUrl!,
+    supabaseAnonKey!,
     {
       global: {
         headers: {

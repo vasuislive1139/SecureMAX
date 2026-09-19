@@ -94,7 +94,7 @@ export async function registerNewUserByAdmin(formData: {
       severity: 'INFO',
     });
 
-    // Generate a starter enrollment code so the judge sees how devices are paired
+    // Generate a starter enrollment code for device pairing
     const randomHex = crypto.randomBytes(4).toString('hex').toUpperCase();
     const code = `SMX-${randomHex.slice(0, 4)}-${randomHex.slice(4)}`;
     

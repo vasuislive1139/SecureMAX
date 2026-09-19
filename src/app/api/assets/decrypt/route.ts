@@ -15,72 +15,69 @@ export async function POST(req: Request) {
 
     const asset = deviceStore.assets.get(assetId);
     if (!asset) {
-      return NextResponse.json({ error: 'Asset not found in vault registry' }, { status: 404 });
+      return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
     }
 
-    // 1. Authorize access via 10-step cryptographic flow
-    const { tempToken } = await authorizeAssetAccess(
-      session.userId,
+    // 1. Authorize access via 10-step flow
+    let tempToken: string;
+    try {
+      const authResult = await authorizeAssetAccess(
+        session.userId,
+        assetId,
+        session.sessionId,
+        session.deviceId
+      );
+      tempToken = authResult.tempToken;
+    } catch (authErr: any) {
+      deviceStore.recordAssetAccess(
+        assetId,
+        session.userId,
+        'DECRYPT',
+        'DENIED',
+        authErr.message || 'Authorization rejected'
+      );
+      throw authErr;
+    }
+
+    // 2. Decrypt encrypted content in memory
+    const encryptedBuffer = Buffer.from(asset.encrypted_content, 'base64');
+    const decryptedBuffer = await executeDecryption(
       assetId,
-      session.sessionId,
-      session.deviceId
+      encryptedBuffer,
+      asset.iv,
+      asset.auth_tag,
+      tempToken,
+      session.sessionId
     );
 
-    // 2. Decrypt encrypted content
-    let decryptedText = '';
-    try {
-      const encryptedBuffer = Buffer.from(asset.encrypted_content, 'base64');
-      const decryptedBuffer = await executeDecryption(
-        assetId,
-        encryptedBuffer,
-        asset.iv,
-        asset.auth_tag,
-        tempToken,
-        session.sessionId
-      );
-      decryptedText = decryptedBuffer.toString('utf8');
-    } catch (kmsErr) {
-      // In local demo mode when external KMS master enclave table is simulated, securely unpack authenticated base64 payload
-      decryptedText = Buffer.from(asset.encrypted_content, 'base64').toString('utf8');
-    }
+    const decryptedText = decryptedBuffer.toString('utf8');
 
-    // 3. Record access event in asset audit history
-    deviceStore.logAssetAccess(
-      asset.id,
-      session.name || 'Authorized User',
-      'Decrypted for Authorized Session',
-      'SUCCESS'
+    // 3. Record successful access log
+    deviceStore.recordAssetAccess(
+      assetId,
+      session.userId,
+      'DECRYPT',
+      'SUCCESS',
+      'In-memory AES-256-GCM controlled decryption completed'
     );
 
     return NextResponse.json({
       success: true,
       assetId: asset.id,
-      assetCode: asset.asset_code,
       assetName: asset.name,
       classification: asset.classification,
       folder: asset.folder,
-      category: asset.category,
-      fileExtension: asset.file_extension,
-      keyVersion: asset.key_version,
+      fileType: asset.file_type,
+      mimeType: asset.mime_type,
+      fileSizeBytes: asset.file_size_bytes,
       decryptedData: decryptedText,
       decryptedAt: new Date().toISOString(),
-      authorizedBy: 'AES-256-GCM • Server-Side KMS • Authorized Decryption',
-      sessionTtl: '30 minutes',
+      keyVersion: asset.key_version,
+      encryptionStandard: 'AES-256-GCM • Server-Side KMS • Controlled Decryption',
+      authorizedBy: 'SecureMAX Server-Side KMS & Blockchain Identity Layer',
     });
   } catch (error: any) {
     console.error('[Decryption API Error]:', error);
-
-    // Log failure attempt if asset exists
-    const body = await req.clone().json().catch(() => ({}));
-    if (body?.assetId) {
-      deviceStore.logAssetAccess(
-        body.assetId,
-        'Attempted Decryption (Denied)',
-        'Access denied: Cryptographic authorization rejected',
-        'DENIED'
-      );
-    }
-
     return NextResponse.json(
       { error: error.message || 'Access Denied: You are not authorized to decrypt this asset.' },
       { status: 403 }

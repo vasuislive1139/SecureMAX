@@ -11,7 +11,7 @@ const SECTIONS = [
   'DOMAIN 2',
   'KMS',
   'PROTECTED DATA',
-  'SENTINEL',
+  'THREAT ENGINE',
   'AUDIT',
   'END-TO-END FLOW'
 ];
@@ -103,11 +103,11 @@ export function TechnicalBriefing({ onClose }: { onClose: () => void }) {
                       <div className="flex items-center gap-4 w-full p-3 bg-black/50 border border-zinc-800 rounded"><Lock className="w-5 h-5 text-zinc-500"/><span className="font-mono text-xs text-zinc-300">KMS DECRYPTION</span></div>
                     </div>
 
-                    {/* Sentinel & Audit Wrap */}
+                    {/* Threat Engine & Audit Wrap */}
                     <div className="flex gap-4 w-full max-w-md mt-6 pt-6 border-t border-zinc-800">
                       <div className="flex-1 flex flex-col items-center p-3 border border-zinc-800 rounded bg-cyan-500/5 text-cyan-400">
                         <Activity className="w-5 h-5 mb-2" />
-                        <span className="font-mono text-[10px] tracking-widest">SENTINEL</span>
+                        <span className="font-mono text-[10px] tracking-widest">THREAT ENGINE</span>
                       </div>
                       <div className="flex-1 flex flex-col items-center p-3 border border-zinc-800 rounded bg-emerald-500/5 text-emerald-500">
                         <FileText className="w-5 h-5 mb-2" />
@@ -149,8 +149,8 @@ export function TechnicalBriefing({ onClose }: { onClose: () => void }) {
               )}
               {activeIdx === 7 && (
                 <div className="space-y-6 text-zinc-400 font-mono text-sm max-w-3xl">
-                  <p>Sentinel is the deterministic security engine that continuously monitors for authorization bypasses, privilege escalation, and token replay attacks.</p>
-                  <p className="text-emerald-500">Navigate to the SENTINEL page to view live security enforcement checks.</p>
+                  <p>The Threat Engine continuously validates system boundaries against authorization bypasses, privilege escalation, and token replay attacks.</p>
+                  <p className="text-emerald-500">Navigate to the SOC dashboard to view live security enforcement checks.</p>
                 </div>
               )}
               {activeIdx === 8 && (

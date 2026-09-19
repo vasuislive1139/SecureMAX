@@ -70,10 +70,6 @@ export function AdminAccessApprovalsCard() {
           <Badge variant="outline" className="border-amber-500/40 text-amber-300 bg-amber-950/30 font-mono text-xs px-3 py-1">
             {pendingRequests.length} PENDING APPROVALS
           </Badge>
-          <span className="text-[11px] font-mono text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-full bg-cyan-950/40 flex items-center gap-1.5">
-            <Sparkles className="w-3 h-3 text-cyan-400" />
-            Demo Feature
-          </span>
         </div>
       </div>
 
@@ -120,14 +116,15 @@ export function AdminAccessApprovalsCard() {
                     </span>
                   </div>
 
-                  <div className="font-bold text-zinc-100 text-sm">{req.asset_name}</div>
-                  <div className="text-[11px] font-mono text-zinc-400">Target Code: {req.asset_code}</div>
+                  <div className="font-bold text-zinc-100 text-sm">{req.asset_name || req.asset_id || 'System Asset Access'}</div>
+                  <div className="text-[11px] font-mono text-zinc-400">Target Code: {req.asset_code || req.asset_id || req.id}</div>
                   
                   <div className="bg-zinc-900/60 rounded-lg p-2.5 text-[11px] text-zinc-300 border border-zinc-800/80">
                     <div className="text-[10px] text-zinc-500 uppercase font-semibold">Requester:</div>
-                    <div className="font-bold text-zinc-200">{req.user_name} ({req.user_email})</div>
-                    <div className="text-[10px] text-cyan-400 font-mono mt-0.5">Role: {req.role}</div>
-                    <div className="text-zinc-400 mt-1 italic">&ldquo;{req.reason}&rdquo;</div>
+                    <div className="font-bold text-zinc-200">{req.user_name || req.user_email || 'Authorized User'}</div>
+                    {req.user_email && <div className="text-[10px] text-zinc-400 font-mono mt-0.5">{req.user_email}</div>}
+                    <div className="text-[10px] text-cyan-400 font-mono mt-0.5">Role: {req.role || 'USER'}</div>
+                    {req.reason && <div className="text-zinc-400 mt-1 italic">&ldquo;{req.reason}&rdquo;</div>}
                   </div>
                 </div>
 
@@ -173,9 +170,9 @@ export function AdminAccessApprovalsCard() {
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                   <div>
-                    <span className="font-bold text-zinc-200">{req.asset_name}</span>
+                    <span className="font-bold text-zinc-200">{req.asset_name || req.asset_id || 'System Asset Access'}</span>
                     <span className="text-zinc-500 mx-2">•</span>
-                    <span className="text-zinc-400">{req.user_name}</span>
+                    <span className="text-zinc-400">{req.user_name || req.user_email || 'Authorized User'}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-auto">

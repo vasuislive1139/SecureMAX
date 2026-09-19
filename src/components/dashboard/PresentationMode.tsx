@@ -165,7 +165,7 @@ export function PresentationMode() {
             title: 'Token Replay Attempt',
             severity: 'HIGH',
             status: 'OPEN',
-            detectionLayer: 'Sentinel Engine',
+            detectionLayer: 'Threat Engine',
             blockedLayer: 'Domain 2 (KMS)',
             affectedAsset: 'Asset-7A',
             source: '192.168.1.100 (SANDBOX)'

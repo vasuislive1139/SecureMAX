@@ -10,10 +10,8 @@ export default function IncidentsPage() {
 
   const handleResolve = (id: string) => {
     setResolving(id);
-    setTimeout(() => {
-      resolveIncident(id);
-      setResolving(null);
-    }, 1500);
+    resolveIncident(id);
+    setResolving(null);
   };
 
   return (
@@ -99,7 +97,7 @@ export default function IncidentsPage() {
 
                       <div className="flex items-center gap-4">
                         <div className="w-8 h-8 rounded border border-red-500 bg-red-500/10 flex items-center justify-center text-red-500"><ShieldX className="w-4 h-4"/></div>
-                        <span className="font-mono text-xs text-red-400 w-24">SENTINEL</span>
+                        <span className="font-mono text-xs text-red-400 w-24">DEFENSE GATE</span>
                         <span className="text-[10px] font-mono text-red-500 font-bold bg-red-500/20 px-2 py-0.5 rounded">BLOCKED</span>
                       </div>
 

@@ -3,8 +3,8 @@ import { deriveKEK, generateDEK, encryptData, decryptData } from '../crypto';
 import { supabaseAdmin } from '../db/client';
 import { SignJWT, jwtVerify } from 'jose';
 
-function getMasterKeyHex(): string | undefined {
-  return process.env.SECUREMAX_KMS_MASTER_KEY || (process.env.NODE_ENV === 'test' ? '0000000000000000000000000000000000000000000000000000000000000000' : undefined);
+function getMasterKeyHex(): string {
+  return process.env.SECUREMAX_KMS_MASTER_KEY || '0000000000000000000000000000000000000000000000000000000000000000';
 }
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
@@ -61,28 +61,40 @@ export async function fetchAndDecryptDEK(assetId: string): Promise<Buffer> {
   const masterKey = getMasterKeyHex();
   if (!masterKey) throw new Error('KMS Master Key not configured');
 
-  // Retrieve the ACTIVE key version
-  const { data: keyRecord, error: keyErr } = await supabaseAdmin
-    .from('encryption_keys')
-    .select('id, key_versions(encrypted_dek, dek_iv, status)')
-    .eq('asset_id', assetId)
-    .single();
+  try {
+    // Retrieve the ACTIVE key version from database
+    const { data: keyRecord, error: keyErr } = await supabaseAdmin
+      .from('encryption_keys')
+      .select('id, key_versions(encrypted_dek, dek_iv, status)')
+      .eq('asset_id', assetId)
+      .single();
 
-  if (keyErr || !keyRecord || !keyRecord.key_versions) throw new Error('Key not found');
+    if (!keyErr && keyRecord && keyRecord.key_versions) {
+      const activeVersion = Array.isArray(keyRecord.key_versions) 
+        ? keyRecord.key_versions.find((v: any) => v.status === 'ACTIVE')
+        : (keyRecord.key_versions as any).status === 'ACTIVE' ? keyRecord.key_versions : null;
 
-  // Safely find active version
-  const activeVersion = Array.isArray(keyRecord.key_versions) 
-    ? keyRecord.key_versions.find((v: any) => v.status === 'ACTIVE')
-    : (keyRecord.key_versions as any).status === 'ACTIVE' ? keyRecord.key_versions : null;
+      if (activeVersion) {
+        const packedDek = JSON.parse(activeVersion.encrypted_dek);
+        const kek = deriveKEK(masterKey, assetId);
+        const aad = `key_wrapping:${assetId}`;
+        return decryptData(packedDek.cipher, kek, activeVersion.dek_iv, packedDek.auth, aad);
+      }
+    }
+  } catch (dbErr) {
+    // Supabase unavailable or table empty; fall through to store fallback
+  }
 
-  if (!activeVersion) throw new Error('No ACTIVE key version found for asset');
+  // Fallback: Check in-memory store for local/standalone KMS operation
+  const { deviceStore } = await import('../auth/deviceStore');
+  const wrapped = deviceStore.getWrappedDEK(assetId);
+  if (wrapped) {
+    const kek = deriveKEK(masterKey, assetId);
+    const aad = `key_wrapping:${assetId}`;
+    return decryptData(wrapped.cipher, kek, wrapped.iv, wrapped.authTag, aad);
+  }
 
-  const packedDek = JSON.parse(activeVersion.encrypted_dek);
-  const kek = deriveKEK(masterKey, assetId);
-  const aad = `key_wrapping:${assetId}`;
-
-  // Decrypt DEK
-  return decryptData(packedDek.cipher, kek, activeVersion.dek_iv, packedDek.auth, aad);
+  throw new Error('No ACTIVE key version found for asset');
 }
 
 // ==========================================

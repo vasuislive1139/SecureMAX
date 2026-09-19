@@ -26,25 +26,25 @@ export function SecurityEventTimeline() {
     if (systemState === 'CONTAINMENT' || systemState === 'INCIDENT') {
       // During a security event, show the attack timeline
       setEvents([
-        { time: fmt(0), title: 'INCIDENT CREATED', category: 'Sentinel', status: 'BLOCKED' },
+        { time: fmt(0), title: 'INCIDENT CREATED', category: 'Threat Engine', status: 'BLOCKED' },
         { time: fmt(1), title: 'ACCESS DENIED AT DOMAIN 2', category: 'Key Security', status: 'DENIED' },
-        { time: fmt(2), title: 'ABNORMAL PATTERN DETECTED', category: 'Sentinel', status: 'ALERT' },
+        { time: fmt(2), title: 'ABNORMAL PATTERN DETECTED', category: 'Threat Engine', status: 'ALERT' },
         { time: fmt(4), title: 'ASSET POLICY EVALUATED', category: 'Domain 1', status: '✓ PASSED' },
         { time: fmt(6), title: 'SESSION CONTEXT CHECKED', category: 'Authorization', status: '✓ PASSED' },
       ]);
     } else if (systemState === 'RECOVERED') {
       setEvents([
         { time: fmt(0), title: 'SECURITY FABRIC RESTORED', category: 'System', status: '✓ RECOVERED' },
-        { time: fmt(2), title: 'THREAT CONTAINED', category: 'Sentinel', status: '✓ RESOLVED' },
-        { time: fmt(5), title: 'INCIDENT CREATED', category: 'Sentinel', status: 'BLOCKED' },
+        { time: fmt(2), title: 'THREAT CONTAINED', category: 'Threat Engine', status: '✓ RESOLVED' },
+        { time: fmt(5), title: 'INCIDENT CREATED', category: 'Threat Engine', status: 'BLOCKED' },
         { time: fmt(6), title: 'ACCESS DENIED AT DOMAIN 2', category: 'Key Security', status: 'DENIED' },
-        { time: fmt(8), title: 'ABNORMAL PATTERN DETECTED', category: 'Sentinel', status: 'ALERT' },
+        { time: fmt(8), title: 'ABNORMAL PATTERN DETECTED', category: 'Threat Engine', status: 'ALERT' },
       ]);
     } else {
       // Normal idle state — show system readiness events, NOT authorization outcomes
       setEvents([
         { time: fmt(0), title: 'KMS HEALTH CHECK', category: 'Key Security', status: '✓ OPERATIONAL' },
-        { time: fmt(12), title: 'SENTINEL SCAN COMPLETED', category: 'Sentinel', status: '✓ CLEAR' },
+        { time: fmt(12), title: 'SECURITY SCAN COMPLETED', category: 'Threat Engine', status: '✓ CLEAR' },
         { time: fmt(30), title: 'AUDIT CHAIN VERIFIED', category: 'Audit', status: '✓ VERIFIED' },
         { time: fmt(45), title: 'DOMAIN 2 POLICY SYNC', category: 'Domain 2', status: '✓ READY' },
         { time: fmt(60), title: 'DOMAIN 1 POLICY SYNC', category: 'Domain 1', status: '✓ READY' },

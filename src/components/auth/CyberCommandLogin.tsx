@@ -30,7 +30,7 @@ import {
   ClientDeviceInfo 
 } from '@/lib/crypto/clientP256';
 
-type TabMode = 'DEVICE_LOGIN' | 'ENROLL_DEVICE' | 'EVAL_DEMO';
+type TabMode = 'DEVICE_LOGIN' | 'ENROLL_DEVICE';
 type AuthStatus = 'IDLE' | 'CHALLENGING' | 'SIGNING' | 'VERIFYING' | 'SUCCESS' | 'FAILED';
 
 export default function CyberCommandLogin() {
@@ -62,7 +62,7 @@ export default function CyberCommandLogin() {
   // Event stream ticker
   const events = [
     { time: '10:14:18', type: 'SYSTEM', message: 'Security fabric initialized', status: 'OPERATIONAL' },
-    { time: '10:14:21', type: 'SENTINEL', message: 'Deterministic scan completed', status: 'CLEAR' },
+    { time: '10:14:21', type: 'THREAT ENGINE', message: 'Security scan completed', status: 'CLEAR' },
     { time: '10:14:24', type: 'DOMAIN 1', message: 'Asset policy sync verified', status: 'READY' },
     { time: '10:14:28', type: 'DOMAIN 2', message: 'Key policy sync verified', status: 'READY' },
     { time: '10:14:32', type: 'AUDIT', message: 'Chain integrity verified', status: 'VERIFIED' }
@@ -189,9 +189,7 @@ export default function CyberCommandLogin() {
       if (!res.ok) throw new Error(data.error || 'Failed to complete device enrollment');
 
       setEnrollSuccess(true);
-      setTimeout(() => {
-        handleDeviceLogin(data.user.email);
-      }, 1000);
+      handleDeviceLogin(data.user.email);
     } catch (err: any) {
       setErrorMessage(err.message || 'Enrollment error');
     } finally {
@@ -306,7 +304,7 @@ export default function CyberCommandLogin() {
                 </span>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-zinc-800/50">
-                <span className="text-zinc-400">Sentinel</span>
+                <span className="text-zinc-400">Threat Engine</span>
                 <span className={`flex items-center gap-1 ${getColor()}`}>
                   <Activity className="w-3 h-3"/> {isInit ? 'INITIALIZING...' : 'ACTIVE'}
                 </span>
@@ -473,7 +471,7 @@ export default function CyberCommandLogin() {
             </div>
 
             {/* Mode Switcher Tabs */}
-            <div className="grid grid-cols-3 gap-1 bg-zinc-900/80 p-1 rounded-md mb-4 border border-zinc-800">
+            <div className="grid grid-cols-2 gap-1 bg-zinc-950 p-1 rounded border border-zinc-800 mb-4">
               <button
                 onClick={() => { setActiveTab('DEVICE_LOGIN'); setErrorMessage(''); }}
                 className={`py-1.5 text-[10px] font-mono tracking-wider rounded transition-all ${
@@ -482,7 +480,7 @@ export default function CyberCommandLogin() {
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                Device Key
+                Hardware Key
               </button>
               <button
                 onClick={() => { setActiveTab('ENROLL_DEVICE'); setErrorMessage(''); }}
@@ -493,16 +491,6 @@ export default function CyberCommandLogin() {
                 }`}
               >
                 Enroll Device
-              </button>
-              <button
-                onClick={() => { setActiveTab('EVAL_DEMO'); setErrorMessage(''); }}
-                className={`py-1.5 text-[10px] font-mono tracking-wider rounded transition-all ${
-                  activeTab === 'EVAL_DEMO' 
-                    ? 'bg-cyan-500 text-zinc-950 font-bold shadow' 
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                Demo Roles
               </button>
             </div>
 
@@ -635,72 +623,6 @@ export default function CyberCommandLogin() {
                   REGISTER HARDWARE KEY
                 </button>
               </form>
-            )}
-
-            {/* TAB 3: ONE-CLICK DEMO ROLES */}
-            {activeTab === 'EVAL_DEMO' && (
-              <div className="space-y-3">
-                <div className="p-2.5 bg-amber-950/30 border border-amber-500/30 rounded text-[10px] font-mono text-amber-400">
-                  ⚡ <strong>Evaluation Demo Access</strong>: Instant session authenticated against pre-seeded cryptographic identities.
-                </div>
-
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleFastDemoAccess('ADMIN')}
-                    disabled={authStatus === 'CHALLENGING' || authStatus === 'SIGNING'}
-                    className="w-full flex items-center justify-between p-2.5 bg-zinc-900/60 border border-zinc-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 rounded transition-all text-left font-mono group cursor-pointer"
-                  >
-                    <div>
-                      <div className="text-xs font-bold text-zinc-200 group-hover:text-cyan-300">
-                        ADMINISTRATOR
-                      </div>
-                      <div className="text-[10px] text-zinc-500">
-                        admin@securemax.mil • Hardware-Bound Root
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-cyan-400" />
-                  </button>
-
-                  <button
-                    onClick={() => handleFastDemoAccess('USER')}
-                    disabled={authStatus === 'CHALLENGING' || authStatus === 'SIGNING'}
-                    className="w-full flex items-center justify-between p-2.5 bg-zinc-900/60 border border-zinc-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 rounded transition-all text-left font-mono group cursor-pointer"
-                  >
-                    <div>
-                      <div className="text-xs font-bold text-zinc-200 group-hover:text-cyan-300">
-                        USER (TACTICAL OPERATOR)
-                      </div>
-                      <div className="text-[10px] text-zinc-500">
-                        vasu@securemax.mil • Multi-Device Enrolled
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-cyan-400" />
-                  </button>
-
-                  <button
-                    onClick={() => handleFastDemoAccess('AUDITOR')}
-                    disabled={authStatus === 'CHALLENGING' || authStatus === 'SIGNING'}
-                    className="w-full flex items-center justify-between p-2.5 bg-zinc-900/60 border border-zinc-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 rounded transition-all text-left font-mono group cursor-pointer"
-                  >
-                    <div>
-                      <div className="text-xs font-bold text-zinc-200 group-hover:text-cyan-300">
-                        COMPLIANCE AUDITOR
-                      </div>
-                      <div className="text-[10px] text-zinc-500">
-                        auditor@securemax.mil • Blockchain Verification
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-zinc-600 group-hover:text-cyan-400" />
-                  </button>
-                </div>
-
-                {authStatus !== 'IDLE' && (
-                  <div className="p-2 bg-zinc-900 border border-cyan-500/20 rounded flex items-center gap-2 text-[10px] font-mono text-cyan-300">
-                    <Loader2 className="w-3 h-3 animate-spin text-cyan-400" />
-                    <span>{statusText}</span>
-                  </div>
-                )}
-              </div>
             )}
 
           </div>
