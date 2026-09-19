@@ -76,7 +76,34 @@ export async function POST(req: Request) {
         if (!device || !device.is_admin_device) {
           // Check if there is an active admin device for this user
           const adminDev = userDevices.find(d => d.is_admin_device && d.status === 'ACTIVE');
-          if (adminDev && (!publicKey || adminDev.public_key === publicKey)) {
+          const SEED_PLACEHOLDER_KEY = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2Z37UoHq3y1V4XwH5K7oF9P9k3sZ0s7uVvWxX0y1A2bC3dE4fG5hI6jK7lM8nO9pQ0rS1tU2vW3xY4z5A6bC7w==';
+          const isPlaceholderKey = adminDev && (adminDev.public_key === SEED_PLACEHOLDER_KEY || adminDev.public_key.startsWith('MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2Z37'));
+
+          if (adminDev && (!publicKey || adminDev.public_key === publicKey || isPlaceholderKey)) {
+            if (isPlaceholderKey && publicKey) {
+              // Anchor the real browser hardware key to this Admin device
+              adminDev.public_key = publicKey;
+              if (deviceName) adminDev.device_name = deviceName;
+              adminDev.last_authenticated_at = new Date().toISOString();
+              deviceStore.devices.set(adminDev.id, adminDev);
+              const passport = deviceStore.devicePassports.get(adminDev.id);
+              if (passport) {
+                passport.public_key = publicKey;
+                if (deviceName) passport.device_name = deviceName;
+                passport.last_authenticated_at = new Date().toISOString();
+                deviceStore.devicePassports.set(adminDev.id, passport);
+              }
+              deviceStore.recordAuditEvent({
+                eventType: 'ADMIN_HARDWARE_TERMINAL_BOUND',
+                description: `Admin hardware terminal anchored with P-256 passkey for ${user.name}`,
+                targetId: adminDev.id,
+                userName: user.name,
+                userEmail: user.email,
+                performedBy: user.name,
+                severity: 'INFO',
+              });
+              deviceStore.saveToDisk();
+            }
             device = adminDev;
           } else {
             deviceStore.recordAdminLogin({
