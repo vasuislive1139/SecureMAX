@@ -12,6 +12,7 @@ const config: HardhatUserConfig = {
         enabled: true,
         runs: 200,
       },
+      evmVersion: "cancun"
     },
   },
   networks: {
@@ -19,6 +20,7 @@ const config: HardhatUserConfig = {
     sepolia: {
       url: process.env.NEXT_PUBLIC_CHAIN_RPC_URL || "",
       accounts: process.env.CHAIN1_DEPLOYER_PRIVATE_KEY ? [process.env.CHAIN1_DEPLOYER_PRIVATE_KEY] : [],
+      chainId: 11155111,
     },
   },
   paths: {

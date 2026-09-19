@@ -148,11 +148,11 @@ export async function revokeAssetAccess(adminId: string, targetUserId: string, a
 
   // Note: Actual Blockchain 1/2 revocation requires a signed tx from the admin's wallet.
   // The API signals the frontend to prompt the admin's Metamask to execute:
-  // AssetRegistry.revokeAssignment(assetId, targetUserId) on Chain-1.
+  // AssetNFT.revokeAssignment(assetId, targetUserId) on Chain-1.
   return { 
     success: true, 
     blockchainActionRequired: true, 
-    actionTarget: 'AssetRegistry',
+    actionTarget: 'AssetNFT',
     method: 'revokeAssignment'
   };
 }

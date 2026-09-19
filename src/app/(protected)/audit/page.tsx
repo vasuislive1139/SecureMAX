@@ -90,7 +90,7 @@ export default async function AuditTrailPage() {
                    <div className="space-y-2 text-xs font-mono">
                      <div className="flex justify-between"><span className="text-zinc-600">NETWORK</span><span className="text-cyan-400">SEPOLIA</span></div>
                      <div className="flex justify-between"><span className="text-zinc-600">STATUS</span><span className="text-emerald-500">TAMPER-EVIDENT</span></div>
-                     <div className="flex justify-between"><span className="text-zinc-600">REFERENCE</span><span className="text-zinc-500 underline decoration-zinc-800 underline-offset-4">AuditAnchor</span></div>
+                     <div className="flex justify-between"><span className="text-zinc-600">REFERENCE</span><span className="text-zinc-500 underline decoration-zinc-800 underline-offset-4">Audit (Event)</span></div>
                    </div>
                  </div>
               </div>

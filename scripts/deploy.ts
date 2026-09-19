@@ -1,73 +1,64 @@
-import pkg from "hardhat";
-const { ethers } = pkg;
-import fs from "fs";
+import { ethers } from "hardhat";
+import * as fs from "fs";
+import * as path from "path";
 
 async function main() {
-  console.log("Deploying Chain-1 Contracts...");
-  
-  const IdentityRegistry = await ethers.getContractFactory("IdentityRegistry");
-  const identityRegistry = await IdentityRegistry.deploy();
+  console.log("====================================================");
+  console.log("🚀 Deploying Full SecureMAX Blockchain Platform");
+  console.log("====================================================");
+
+  const [deployer] = await ethers.getSigners();
+  console.log(`Deployer Address: ${deployer.address}`);
+
+  const IdentityRegistryFactory = await ethers.getContractFactory("IdentityRegistry");
+  const identityRegistry = await IdentityRegistryFactory.deploy(deployer.address);
   await identityRegistry.waitForDeployment();
-  const identityRegistryAddress = await identityRegistry.getAddress();
-  console.log("IdentityRegistry deployed to:", identityRegistryAddress);
+  const identityAddress = await identityRegistry.getAddress();
+  console.log(`✅ IdentityRegistry deployed at: ${identityAddress}`);
 
-  const RBACManager = await ethers.getContractFactory("RBACManager");
-  const rbacManager = await RBACManager.deploy();
+  const AccessControlFactory = await ethers.getContractFactory("AccessControlManager");
+  const rbacManager = await AccessControlFactory.deploy(deployer.address, identityAddress);
   await rbacManager.waitForDeployment();
-  const rbacManagerAddress = await rbacManager.getAddress();
-  console.log("RBACManager deployed to:", rbacManagerAddress);
+  const rbacAddress = await rbacManager.getAddress();
+  console.log(`✅ AccessControlManager deployed at: ${rbacAddress}`);
 
-  const AssetRegistry = await ethers.getContractFactory("AssetRegistry");
-  const assetRegistry = await AssetRegistry.deploy();
-  await assetRegistry.waitForDeployment();
-  const assetRegistryAddress = await assetRegistry.getAddress();
-  console.log("AssetRegistry deployed to:", assetRegistryAddress);
-
-  const AuditAnchor = await ethers.getContractFactory("AuditAnchor");
-  const auditAnchor = await AuditAnchor.deploy();
-  await auditAnchor.waitForDeployment();
-  const auditAnchorAddress = await auditAnchor.getAddress();
-  console.log("AuditAnchor deployed to:", auditAnchorAddress);
-
-  console.log("Deploying Chain-2 Contracts...");
-
-  const KeyPolicyManager = await ethers.getContractFactory("KeyPolicyManager");
-  const keyPolicyManager = await KeyPolicyManager.deploy();
-  await keyPolicyManager.waitForDeployment();
-  const keyPolicyManagerAddress = await keyPolicyManager.getAddress();
-  console.log("KeyPolicyManager deployed to:", keyPolicyManagerAddress);
-
-  const KeyLifecycle = await ethers.getContractFactory("KeyLifecycle");
-  const keyLifecycle = await KeyLifecycle.deploy();
-  await keyLifecycle.waitForDeployment();
-  const keyLifecycleAddress = await keyLifecycle.getAddress();
-  console.log("KeyLifecycle deployed to:", keyLifecycleAddress);
-
-  const DecryptionAuth = await ethers.getContractFactory("DecryptionAuth");
-  const decryptionAuth = await DecryptionAuth.deploy();
-  await decryptionAuth.waitForDeployment();
-  const decryptionAuthAddress = await decryptionAuth.getAddress();
-  console.log("DecryptionAuth deployed to:", decryptionAuthAddress);
+  const AssetNFTFactory = await ethers.getContractFactory("AssetNFT");
+  const assetNFT = await AssetNFTFactory.deploy("SecureMAX Organizational Asset", "SMX-AST", rbacAddress, identityAddress);
+  await assetNFT.waitForDeployment();
+  const assetAddress = await assetNFT.getAddress();
+  console.log(`✅ AssetNFT deployed at: ${assetAddress}`);
 
   const addresses = {
-    chain1: {
-      IdentityRegistry: identityRegistryAddress,
-      RBACManager: rbacManagerAddress,
-      AssetRegistry: assetRegistryAddress,
-      AuditAnchor: auditAnchorAddress,
-    },
-    chain2: {
-      KeyPolicyManager: keyPolicyManagerAddress,
-      KeyLifecycle: keyLifecycleAddress,
-      DecryptionAuth: decryptionAuthAddress,
-    }
+    IdentityRegistry: identityAddress,
+    AccessControlManager: rbacAddress,
+    AssetNFT: assetAddress
   };
 
-  fs.writeFileSync("deployed-addresses.json", JSON.stringify(addresses, null, 2));
-  console.log("Addresses saved to deployed-addresses.json");
+  const networkInfo = await ethers.provider.getNetwork();
+  const chainId = networkInfo.chainId.toString();
+  
+  let networkName = networkInfo.name;
+  if (chainId === "11155111") {
+    networkName = "sepolia";
+  }
+
+  const finalOutput = {
+    network: networkName,
+    chainId: chainId,
+    contracts: addresses
+  };
+
+  fs.writeFileSync(
+    path.join(__dirname, "../deployed-addresses.json"),
+    JSON.stringify(finalOutput, null, 2)
+  );
+
+  console.log("✅ Contract addresses exported to deployed-addresses.json");
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error("❌ Deployment failed:", error);
+    process.exit(1);
+  });

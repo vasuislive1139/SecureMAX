@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       .eq('address', normalizedAddress)
       .single();
 
-    let finalWalletData = walletData;
+    let finalWalletData: any = walletData;
 
     if (walletError || !walletData) {
       console.log(`Wallet ${normalizedAddress} not found. Auto-linking to ADMIN for prototype...`);

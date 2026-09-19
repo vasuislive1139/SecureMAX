@@ -5,13 +5,9 @@ import { Server, Activity, Clock, Box, ShieldCheck, ChevronDown } from 'lucide-r
 import { useBlockNumber, usePublicClient } from 'wagmi';
 
 const CONTRACTS = [
-  { name: 'IdentityRegistry', address: '0xb2Ad55fD06552E47E4304e3A48AACDdde33808d0', domain: 'DOMAIN 1' },
-  { name: 'RBACManager', address: '0x9b4B628653b0Aa4dAAeccC17273b287e875C61DF', domain: 'DOMAIN 1' },
-  { name: 'AssetRegistry', address: '0x41652715d743C7f9740b83526B09994e60aa61B6', domain: 'DOMAIN 1' },
-  { name: 'AuditAnchor', address: '0xE0f14367d09812f624DCF634d388d6D06d712688', domain: 'CROSS-DOMAIN' },
-  { name: 'KeyPolicyManager', address: '0xE31a493DF191fD0fD88c99820d0AfCCEC5F13f80', domain: 'DOMAIN 2' },
-  { name: 'KeyLifecycle', address: '0xBd088a9cd06f59aDaB56202F335EfC300614f743', domain: 'DOMAIN 2' },
-  { name: 'DecryptionAuth', address: '0x65d897450295189230bb49C2b4D83c904A36Fc07', domain: 'DOMAIN 2' }
+  { name: 'IdentityRegistry', address: process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS || '0x...', domain: 'DOMAIN 1' },
+  { name: 'AccessControlManager', address: process.env.NEXT_PUBLIC_ACCESS_CONTROL_MANAGER_ADDRESS || '0x...', domain: 'DOMAIN 1' },
+  { name: 'AssetNFT', address: process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS || '0x...', domain: 'DOMAIN 1' }
 ];
 
 export default function InfrastructurePage() {

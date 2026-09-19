@@ -1,10 +1,9 @@
 import { http, createConfig } from 'wagmi';
-import { sepolia, hardhat } from 'wagmi/chains';
+import { sepolia } from 'wagmi/chains';
 
 export const config = createConfig({
-  chains: [hardhat, sepolia],
+  chains: [sepolia],
   transports: {
-    [hardhat.id]: http('http://127.0.0.1:8545'),
-    [sepolia.id]: http(process.env.NEXT_PUBLIC_CHAIN_RPC_URL || 'https://rpc.sepolia.org'),
+    [sepolia.id]: http(process.env.NEXT_PUBLIC_CHAIN_RPC_URL),
   },
 });
