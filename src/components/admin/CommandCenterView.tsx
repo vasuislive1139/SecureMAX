@@ -65,54 +65,11 @@ interface LiveGrant {
 export function CommandCenterView() {
   const { data: realtimeData, broadcastUpdate, refetch } = useSecureMaxRealtime(true);
 
-  // Pending Access Requests (from Page 1)
-  const [pendingRequests, setPendingRequests] = React.useState<PendingRequest[]>([
-    {
-      id: 'req-1',
-      actor: 'Arjun Verma',
-      assetCode: 'SMX-FIN-002',
-      purpose: 'reconcile vendor invoices for Substation 4 works',
-      role: 'ENGINEER',
-      classification: 'RESTRICTED',
-      requestedAt: 'requested 25 min ago',
-      ttlMinutes: 30,
-    },
-    {
-      id: 'req-2',
-      actor: 'Neha Iyer',
-      assetCode: 'SMX-HR-001',
-      purpose: 'statutory PF audit sample check',
-      role: 'AUDITOR',
-      classification: 'CONFIDENTIAL',
-      requestedAt: 'requested 8 min ago',
-      ttlMinutes: 15,
-    },
-  ]);
+  // Pending Access Requests (Dynamic from Realtime Ledger)
+  const [pendingRequests, setPendingRequests] = React.useState<PendingRequest[]>([]);
 
-  // Live Grants with active ticking countdown
-  const [liveGrants, setLiveGrants] = React.useState<LiveGrant[]>([
-    {
-      id: 'grant-1',
-      user: 'Arjun Verma',
-      assetCode: 'SMX-ENG-003',
-      sessionId: '1bb04bec',
-      ip: '10.42.7.19',
-      device: 'known device',
-      remainingSeconds: 1274, // 21:14
-      status: 'ACTIVE',
-    },
-    {
-      id: 'grant-2',
-      user: 'Riya Sharma',
-      assetCode: 'SMX-HR-001',
-      sessionId: '7a29f041',
-      ip: '10.42.5.88',
-      device: 'corporate device',
-      remainingSeconds: 0,
-      status: 'IDLE',
-      note: 'key v2 · rotated 20 min ago',
-    },
-  ]);
+  // Live Grants with active ticking countdown (Dynamic from Realtime Ledger)
+  const [liveGrants, setLiveGrants] = React.useState<LiveGrant[]>([]);
 
   // Synchronize state from database whenever realtime data arrives
   React.useEffect(() => {
@@ -255,7 +212,7 @@ export function CommandCenterView() {
               className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60 transition-colors"
             >
               <span>Identities</span>
-              <span className="text-[10px] text-zinc-500 font-bold">7</span>
+              <span className="text-[10px] text-zinc-500 font-bold">{realtimeData?.stats.identitiesCount || 1}</span>
             </Link>
 
             <Link 
@@ -263,7 +220,7 @@ export function CommandCenterView() {
               className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60 transition-colors"
             >
               <span>Assets</span>
-              <span className="text-[10px] text-zinc-500 font-bold">8</span>
+              <span className="text-[10px] text-zinc-500 font-bold">{realtimeData?.stats.activeAssetsCount || 0}</span>
             </Link>
 
             <Link 
@@ -315,10 +272,10 @@ export function CommandCenterView() {
 
         {/* Bottom Profile Card */}
         <div className="p-4 border-t border-zinc-800/80 bg-black/40 font-mono text-xs space-y-1">
-          <div className="font-bold text-zinc-200">Aarav Mehta</div>
-          <div className="text-[10px] text-purple-400 font-bold tracking-wider uppercase">ADMIN</div>
-          <div className="text-[10px] text-zinc-500 truncate">0x1111…1111</div>
-          <div className="text-[9px] text-zinc-600 truncate">did:securemax:0x1111…</div>
+          <div className="font-bold text-zinc-200">Vasu (Administrator)</div>
+          <div className="text-[10px] text-purple-400 font-bold tracking-wider uppercase">ROOT ADMIN</div>
+          <div className="text-[10px] text-zinc-500 truncate">admin@securemax.mil</div>
+          <div className="text-[9px] text-zinc-600 truncate">did:securemax:admin:001</div>
         </div>
       </aside>
 
@@ -331,18 +288,18 @@ export function CommandCenterView() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Command Center</h1>
-            <p className="text-xs text-zinc-500 font-mono mt-0.5">Global security posture · updated 4s ago</p>
+            <p className="text-xs text-zinc-500 font-mono mt-0.5">Global security posture · Realtime ledger sync</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
             <div className="flex items-center gap-1.5 text-zinc-400 bg-zinc-900/60 border border-zinc-800 px-2.5 py-1 rounded">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>CHAIN-1 · blk 6,482,113</span>
+              <span>CHAIN-1 · live</span>
             </div>
 
             <div className="flex items-center gap-1.5 text-zinc-400 bg-zinc-900/60 border border-zinc-800 px-2.5 py-1 rounded">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-              <span>CHAIN-2 · blk 6,482,113</span>
+              <span>CHAIN-2 · dual anchor</span>
             </div>
 
             <Button
@@ -363,15 +320,15 @@ export function CommandCenterView() {
           <div className="p-4 rounded-xl border border-purple-500/30 bg-[#0d0a14] space-y-1">
             <div className="text-[10px] text-zinc-400 uppercase tracking-wider">IDENTITIES</div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-white">7</span>
-              <span className="text-[11px] text-pink-400">1 suspended</span>
+              <span className="text-3xl font-bold text-white">{realtimeData?.stats.identitiesCount || 1}</span>
+              <span className="text-[11px] text-emerald-400">active</span>
             </div>
           </div>
 
           <div className="p-4 rounded-xl border border-cyan-500/30 bg-[#080f14] space-y-1">
             <div className="text-[10px] text-zinc-400 uppercase tracking-wider">ACTIVE ASSETS</div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-white">7</span>
+              <span className="text-3xl font-bold text-white">{realtimeData?.stats.activeAssetsCount || 0}</span>
               <span className="text-[11px] text-cyan-400 font-sans">AES-256-GCM</span>
             </div>
           </div>
@@ -380,15 +337,15 @@ export function CommandCenterView() {
             <div className="text-[10px] text-zinc-400 uppercase tracking-wider">PENDING REQUESTS</div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-white">{pendingRequests.length}</span>
-              <span className="text-[11px] text-amber-400">oldest 25 min</span>
+              <span className="text-[11px] text-amber-400">{pendingRequests.length === 0 ? 'zero pending' : `${pendingRequests.length} pending`}</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl border border-red-500/30 bg-[#140809] space-y-1">
+          <div className="p-4 rounded-xl border border-emerald-500/30 bg-[#08140a] space-y-1">
             <div className="text-[10px] text-zinc-400 uppercase tracking-wider">OPEN INCIDENTS</div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-white">2</span>
-              <span className="text-[11px] text-red-400 uppercase">both CRITICAL</span>
+              <span className="text-3xl font-bold text-white">{realtimeData?.stats.openIncidentsCount || 0}</span>
+              <span className="text-[11px] text-emerald-400 uppercase">all nominal</span>
             </div>
           </div>
         </div>
@@ -409,11 +366,11 @@ export function CommandCenterView() {
           <div className="p-2 rounded-lg bg-purple-950/20 border border-purple-500/30 text-purple-400 text-center font-bold">
             KEY DOMAIN PROTECTED
           </div>
-          <div className="p-2 rounded-lg bg-amber-950/20 border border-amber-500/30 text-amber-400 text-center font-bold">
-            SENTINEL 2 OPEN ALERTS
+          <div className="p-2 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 text-center font-bold">
+            SENTINEL NOMINAL
           </div>
           <div className="p-2 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 text-center font-bold">
-            AUDIT CHAIN 24 / 24 VALID
+            AUDIT CHAIN VALID
           </div>
         </div>
 
@@ -650,40 +607,15 @@ export function CommandCenterView() {
                 </div>
               </div>
 
-              {/* Incident Alert Box: Decoy Asset Opened */}
-              {incidentOpen && (
-                <div className="p-4 rounded-xl border border-red-500/50 bg-[#160a0b] space-y-2.5">
-                  <div className="flex items-center gap-2 text-red-400 font-bold text-xs uppercase">
-                    <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                    <span>CRITICAL · decoy asset opened</span>
-                  </div>
-                  <p className="text-[11px] text-zinc-300 font-sans leading-relaxed">
-                    Kabir Rao attempted to decrypt <strong className="text-white">SMX-HNY-008</strong>. No user has a business need for this asset. Session frozen automatically.
-                  </p>
-                  <div className="flex items-center gap-2 pt-1">
-                    <Button 
-                      size="sm"
-                      onClick={() => setIdentitySuspended(true)}
-                      className={`${identitySuspended ? 'bg-zinc-800 text-zinc-400' : 'bg-red-600 hover:bg-red-500 text-white'} text-[11px] font-bold h-7`}
-                    >
-                      {identitySuspended ? 'Identity Suspended' : 'Suspend identity'}
-                    </Button>
-                    <Button 
-                      size="sm"
-                      variant="outline"
-                      onClick={() => alert('Incident #INC-8094 escalated to SOC Command and logged to chain.')}
-                      className="border-zinc-700 text-zinc-300 text-[11px] h-7"
-                    >
-                      Open incident
-                    </Button>
-                  </div>
+              {/* Sentinel Posture Status */}
+              <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-950/10 space-y-1">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>SENTINEL POSTURE NOMINAL</span>
                 </div>
-              )}
-
-              {/* Event Notification */}
-              <div className="p-3 rounded-xl border border-zinc-800 bg-black/40 space-y-1">
-                <div className="text-zinc-200 font-bold text-[11px]">Revoked contractor blocked at RBAC</div>
-                <div className="text-[10px] text-zinc-500">Vikram Nair · SMX-FIN-002 · 90 min ago</div>
+                <p className="text-[11px] text-zinc-400 font-sans leading-relaxed">
+                  Real-time threat detection active. Zero active unauthorized access attempts or policy violations.
+                </p>
               </div>
             </div>
 
@@ -696,54 +628,11 @@ export function CommandCenterView() {
               </div>
 
               <div className="space-y-3">
-                {/* Key 1 */}
-                <div className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-900/30 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-zinc-100">SMX-HR-001</span>
-                    <span className="text-emerald-400 font-bold text-[10px]">v2 ACTIVE</span>
-                  </div>
-                  <div className="text-[10px] text-zinc-500">
-                    role-bound · MANAGER, ADMIN · rotate 30d
-                  </div>
-                  <div className="flex items-center gap-2 pt-1">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => alert('Key rotated on Server-Side KMS to version v3')}
-                      className="border-zinc-800 hover:bg-zinc-800 text-[10px] text-zinc-300 h-6 px-2.5"
-                    >
-                      Rotate
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => alert('Key revoked on Server-Side KMS')}
-                      className="border-red-900/40 text-red-400 hover:bg-red-950/20 text-[10px] h-6 px-2.5"
-                    >
-                      Revoke key
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Key 2 */}
-                <div className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-900/30 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-zinc-100">SMX-ENG-003</span>
-                    <span className="text-emerald-400 font-bold text-[10px]">v1 ACTIVE</span>
-                  </div>
-                  <div className="text-[10px] text-zinc-500">
-                    time-bound · TTL 30m · session-bound
-                  </div>
-                </div>
-
-                {/* Key 3 */}
-                <div className="p-3.5 rounded-xl border border-red-500/30 bg-red-950/10 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-red-400">SMX-HNY-008</span>
-                    <span className="text-red-400 font-bold text-[10px]">DECOY</span>
-                  </div>
-                  <div className="text-[10px] text-zinc-500">
-                    alert on any access · severity CRITICAL
+                <div className="py-6 text-center space-y-2">
+                  <Key className="w-5 h-5 text-zinc-600 mx-auto" />
+                  <div className="text-xs text-zinc-400 font-sans">No cryptographic keys active</div>
+                  <div className="text-[10px] text-zinc-600 font-sans">
+                    Keys are generated automatically when encrypted assets are registered in the Vault.
                   </div>
                 </div>
               </div>

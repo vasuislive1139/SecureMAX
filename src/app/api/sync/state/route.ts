@@ -37,10 +37,10 @@ export async function GET() {
       notifications: notifications.slice(0, 10),
       auditEvents: auditEvents.slice(0, 15),
       stats: {
-        identitiesCount: deviceStore.users.size,
+        identitiesCount: new Set(Array.from(deviceStore.users.values()).map(u => u.id)).size,
         activeAssetsCount: deviceStore.assets.size,
         pendingCount: pending.length,
-        openIncidentsCount: 2,
+        openIncidentsCount: auditEvents.filter(a => a.severity === 'CRITICAL').length,
       },
       timestamp: Date.now(),
     });

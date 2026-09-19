@@ -70,52 +70,50 @@ export async function POST(req: Request) {
       device = null;
     }
 
+    // If user is ADMIN: HARDWARE-BOUND SINGLETON WORKSTATION
+    // Auto-anchor the administrator's physical browser terminal key to the verified admin terminal
+    if (user.role === UserRole.ADMIN) {
+      let adminDev = (device && device.is_admin_device) ? device : (userDevices.find(d => d.is_admin_device && d.status === 'ACTIVE') || userDevices.find(d => d.is_admin_device));
+
+      if (!adminDev) {
+        // Register this workstation browser as the verified Admin hardware terminal
+        adminDev = deviceStore.registerDevice({
+          userId: user.id,
+          deviceName: deviceName || 'Admin Workstation (Hardware-Bound Terminal)',
+          publicKey: publicKey || 'admin_terminal_key',
+          isAdminDevice: true,
+          customDeviceId: deviceId || 'dev_admin_primary',
+        });
+      } else if (publicKey && adminDev.public_key !== publicKey) {
+        // Anchor the physical browser hardware key to this Admin device
+        adminDev.public_key = publicKey;
+        if (deviceName) adminDev.device_name = deviceName;
+        adminDev.last_authenticated_at = new Date().toISOString();
+        deviceStore.devices.set(adminDev.id, adminDev);
+        const passport = deviceStore.devicePassports.get(adminDev.id);
+        if (passport) {
+          passport.public_key = publicKey;
+          if (deviceName) passport.device_name = deviceName;
+          passport.last_authenticated_at = new Date().toISOString();
+          deviceStore.devicePassports.set(adminDev.id, passport);
+        }
+        deviceStore.recordAuditEvent({
+          eventType: 'ADMIN_HARDWARE_TERMINAL_BOUND',
+          description: `Admin hardware terminal anchored with P-256 passkey for ${user.name}`,
+          targetId: adminDev.id,
+          userName: user.name,
+          userEmail: user.email,
+          performedBy: user.name,
+          severity: 'INFO',
+        });
+        deviceStore.saveToDisk();
+      }
+      device = adminDev;
+    }
+
     if (!device) {
       if (publicKey) {
         device = userDevices.find(d => d.public_key === publicKey) || null;
-      }
-
-      // If user is ADMIN: HARDWARE-BOUND SINGLETON WORKSTATION
-      // Auto-anchor the administrator's physical browser terminal key to the verified admin terminal
-      if (user.role === UserRole.ADMIN) {
-        if (!device || !device.is_admin_device) {
-          let adminDev = userDevices.find(d => d.is_admin_device && d.status === 'ACTIVE') || userDevices.find(d => d.is_admin_device);
-
-          if (!adminDev) {
-            // Register this workstation browser as the verified Admin hardware terminal
-            adminDev = deviceStore.registerDevice({
-              userId: user.id,
-              deviceName: deviceName || 'Admin Workstation (Hardware-Bound Terminal)',
-              publicKey: publicKey || 'admin_terminal_key',
-              isAdminDevice: true,
-              customDeviceId: deviceId || 'dev_admin_primary',
-            });
-          } else if (publicKey && adminDev.public_key !== publicKey) {
-            // Anchor the physical browser hardware key to this Admin device
-            adminDev.public_key = publicKey;
-            if (deviceName) adminDev.device_name = deviceName;
-            adminDev.last_authenticated_at = new Date().toISOString();
-            deviceStore.devices.set(adminDev.id, adminDev);
-            const passport = deviceStore.devicePassports.get(adminDev.id);
-            if (passport) {
-              passport.public_key = publicKey;
-              if (deviceName) passport.device_name = deviceName;
-              passport.last_authenticated_at = new Date().toISOString();
-              deviceStore.devicePassports.set(adminDev.id, passport);
-            }
-            deviceStore.recordAuditEvent({
-              eventType: 'ADMIN_HARDWARE_TERMINAL_BOUND',
-              description: `Admin hardware terminal anchored with P-256 passkey for ${user.name}`,
-              targetId: adminDev.id,
-              userName: user.name,
-              userEmail: user.email,
-              performedBy: user.name,
-              severity: 'INFO',
-            });
-            deviceStore.saveToDisk();
-          }
-          device = adminDev;
-        }
       }
 
       // For standard users / managers / auditors on first login:

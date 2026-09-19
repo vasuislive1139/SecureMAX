@@ -493,7 +493,135 @@ class SecureMaxStore {
   }
 
   public seedInitialData(): void {
-    this.seedTestDataForTesting(true);
+    // Seed Predefined Positions
+    for (const p of PREDEFINED_POSITIONS) {
+      this.positions.set(p.id, { ...p });
+    }
+    const customPos: StoredPosition = {
+      id: 'pos_sec_manager',
+      name: 'Security Manager',
+      description: 'Responsible for security operations and device management',
+      privilege_level: 'ELEVATED',
+      permissions: {
+        identity: { register: true, suspend: true, revoke: false },
+        users: { create: false, suspend: true },
+        assets: { view: true, allocate: true, transfer: false, delete: false },
+        access: { approve: true, revoke: true },
+        audit: { view: true, export: true },
+        security: { view_alerts: true, manage_devices: true },
+      },
+      is_predefined: false,
+      created_at: '2026-09-02T00:00:00.000Z',
+      created_by: 'Vasu (Administrator)',
+    };
+    this.positions.set(customPos.id, customPos);
+
+    // Root Administrator Only
+    const adminUser: StoredUser = {
+      id: 'usr_admin_001',
+      name: 'Vasu (Administrator)',
+      email: 'admin@securemax.mil',
+      role: UserRole.ADMIN,
+      position: 'Root Administrator',
+      position_id: 'pos_root_admin',
+      kyc_status: 'VERIFIED',
+      status: UserStatus.ACTIVE,
+      did: 'did:securemax:admin:001',
+      created_at: '2026-09-01T00:00:00.000Z',
+    };
+    this.users.set(adminUser.id, adminUser);
+    this.users.set(adminUser.email, adminUser);
+
+    this.systemSettings = {
+      admin_initialized: true,
+      bootstrap_enabled: false,
+      system_state: 'SYSTEM_LOCKED',
+      organization: {
+        name: 'SecureMAX Defense Vault Command',
+        org_id: 'ORG-SMX-001',
+        org_type: 'Defense / Enterprise',
+        country: 'India',
+        timezone: 'Asia/Kolkata',
+        created_at: '2026-09-01T00:00:00.000Z',
+      },
+      root_admin_id: adminUser.id,
+      admin_locked: false,
+      failed_admin_logins: 0,
+      last_admin_login: {
+        timestamp: new Date().toISOString(),
+        region: 'Punjab, India',
+        device_name: 'Admin Workstation Terminal',
+        auth_method: 'WEBAUTHN',
+      },
+      last_security_change: new Date().toISOString(),
+    };
+
+    const adminDevice: DevicePassport = {
+      id: 'dev_admin_primary',
+      device_id: 'dev_admin_primary',
+      user_id: adminUser.id,
+      user_name: adminUser.name,
+      user_email: adminUser.email,
+      position: 'Root Administrator',
+      device_name: 'Admin Workstation Terminal',
+      device_type: 'terminal',
+      os: 'macOS',
+      browser: 'Chrome',
+      browser_version: '128.0',
+      model: 'SecureMAX Hardware-Bound Terminal',
+      credential_id: 'cred_admin_hw_01',
+      credential_type: 'WebAuthn',
+      registered_at: '2026-09-01T00:00:00.000Z',
+      last_authenticated_at: new Date().toISOString(),
+      last_active_at: new Date().toISOString(),
+      risk_state: 'TRUSTED',
+      registration_region: 'Punjab, India',
+      public_key: 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEr8DlCRlgzMJd/SzeTw0yNW19mgzUut7V5W0QwemPK2UUAjOfijc5tr/8UH7QJi6Ra1SZasspAVdQrWmJoxfwdw==',
+      algorithm: 'ECDSA_P256',
+      status: 'ACTIVE',
+      is_admin_device: true,
+      created_at: '2026-09-01T00:00:00.000Z',
+      last_used_at: new Date().toISOString(),
+      timeline: [
+        { id: 'tl_adm_1', timestamp: '2026-09-01T00:00:00.000Z', event: 'DEVICE_REGISTERED', details: 'Root Administrator physical terminal bound', severity: 'INFO' },
+      ],
+    };
+    this.devices.set(adminDevice.id, adminDevice);
+    this.devicePassports.set(adminDevice.id, adminDevice);
+
+    this.auditEvents = [
+      {
+        id: 'aud_root_init',
+        created_at: '2026-09-01T00:00:00.000Z',
+        event_type: 'ROOT_ADMIN_CREATED',
+        description: 'Root Administrator account registered: Vasu (Administrator)',
+        target_id: adminUser.id,
+        user_name: adminUser.name,
+        user_email: adminUser.email,
+        performed_by: 'SYSTEM_BOOTSTRAP',
+        severity: 'INFO',
+        event_hash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
+      },
+      {
+        id: 'aud_device_bound',
+        created_at: '2026-09-01T00:00:01.000Z',
+        event_type: 'ADMIN_HARDWARE_TERMINAL_BOUND',
+        description: 'Admin hardware terminal anchored with P-256 passkey for Vasu (Administrator)',
+        target_id: adminDevice.id,
+        user_name: adminUser.name,
+        user_email: adminUser.email,
+        performed_by: 'Vasu (Administrator)',
+        severity: 'INFO',
+        event_hash: '0x2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c',
+      },
+    ];
+
+    this.assets.clear();
+    this.accessRequests = [];
+    this.liveGrants = [];
+    this.notifications = [];
+    this.enrollments.clear();
+    this.assignments = [];
   }
 
   public seedTestDataForTesting(force: boolean = false): void {
