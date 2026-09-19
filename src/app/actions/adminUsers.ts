@@ -62,7 +62,7 @@ export async function registerNewUserByAdmin(formData: {
       return { success: false, error: 'Please enter both a name and an email address.' };
     }
 
-    const existing = deviceStore.getUserByEmail(cleanEmail);
+    const existing = await deviceStore.getUserByEmail(cleanEmail);
     if (existing) {
       return { success: false, error: `A team member with email ${cleanEmail} is already registered.` };
     }
@@ -102,7 +102,7 @@ export async function registerNewUserByAdmin(formData: {
     deviceStore.users.set(newUser.email, newUser);
 
     // Record in permanent cryptographic audit ledger
-    deviceStore.recordAuditEvent({
+    await deviceStore.recordAuditEvent({
       eventType: 'USER_IDENTITY_REGISTERED',
       description: `Admin registered new identity: ${newUser.name} (${positionName}). DID: ${newUser.did}`,
       targetId: newUser.id,

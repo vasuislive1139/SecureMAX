@@ -46,7 +46,7 @@ export async function authorizeAssetAccess(
     deviceId = arg4;
   }
   // 1. Resolve User
-  const user = deviceStore.getUserById(userId) || ((userId?.includes('test') || userId?.includes('user-123')) ? { id: userId, status: UserStatus.ACTIVE, role: UserRole.USER, did: userId } : null);
+  const user = await deviceStore.getUserById(userId) || ((userId?.includes('test') || userId?.includes('user-123')) ? { id: userId, status: UserStatus.ACTIVE, role: UserRole.USER, did: userId } : null);
   if (!user) {
     throw new Error('Access Denied: User identity not found in SecureMAX.');
   }
@@ -65,7 +65,7 @@ export async function authorizeAssetAccess(
 
   // 3. Check Device Status (if device-bound)
   if (deviceId) {
-    const device = deviceStore.getDeviceById(deviceId);
+    const device = await deviceStore.getDeviceById(deviceId);
     if (!device || device.status !== 'ACTIVE') {
       await logAuditEvent({
         eventType: AuditEventType.ACCESS_DENIED,

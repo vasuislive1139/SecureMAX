@@ -19,7 +19,7 @@ export async function logAuditEvent(params: AuditLogParams) {
     // 1. Record in local tamper-evident store
     try {
       const { deviceStore } = await import('@/lib/auth/deviceStore');
-      deviceStore.recordAuditEvent({
+      await deviceStore.recordAuditEvent({
         eventType: String(params.eventType),
         description: `Audit Event: ${params.eventType} on ${params.targetType || 'SYSTEM'}:${params.targetId || 'N/A'}`,
         targetId: params.targetId,

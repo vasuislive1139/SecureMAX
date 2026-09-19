@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         }
 
         const cleanEmail = String(newUserEmail).toLowerCase().trim();
-        const existing = deviceStore.getUserByEmail(cleanEmail);
+        const existing = await deviceStore.getUserByEmail(cleanEmail);
         
         if (existing) {
           enrollForUserId = existing.id;
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
           deviceStore.saveToDisk();
           enrollForUserId = newUser.id;
 
-          deviceStore.recordAuditEvent({
+          await deviceStore.recordAuditEvent({
             eventType: 'USER_IDENTITY_REGISTERED',
             description: `Admin initiated onboarding for new user: ${newUser.name} (${newUser.position}) - ${newUser.email}`,
             targetId: newUser.id,
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const targetUser = deviceStore.getUserById(enrollForUserId);
+    const targetUser = await deviceStore.getUserById(enrollForUserId);
     if (!targetUser) {
       return NextResponse.json({ error: 'Target user record not found' }, { status: 404 });
     }

@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       }
 
       if (storedChallenge.consumed) {
-        deviceStore.recordAuditEvent({
+        await deviceStore.recordAuditEvent({
           eventType: 'TOKEN_REPLAY_ATTEMPT',
           description: `Security Alert: Attempted replay of already consumed challenge ${challengeId} for wallet ${cleanWallet}`,
           severity: 'CRITICAL',
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       try {
         recoveredSigner = ethers.verifyMessage(storedChallenge.message, signature).toLowerCase();
       } catch (err) {
-        deviceStore.recordAuditEvent({
+        await deviceStore.recordAuditEvent({
           eventType: 'ADMIN_LOGIN_FAILURE',
           description: `Admin authentication failed: Malformed cryptographic signature for wallet ${cleanWallet}`,
           severity: 'WARNING',
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
 
       // Verify recovered signer matches the claimed wallet
       if (recoveredSigner !== cleanWallet) {
-        deviceStore.recordAuditEvent({
+        await deviceStore.recordAuditEvent({
           eventType: 'ADMIN_LOGIN_FAILURE',
           description: `Admin authentication failed: Claimed wallet ${cleanWallet} does not match signature signer ${recoveredSigner}`,
           severity: 'CRITICAL',
@@ -102,7 +102,7 @@ export async function POST(req: Request) {
       // 3. Authoritative verification: Must match the registered Organization Admin wallet
       const registeredAdminWallet = deviceStore.getAdminWallet().toLowerCase();
       if (recoveredSigner !== registeredAdminWallet) {
-        deviceStore.recordAuditEvent({
+        await deviceStore.recordAuditEvent({
           eventType: 'ADMIN_LOGIN_FAILURE',
           description: `ACCESS DENIED: Unauthorized wallet ${recoveredSigner} attempted Administrator login. Registered admin wallet is ${registeredAdminWallet}`,
           severity: 'CRITICAL',
@@ -114,8 +114,8 @@ export async function POST(req: Request) {
       }
 
       // 4. Resolve Admin User Record
-      const adminUser = deviceStore.getUserById(deviceStore.systemSettings.root_admin_id || 'usr_admin_001') || 
-                        deviceStore.getUserByEmail('admin@securemax.mil') || 
+      const adminUser = await deviceStore.getUserById(deviceStore.systemSettings.root_admin_id || 'usr_admin_001') || 
+                        await deviceStore.getUserByEmail('admin@securemax.mil') || 
                         Array.from(deviceStore.users.values()).find(u => u.role === UserRole.ADMIN);
 
       if (!adminUser) {
@@ -155,7 +155,7 @@ export async function POST(req: Request) {
       }
 
       // 6. Establish Secure Admin Session
-      const session = deviceStore.createSession({
+      const session = await deviceStore.createSession({
         userId: adminUser.id,
         deviceId: 'dev_admin_metamask',
         authLevel: 'METAMASK',
@@ -178,7 +178,7 @@ export async function POST(req: Request) {
         region,
       });
 
-      deviceStore.recordAuditEvent({
+      await deviceStore.recordAuditEvent({
         eventType: 'ADMIN_LOGIN_SUCCESS',
         description: `Organization Administrator authenticated successfully via MetaMask (${recoveredSigner})`,
         targetId: session.session_id,
@@ -254,7 +254,7 @@ export async function POST(req: Request) {
       }
 
       if (storedChallenge.consumed) {
-        deviceStore.recordAuditEvent({
+        await deviceStore.recordAuditEvent({
           eventType: 'TOKEN_REPLAY_ATTEMPT',
           description: `Security Alert: Attempted replay of challenge ${challengeId} for user ${identifier}`,
           severity: 'CRITICAL',
@@ -288,7 +288,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Resolve User from Authoritative Database
-    let foundUser = deviceStore.getUserByEmailOrId(identifier);
+    let foundUser = await deviceStore.getUserByEmailOrId(identifier);
     if (!foundUser) {
       // VERCEL COLD-START MITIGATION: Auto-hydrate user on login if missing from mock DB
       const userId = identifier.includes('@') ? 'usr_' + crypto.randomUUID().slice(0, 8) : identifier;
@@ -337,7 +337,7 @@ export async function POST(req: Request) {
 
       if (body.publicKey || deviceId === 'dev_admin_primary' || (deviceId && deviceId === adminDev?.id)) {
         if (!adminDev) {
-          adminDev = deviceStore.registerDevice({
+          adminDev = await deviceStore.registerDevice({
             userId: user.id,
             deviceName: deviceName || 'Admin Workstation (Hardware-Bound Terminal)',
             publicKey: bodyPublicKey || 'admin_terminal_key',
@@ -377,7 +377,7 @@ export async function POST(req: Request) {
 
       if (!device) {
         // VERCEL COLD-START MITIGATION: Auto-enroll device if it was wiped from mock DB
-        device = deviceStore.registerDevice({
+        device = await deviceStore.registerDevice({
           userId: user.id,
           deviceName: deviceName || 'Auto-enrolled Demo Device',
           publicKey: body.publicKey || 'mock_pub_key',
@@ -404,7 +404,7 @@ export async function POST(req: Request) {
       if (challengeId) {
         deviceStore.consumeChallenge(challengeId);
       }
-      deviceStore.recordAuditEvent({
+      await deviceStore.recordAuditEvent({
         eventType: 'USER_LOGIN_FAILURE',
         description: `Cryptographic signature verification failed for user ${user.email} on device ${device.id}`,
         targetId: device.id,
@@ -424,7 +424,7 @@ export async function POST(req: Request) {
     }
 
     // 6. Establish Stateful Zero-Trust Session
-    const session = deviceStore.createSession({
+    const session = await deviceStore.createSession({
       userId: user.id,
       deviceId: device.id,
       authLevel: 'P256',
@@ -441,7 +441,7 @@ export async function POST(req: Request) {
       status: 'SUCCESS',
     });
 
-    deviceStore.recordAuditEvent({
+    await deviceStore.recordAuditEvent({
       eventType: 'USER_LOGIN_SUCCESS',
       description: `Zero-trust authentication successful for ${user.name} (${user.role}) via ${device.device_name}`,
       targetId: session.session_id,

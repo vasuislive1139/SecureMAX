@@ -12,8 +12,8 @@ export async function GET() {
       ? deviceStore.getAllDevicePassports()
       : deviceStore.getDevicesForUser(session.userId).map(d => deviceStore.getDevicePassport(d.id) || (d as any));
 
-    const safeDevices = passports.map(d => {
-      const user = deviceStore.getUserById(d.user_id);
+    const safeDevices = await Promise.all(passports.map(async d => {
+      const user = await deviceStore.getUserById(d.user_id);
       return {
         id: d.id || d.device_id,
         deviceId: d.device_id || d.id,
@@ -41,7 +41,7 @@ export async function GET() {
         timeline: d.timeline || [],
         publicKeyFingerprint: d.public_key ? `P256-${d.public_key.slice(0, 10)}...${d.public_key.slice(-8)}` : 'UNKNOWN',
       };
-    });
+    }));
 
     // Positions
     const positions = deviceStore.getPositions();

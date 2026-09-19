@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     }
 
     // Create active session for the newly registered device
-    const session = deviceStore.createSession({
+    const session = await deviceStore.createSession({
       userId: user.id,
       deviceId: passport.device_id,
       position: passport.position,

@@ -50,7 +50,7 @@ export async function getVerifiedSession(): Promise<SessionPayload> {
 
   // Zero-Trust Live Session Verification
   if (payload.sessionId) {
-    const storedSession = deviceStore.getSession(payload.sessionId);
+    const storedSession = await deviceStore.getSession(payload.sessionId);
     if (storedSession) {
       if (storedSession.status !== 'ACTIVE') {
         throw new Error('Unauthorized: Session has been REVOKED');
@@ -63,7 +63,7 @@ export async function getVerifiedSession(): Promise<SessionPayload> {
 
   // Zero-Trust Live User Account Verification & Authoritative Role Freshness
   if (payload.userId) {
-    let user = deviceStore.getUserById(payload.userId);
+    let user = await deviceStore.getUserById(payload.userId);
     if (!user) {
       // VERCEL COLD-START MITIGATION: Rehydrate user from cryptographically valid JWT if in-memory store was wiped
       const hydratedUser = {
@@ -98,7 +98,7 @@ export async function getVerifiedSession(): Promise<SessionPayload> {
 
   // Zero-Trust Live Device Verification
   if (payload.deviceId) {
-    const device = deviceStore.getDeviceById(payload.deviceId);
+    const device = await deviceStore.getDeviceById(payload.deviceId);
     if (device && device.status !== 'ACTIVE') {
       throw new Error(`Unauthorized: Device credential is ${device.status}. Access denied.`);
     }

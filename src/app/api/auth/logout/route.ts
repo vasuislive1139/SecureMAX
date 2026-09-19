@@ -10,10 +10,10 @@ export async function POST() {
     
     if (session) {
       if (session.sessionId) {
-        deviceStore.invalidateSession(session.sessionId, session.userId);
+        await deviceStore.invalidateSession(session.sessionId, session.userId);
       }
 
-      deviceStore.recordAuditEvent({
+      await deviceStore.recordAuditEvent({
         eventType: 'USER_LOGOUT',
         description: `User ${session.name || session.email || session.userId} logged out`,
         targetId: session.sessionId,

@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
 
     // Verify caller is admin
-    const targetAdmin = deviceStore.getUserByEmailOrId(adminId);
+    const targetAdmin = await deviceStore.getUserByEmailOrId(adminId);
     if (!targetAdmin || targetAdmin.role !== UserRole.ADMIN) {
       return NextResponse.json(
         { error: 'Only root administrator accounts can activate panic lockout' },

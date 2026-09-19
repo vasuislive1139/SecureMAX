@@ -39,8 +39,26 @@ export async function POST(req: Request) {
       throw authErr;
     }
 
-    // 2. Decrypt encrypted content in memory
-    const encryptedBuffer = Buffer.from(asset.encrypted_content, 'base64');
+    // 2. Decrypt encrypted content
+    let encryptedBuffer: Buffer | null = null;
+    try {
+      const { supabaseAdmin } = require('@/lib/db/client');
+      if (supabaseAdmin) {
+        const { data, error } = await supabaseAdmin.storage.from('securemax-vault').download(`assets/${assetId}`);
+        if (!error && data) {
+          encryptedBuffer = Buffer.from(await data.arrayBuffer());
+        }
+      }
+    } catch (e) {
+      console.warn('[Storage] Exception downloading from Supabase:', e);
+    }
+
+    if (!encryptedBuffer) {
+      if (asset.encrypted_content === 'stored_in_supabase_cloud') {
+         return NextResponse.json({ error: 'Asset data missing from memory and storage' }, { status: 500 });
+      }
+      encryptedBuffer = Buffer.from(asset.encrypted_content, 'base64');
+    }
     const decryptedBuffer = await executeDecryption(
       assetId,
       encryptedBuffer,

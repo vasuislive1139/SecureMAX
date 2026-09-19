@@ -19,8 +19,9 @@ export default async function IdentityPage() {
     // Supabase offline, fall back to deviceStore
   }
 
-  const storeUsers = Array.from(new Set([...deviceStore.users.values()].map(u => u.id)))
-    .map(id => deviceStore.getUserById(id))
+  const uniqueIds = Array.from(new Set([...deviceStore.users.values()].map(u => u.id)));
+  const storeUsersRaw = await Promise.all(uniqueIds.map(async id => await deviceStore.getUserById(id)));
+  const storeUsers = storeUsersRaw
     .filter(Boolean)
     .map(u => ({
       id: u!.id,

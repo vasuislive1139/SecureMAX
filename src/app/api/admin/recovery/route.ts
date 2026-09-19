@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       browser: browser ? String(browser).trim() : 'Chrome',
     });
 
-    const adminUser = deviceStore.getUserByEmailOrId(adminId);
+    const adminUser = await deviceStore.getUserByEmailOrId(adminId);
     if (!adminUser) {
       throw new Error('Admin user resolution error post-recovery.');
     }

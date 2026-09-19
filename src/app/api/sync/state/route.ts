@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     } else if (action === 'EXTEND' && grantId) {
       deviceStore.extendLiveGrant(grantId, ttlMinutes || 15);
     } else if (action === 'REQUEST' && assetCode) {
-      const vasu = deviceStore.getUserByEmail('vasu@securemax.mil');
+      const vasu = await deviceStore.getUserByEmail('vasu@securemax.mil');
       const userId = vasu?.id || 'usr_vasu_002';
       let assetId: string | undefined;
       for (const [id, a] of deviceStore.assets.entries()) {

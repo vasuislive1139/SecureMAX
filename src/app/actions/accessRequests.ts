@@ -18,7 +18,7 @@ export async function submitAccessRequestAction(params: {
       sessionUser = session;
     } catch {
       // Fallback for reviewer demo when accessing /access directly
-      const vasu = deviceStore.getUserByEmail('vasu@securemax.mil');
+      const vasu = await deviceStore.getUserByEmail('vasu@securemax.mil');
       if (vasu) {
         sessionUser = { userId: vasu.id, role: vasu.role, name: vasu.name, email: vasu.email };
       }

@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     if (requestedRole === UserRole.USER) targetEmail = 'vasu@securemax.mil';
     if (requestedRole === UserRole.AUDITOR) targetEmail = 'auditor@securemax.mil';
 
-    const user = deviceStore.getUserByEmail(targetEmail);
+    const user = await deviceStore.getUserByEmail(targetEmail);
     if (!user) {
       return NextResponse.json({ error: 'Demo user record not found' }, { status: 404 });
     }
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     }
 
     // Establish stateful session
-    const session = deviceStore.createSession({
+    const session = await deviceStore.createSession({
       userId: user.id,
       deviceId: activeDevice.id,
       authLevel: user.role === UserRole.ADMIN ? 'WEBAUTHN' : 'P256',

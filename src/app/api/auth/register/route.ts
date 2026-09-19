@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = String(email).toLowerCase().trim();
-    const existing = deviceStore.getUserByEmail(cleanEmail);
+    const existing = await deviceStore.getUserByEmail(cleanEmail);
     if (existing) {
       return NextResponse.json({ error: 'User already registered with this email address' }, { status: 409 });
     }
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     syncUserToSupabase(newUser).catch(() => {});
 
     // Enroll initial device credential
-    const device = deviceStore.registerDevice({
+    const device = await deviceStore.registerDevice({
       userId: newUser.id,
       deviceName: deviceName || 'Primary Enrolled Device',
       publicKey: String(publicKey).trim(),
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     });
 
     // Record audit trails
-    deviceStore.recordAuditEvent({
+    await deviceStore.recordAuditEvent({
       eventType: 'USER_IDENTITY_REGISTERED',
       description: `New identity registered: ${newUser.name} (${newUser.role}) with status PENDING KYC - ${newUser.did}`,
       targetId: newUser.id,
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
       severity: 'INFO',
     });
 
-    deviceStore.recordAuditEvent({
+    await deviceStore.recordAuditEvent({
       eventType: 'HARDWARE_DEVICE_ENROLLED',
       description: `Primary device credential enrolled: ${device.device_name} (${device.algorithm})`,
       targetId: device.id,
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     });
 
     // Establish stateful session
-    const session = deviceStore.createSession({
+    const session = await deviceStore.createSession({
       userId: newUser.id,
       deviceId: device.id,
       authLevel: 'P256',

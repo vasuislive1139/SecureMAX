@@ -27,7 +27,7 @@ export async function GET() {
     }
 
     const settings = deviceStore.getSystemSettings();
-    const adminUser = settings.root_admin_id ? deviceStore.getUserById(settings.root_admin_id) : null;
+    const adminUser = settings.root_admin_id ? await deviceStore.getUserById(settings.root_admin_id) : null;
     const adminDevices = adminUser ? deviceStore.getDevicesForUser(adminUser.id) : [];
     const activeAdminDevice = adminDevices.find(d => d.is_admin_device && d.status === 'ACTIVE') || adminDevices[0] || null;
     const passport = activeAdminDevice ? deviceStore.getDevicePassport(activeAdminDevice.id) : null;

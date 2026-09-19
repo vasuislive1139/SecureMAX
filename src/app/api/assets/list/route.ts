@@ -9,7 +9,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const targetUserId = url.searchParams.get('userId') || session.userId;
     const scope = (url.searchParams.get('scope') as 'MY_DATA' | 'ALL_DATA') || 'MY_DATA';
-    const targetUser = deviceStore.getUserById(targetUserId);
+    const targetUser = await deviceStore.getUserById(targetUserId);
 
     const assetsWithPermissions = deviceStore.getAssetsForUser(targetUserId, { scope });
 

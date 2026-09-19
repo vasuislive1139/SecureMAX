@@ -5,7 +5,7 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 export async function GET() {
   try {
     const session = await getVerifiedSession();
-    const user = session?.userId ? deviceStore.getUserById(session.userId) : null;
+    const user = session?.userId ? await deviceStore.getUserById(session.userId) : null;
     return NextResponse.json({ 
       session,
       user: user ? {
