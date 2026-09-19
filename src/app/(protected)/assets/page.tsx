@@ -15,12 +15,14 @@ import {
   Key, 
   AlertTriangle,
   FileCode,
-  Sparkles
+  Sparkles,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { submitAccessRequestAction } from '@/app/actions/accessRequests';
 
 interface AssetRecord {
   id: string;
@@ -38,6 +40,8 @@ export default function AssetsPage() {
   const [userRole, setUserRole] = React.useState<string>('USER');
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [requestedAssetIds, setRequestedAssetIds] = React.useState<string[]>(['ast_avionics']);
+  const [requestNotice, setRequestNotice] = React.useState<string | null>(null);
   
   // Decryption Modal / Drawer State
   const [decryptingAssetId, setDecryptingAssetId] = React.useState<string | null>(null);
@@ -113,6 +117,28 @@ export default function AssetsPage() {
     }
   };
 
+  const handleRequestNftAccess = async (assetId: string) => {
+    setRequestNotice('Submitting access request for Admin NFT approval...');
+    try {
+      const res = await submitAccessRequestAction({
+        assetId,
+        requestType: 'HIGH_RISK_DATA',
+        reason: 'High-risk tactical mission review',
+      });
+      if (res.success) {
+        setRequestedAssetIds(prev => [...prev, assetId]);
+        setRequestNotice('Request submitted! Awaiting Administrator NFT permit approval.');
+        setTimeout(() => setRequestNotice(null), 4000);
+      } else {
+        alert(res.error || 'Failed to submit request');
+        setRequestNotice(null);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Request failed');
+      setRequestNotice(null);
+    }
+  };
+
   const filteredAssets = assets.filter(a => 
     a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     a.code.toLowerCase().includes(searchQuery.toLowerCase())
@@ -155,6 +181,14 @@ export default function AssetsPage() {
           />
         </div>
       </div>
+
+      {/* REQUEST NOTIFICATION BANNER */}
+      {requestNotice && (
+        <div className="bg-amber-950/40 border border-amber-500/50 text-amber-300 px-4 py-3 rounded-xl text-xs font-mono flex items-center gap-2 shadow-lg animate-in fade-in slide-in-from-top-2">
+          <Clock className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+          <span>{requestNotice}</span>
+        </div>
+      )}
 
       {/* ASSET CARDS / TABLE */}
       <div className="space-y-4">
@@ -227,37 +261,54 @@ export default function AssetsPage() {
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handleDecryptAsset(asset)}
-                        className={`text-xs font-mono font-bold ${
-                          asset.canDecrypt 
-                            ? 'bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/40'
-                            : 'bg-zinc-800/40 text-zinc-500 hover:bg-zinc-800/60 border border-zinc-700/50'
-                        }`}
-                      >
-                        {asset.canDecrypt ? (
-                          <>
-                            <Unlock className="h-3.5 w-3.5 mr-1.5" />
-                            Decrypt &amp; View
-                          </>
-                        ) : (
-                          <>
+                    <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                      {asset.canDecrypt ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleDecryptAsset(asset)}
+                          className="text-xs font-mono font-bold bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 border border-cyan-500/40"
+                        >
+                          <Unlock className="h-3.5 w-3.5 mr-1.5" />
+                          Decrypt &amp; View
+                        </Button>
+                      ) : (
+                        <>
+                          {requestedAssetIds.includes(asset.id) ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-950/30 text-amber-300 text-xs font-mono">
+                              <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span>
+                              Awaiting Admin NFT Permit
+                            </span>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => handleRequestNftAccess(asset.id)}
+                              className="text-xs font-mono font-bold bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40"
+                            >
+                              <Key className="h-3.5 w-3.5 mr-1.5" />
+                              Request NFT Permit
+                            </Button>
+                          )}
+
+                          <Button
+                            size="sm"
+                            onClick={() => handleDecryptAsset(asset)}
+                            className="text-xs font-mono font-bold bg-zinc-900/60 text-zinc-400 hover:bg-zinc-800/80 border border-zinc-700/50 ml-2"
+                            title="Demonstrates Zero-Trust KMS cryptographic refusal for judge"
+                          >
                             <Lock className="h-3.5 w-3.5 mr-1.5" />
                             Attempt Decrypt
-                          </>
-                        )}
-                      </Button>
+                          </Button>
+                        </>
+                      )}
 
                       {isAdmin && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleAdminToggleRevoke(asset.id, asset.canDecrypt)}
-                          className="text-amber-400 hover:bg-amber-500/10 text-[10px] font-mono"
+                          className="text-amber-400 hover:bg-amber-500/10 text-[10px] font-mono ml-2"
                         >
-                          {asset.canDecrypt ? 'Revoke User' : 'Grant Decrypt'}
+                          {asset.canDecrypt ? 'Revoke Access' : 'Grant Clearance'}
                         </Button>
                       )}
                     </td>

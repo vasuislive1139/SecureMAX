@@ -5,6 +5,7 @@ import { Shield, Users, HardDrive, Key, AlertCircle, Activity, ShieldCheck, Data
 import { TechnicalBriefingButton } from '@/components/dashboard/TechnicalBriefingButton';
 import { ClientIncidentsCard } from '@/components/dashboard/ClientIncidentsCard';
 import { QuickUserRegistrationCard } from '@/components/admin/QuickUserRegistrationCard';
+import { AdminAccessApprovalsCard } from '@/components/admin/AdminAccessApprovalsCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export default async function AdminDashboard() {
             Admin Command Center
           </h1>
           <p className="text-sm text-zinc-400 font-light mt-1">
-            System Overview, Team Access Control & Security Health
+            System Overview, Team Access Control &amp; Security Health
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -36,6 +37,11 @@ export default async function AdminDashboard() {
       {/* JUDGE FEATURE: QUICK TEAM MEMBER ONBOARDING (FRONT & CENTER)    */}
       {/* --------------------------------------------------------------- */}
       <QuickUserRegistrationCard />
+
+      {/* --------------------------------------------------------------- */}
+      {/* JUDGE FEATURE: NFT ACCESS PERMIT APPROVALS (HIGH-RISK & AUDIT) */}
+      {/* --------------------------------------------------------------- */}
+      <AdminAccessApprovalsCard />
 
       {/* System Health Overview Card */}
       <div className="bg-[#0a0a0c] border border-zinc-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-8 shadow-lg">

@@ -35,6 +35,36 @@ export interface StoredAssignment {
   assigned_at: string;
 }
 
+export interface StoredAccessRequest {
+  id: string;
+  user_id: string;
+  user_email: string;
+  user_name: string;
+  role: string;
+  request_type: 'HIGH_RISK_DATA' | 'AUDIT_UPDATE';
+  asset_id?: string;
+  asset_code?: string;
+  asset_name?: string;
+  reason: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  nft_token_id?: string;
+  created_at: string;
+  approved_at?: string;
+}
+
+export interface StoredAuditEvent {
+  id: string;
+  event_type: string;
+  description: string;
+  target_id?: string;
+  user_email?: string;
+  user_name?: string;
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  event_hash: string;
+  block_number?: number;
+  created_at: string;
+}
+
 // In-memory persistent state (persists across hot-reloads within the server instance)
 class SecureMaxStore {
   public users: Map<string, StoredUser> = new Map();
@@ -220,6 +250,89 @@ class SecureMaxStore {
       status: 'ACTIVE',
       assigned_at: new Date().toISOString(),
     });
+
+    // 6. INITIAL ACCESS REQUESTS & AUDIT LOGS
+    this.accessRequests.push({
+      id: 'req_001',
+      user_id: standardUser.id,
+      user_email: standardUser.email,
+      user_name: standardUser.name,
+      role: 'USER',
+      request_type: 'HIGH_RISK_DATA',
+      asset_id: 'ast_avionics',
+      asset_code: 'SMX-AVN-003',
+      asset_name: 'Avionics Radar Interface Specs',
+      reason: 'Tactical comms integration review on authorized workstation',
+      status: 'PENDING',
+      created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    });
+
+    this.accessRequests.push({
+      id: 'req_002',
+      user_id: auditorUser.id,
+      user_email: auditorUser.email,
+      user_name: auditorUser.name,
+      role: 'AUDITOR',
+      request_type: 'AUDIT_UPDATE',
+      asset_id: 'ast_finance',
+      asset_code: 'SMX-AUDIT-Q3',
+      asset_name: 'Financial Ledger & Statutory Audit Records',
+      reason: 'Compliance review & permanent blockchain anchor verification',
+      status: 'PENDING',
+      created_at: new Date(Date.now() - 50 * 60 * 1000).toISOString(),
+    });
+
+    // Seed permanent audit ledger
+    this.auditEvents.push(
+      {
+        id: 'aud_seed_1',
+        event_type: 'USER_IDENTITY_REGISTERED',
+        description: 'DID generated for Vasu (Field Operator): did:securemax:user:002',
+        target_id: standardUser.id,
+        user_email: standardUser.email,
+        user_name: standardUser.name,
+        severity: 'INFO',
+        event_hash: '0x3f4a9b2c8e1d5a7f9b0c2e4d6a8f1b3c5e7a9b0d2f4a6c8e1b3d5f7a9c0e2b4',
+        block_number: 6849210,
+        created_at: new Date(Date.now() - 120 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'aud_seed_2',
+        event_type: 'HARDWARE_DEVICE_ENROLLED',
+        description: 'New hardware device enrolled: Field Laptop (ECDSA P-256)',
+        target_id: 'dev_user_primary',
+        user_email: standardUser.email,
+        user_name: standardUser.name,
+        severity: 'INFO',
+        event_hash: '0x8a1c3e5f7b9d2a4c6e8f0b1d3f5a7c9e1b3d5f7a9c0e2b4a6c8e1b3d5f7a9c0',
+        block_number: 6849245,
+        created_at: new Date(Date.now() - 95 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'aud_seed_3',
+        event_type: 'SEPOLIA_ANCHOR_VERIFIED',
+        description: 'State root anchored to Sepolia Contract: 0xC5388f457D01cdF25B4A29f0A38d65f4e690bC2B',
+        target_id: 'ETHEREUM_SEPOLIA',
+        user_email: adminUser.email,
+        user_name: adminUser.name,
+        severity: 'INFO',
+        event_hash: '0x7e9a1b3c5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7e9b1d3f5a7c9e1b3d5f7a9',
+        block_number: 6849280,
+        created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'aud_seed_4',
+        event_type: 'ACCESS_REQUEST_SUBMITTED',
+        description: 'High-risk access requested for Avionics Radar (SMX-AVN-003) awaiting Admin NFT Permit',
+        target_id: 'ast_avionics',
+        user_email: standardUser.email,
+        user_name: standardUser.name,
+        severity: 'WARNING',
+        event_hash: '0x4c6e8f0b1d3f5a7c9e1b3d5f7a9c0e2b4a6c8e1b3d5f7a9c0e2b4a6c8e1b3d5',
+        block_number: 6849310,
+        created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+      }
+    );
   }
 
   // --- USER LOOKUPS ---
@@ -281,6 +394,16 @@ class SecureMaxStore {
     };
 
     this.devices.set(device.id, device);
+
+    this.recordAuditEvent({
+      eventType: 'HARDWARE_DEVICE_ENROLLED',
+      description: `New hardware device enrolled: ${params.deviceName} (ECDSA P-256) for ${user.name}`,
+      targetId: deviceId,
+      userEmail: user.email,
+      userName: user.name,
+      severity: 'INFO',
+    });
+
     return device;
   }
 
@@ -312,6 +435,13 @@ class SecureMaxStore {
 
     dev.status = 'REVOKED';
     dev.revoked_at = new Date().toISOString();
+
+    this.recordAuditEvent({
+      eventType: 'HARDWARE_DEVICE_REVOKED',
+      description: `Hardware device revoked: ${dev.device_name} (ID: ${dev.id})`,
+      targetId: dev.id,
+      severity: 'WARNING',
+    });
   }
 
   public updateDeviceLastUsed(deviceId: string): void {
@@ -448,6 +578,124 @@ class SecureMaxStore {
       assignment.status = 'REVOKED';
       assignment.can_decrypt = false;
     }
+  }
+
+  public accessRequests: StoredAccessRequest[] = [];
+  public auditEvents: StoredAuditEvent[] = [];
+
+  // --- PERMANENT AUDIT TRAIL ---
+  public recordAuditEvent(params: {
+    eventType: string;
+    description: string;
+    targetId?: string;
+    userEmail?: string;
+    userName?: string;
+    severity?: 'INFO' | 'WARNING' | 'CRITICAL';
+  }): StoredAuditEvent {
+    const rawHash = crypto.createHash('sha256').update(`${Date.now()}:${params.eventType}:${params.description}`).digest('hex');
+    const event: StoredAuditEvent = {
+      id: 'aud_' + crypto.randomUUID().slice(0, 8),
+      event_type: params.eventType,
+      description: params.description,
+      target_id: params.targetId,
+      user_email: params.userEmail,
+      user_name: params.userName,
+      severity: params.severity || 'INFO',
+      event_hash: '0x' + rawHash,
+      block_number: 6849200 + Math.floor(Math.random() * 500),
+      created_at: new Date().toISOString(),
+    };
+    this.auditEvents.unshift(event);
+    return event;
+  }
+
+  public getAuditEvents(): StoredAuditEvent[] {
+    return this.auditEvents;
+  }
+
+  // --- ACCESS REQUESTS (HIGH-RISK DATA & AUDITOR UPDATES) ---
+  public createAccessRequest(params: {
+    userId: string;
+    requestType: 'HIGH_RISK_DATA' | 'AUDIT_UPDATE';
+    assetId?: string;
+    reason: string;
+  }): StoredAccessRequest {
+    const user = this.getUserById(params.userId);
+    if (!user) throw new Error('User not found');
+
+    let assetName = 'System Audit Ledger';
+    let assetCode = 'SMX-AUDIT-ROOT';
+
+    if (params.assetId) {
+      const asset = this.assets.get(params.assetId);
+      if (asset) {
+        assetName = asset.name;
+        assetCode = asset.asset_code;
+      }
+    }
+
+    const reqId = 'req_' + crypto.randomUUID().slice(0, 8);
+    const accessReq: StoredAccessRequest = {
+      id: reqId,
+      user_id: user.id,
+      user_email: user.email,
+      user_name: user.name,
+      role: user.role,
+      request_type: params.requestType,
+      asset_id: params.assetId,
+      asset_code: assetCode,
+      asset_name: assetName,
+      reason: params.reason,
+      status: 'PENDING',
+      created_at: new Date().toISOString(),
+    };
+
+    this.accessRequests.unshift(accessReq);
+
+    this.recordAuditEvent({
+      eventType: 'ACCESS_REQUEST_SUBMITTED',
+      description: `${user.name} requested clearance for ${assetName} (Pending Admin NFT Permit)`,
+      targetId: params.assetId || 'AUDIT_LEDGER',
+      userEmail: user.email,
+      userName: user.name,
+      severity: 'WARNING',
+    });
+
+    return accessReq;
+  }
+
+  public approveAccessRequest(requestId: string, adminUserId: string): StoredAccessRequest {
+    const admin = this.getUserById(adminUserId);
+    if (admin?.role !== UserRole.ADMIN) {
+      throw new Error('Only Administrator can approve access and mint NFT permits');
+    }
+
+    const req = this.accessRequests.find(r => r.id === requestId);
+    if (!req) throw new Error('Access request not found');
+
+    req.status = 'APPROVED';
+    req.approved_at = new Date().toISOString();
+    req.nft_token_id = `NFT-SEPOLIA-#${Math.floor(1000 + Math.random() * 9000)}`;
+
+    // If it was for an asset, grant decryption access in assignments
+    if (req.asset_id && req.user_id) {
+      this.setAssignment(req.asset_id, req.user_id, true, true);
+    }
+
+    this.recordAuditEvent({
+      eventType: 'NFT_ACCESS_PERMIT_MINTED',
+      description: `Admin approved access for ${req.user_name}. NFT Permit: ${req.nft_token_id}`,
+      targetId: req.asset_id || req.nft_token_id,
+      userEmail: req.user_email,
+      userName: req.user_name,
+      severity: 'INFO',
+    });
+
+    return req;
+  }
+
+  public getAccessRequests(): StoredAccessRequest[] {
+    return this.accessRequests;
   }
 }
 

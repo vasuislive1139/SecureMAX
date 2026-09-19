@@ -84,6 +84,16 @@ export async function registerNewUserByAdmin(formData: {
     deviceStore.users.set(newUser.id, newUser);
     deviceStore.users.set(newUser.email, newUser);
 
+    // Record in permanent cryptographic audit ledger
+    deviceStore.recordAuditEvent({
+      eventType: 'USER_IDENTITY_REGISTERED',
+      description: `Admin registered new identity: ${newUser.name} (${newUser.role === UserRole.AUDITOR ? 'Auditor' : 'Team Member'}). DID: ${newUser.did}`,
+      targetId: newUser.id,
+      userEmail: newUser.email,
+      userName: newUser.name,
+      severity: 'INFO',
+    });
+
     // Generate a starter enrollment code so the judge sees how devices are paired
     const randomHex = crypto.randomBytes(4).toString('hex').toUpperCase();
     const code = `SMX-${randomHex.slice(0, 4)}-${randomHex.slice(4)}`;

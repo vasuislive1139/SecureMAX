@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   X,
   Laptop,
-  Sparkles
+  Sparkles,
+  ShieldCheck
 } from 'lucide-react';
 import { 
   getOrCreateLocalDeviceKey, 
@@ -35,9 +36,9 @@ export default function SecureMaxHeroLogin() {
   const router = useRouter();
 
   // Role Selection
-  const [selectedRole, setSelectedRole] = useState<LoginRole>('USER');
-  const [email, setEmail] = useState('vasu@securemax.mil');
-  const [password, setPassword] = useState('••••••••••••');
+  const [selectedRole, setSelectedRole] = useState<LoginRole | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   // Auth Status
@@ -53,24 +54,29 @@ export default function SecureMaxHeroLogin() {
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [enrollSuccess, setEnrollSuccess] = useState(false);
 
-  // Sync default email when switching role tab
+  // Sync default email when switching role tab or clicking demo
   const handleRoleChange = (role: LoginRole) => {
     setSelectedRole(role);
     setErrorMessage('');
     if (role === 'ADMIN') {
       setEmail('admin@securemax.mil');
+      setPassword('••••••••••••');
     } else if (role === 'AUDITOR') {
       setEmail('auditor@securemax.mil');
+      setPassword('••••••••••••');
     } else {
       setEmail('vasu@securemax.mil');
+      setPassword('••••••••••••');
     }
   };
 
   // Initialize or discover client P-256 key on mount
   useEffect(() => {
-    getOrCreateLocalDeviceKey('Primary Client Device', email)
-      .then(dev => setDeviceInfo(dev))
-      .catch(err => console.error('P-256 Web Crypto Init:', err));
+    if (email) {
+      getOrCreateLocalDeviceKey('Primary Client Device', email)
+        .then(dev => setDeviceInfo(dev))
+        .catch(err => console.error('P-256 Web Crypto Init:', err));
+    }
   }, [email]);
 
   // ----------------------------------------------------
@@ -79,12 +85,24 @@ export default function SecureMaxHeroLogin() {
   const handlePrimaryLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMessage('');
+
+    const targetEmail = email.trim().toLowerCase();
+    if (!targetEmail) {
+      setErrorMessage('Please enter your account email or select a demo role above.');
+      return;
+    }
+
+    const determinedRole: LoginRole = selectedRole || (
+      targetEmail.includes('admin') ? 'ADMIN' :
+      targetEmail.includes('auditor') ? 'AUDITOR' : 'USER'
+    );
+
     setLoading(true);
     setStatusMessage('Initiating zero-trust cryptographic verification...');
 
     try {
       // 1. Try hardware P-256 challenge-response first
-      const dev = deviceInfo || await getOrCreateLocalDeviceKey('Local Workstation', email);
+      const dev = deviceInfo || await getOrCreateLocalDeviceKey('Local Workstation', targetEmail);
       setDeviceInfo(dev);
 
       // 2. Request high-entropy challenge
@@ -92,12 +110,12 @@ export default function SecureMaxHeroLogin() {
       const challengeRes = await fetch('/api/auth/challenge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: email }),
+        body: JSON.stringify({ identifier: targetEmail }),
       });
 
       if (!challengeRes.ok) {
         // Fallback to demo fast login
-        await handleFallbackDemoLogin(selectedRole);
+        await handleFallbackDemoLogin(determinedRole);
         return;
       }
 
@@ -113,7 +131,7 @@ export default function SecureMaxHeroLogin() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email,
+          email: targetEmail,
           deviceId: dev.deviceId,
           deviceName: dev.deviceName,
           publicKey: dev.publicKeySpki,
@@ -125,7 +143,7 @@ export default function SecureMaxHeroLogin() {
       const result = await loginRes.json();
       if (!loginRes.ok) {
         // If device signature fails, use demo fallback
-        await handleFallbackDemoLogin(selectedRole);
+        await handleFallbackDemoLogin(determinedRole);
         return;
       }
 
@@ -138,7 +156,7 @@ export default function SecureMaxHeroLogin() {
 
     } catch (err: any) {
       console.warn('Hardware signature fallback to demo login:', err);
-      await handleFallbackDemoLogin(selectedRole);
+      await handleFallbackDemoLogin(determinedRole);
     }
   };
 
@@ -381,31 +399,44 @@ export default function SecureMaxHeroLogin() {
             </div>
 
             {/* Role Switcher Pills */}
-            <div className="grid grid-cols-2 gap-2 bg-zinc-950/70 p-1.5 rounded-xl border border-zinc-800/80 mb-5 relative z-10">
+            <div className="grid grid-cols-3 gap-1.5 bg-zinc-950/70 p-1.5 rounded-xl border border-zinc-800/80 mb-5 relative z-10">
               <button
                 type="button"
                 onClick={() => handleRoleChange('USER')}
-                className={`py-2 px-3 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                className={`py-2 px-2 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   selectedRole === 'USER'
                     ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
                     : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
                 }`}
               >
                 <User className="w-3.5 h-3.5 text-cyan-400" />
-                User Login
+                User
               </button>
 
               <button
                 type="button"
                 onClick={() => handleRoleChange('ADMIN')}
-                className={`py-2 px-3 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                className={`py-2 px-2 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   selectedRole === 'ADMIN'
                     ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
                     : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
                 }`}
               >
                 <Shield className="w-3.5 h-3.5 text-cyan-400" />
-                Admin Login
+                Admin
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleRoleChange('AUDITOR')}
+                className={`py-2 px-2 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  selectedRole === 'AUDITOR'
+                    ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+                    : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                Auditor
               </button>
             </div>
 
@@ -421,7 +452,7 @@ export default function SecureMaxHeroLogin() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="User ID or Email"
+                  placeholder="Enter User ID or Email"
                   required
                   className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
                 />
@@ -436,7 +467,7 @@ export default function SecureMaxHeroLogin() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password / Device Signature"
+                  placeholder="Enter Password or Device Signature"
                   required
                   className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-10 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
                 />

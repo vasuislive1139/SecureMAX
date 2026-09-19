@@ -48,7 +48,7 @@ export async function verifyChain1Access(userId: string, assetId: string): Promi
   }
 }
 
-export async function verifyChain2Policy(assetId: string): Promise<OracleResult> {
+export async function verifyChain2Policy(assetId: string, sessionId?: string): Promise<OracleResult> {
   // Deprecated Chain 2. Return authorized for demo to allow flow to proceed.
   return { allowed: true, status: 'AUTHORIZED', chainId: targetChain.id };
 }

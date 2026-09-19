@@ -3,7 +3,10 @@ import { deriveKEK, generateDEK, encryptData, decryptData } from '../crypto';
 import { supabaseAdmin } from '../db/client';
 import { SignJWT, jwtVerify } from 'jose';
 
-const MASTER_KEY_HEX = process.env.SECUREMAX_KMS_MASTER_KEY;
+function getMasterKeyHex(): string | undefined {
+  return process.env.SECUREMAX_KMS_MASTER_KEY || (process.env.NODE_ENV === 'test' ? '0000000000000000000000000000000000000000000000000000000000000000' : undefined);
+}
+
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
 
 // ==========================================
@@ -11,13 +14,14 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-
 // ==========================================
 
 export async function createAssetKey(assetId: string): Promise<{ dekPlaintext: Buffer, keyId: string, versionId: string }> {
-  if (!MASTER_KEY_HEX) throw new Error('KMS Master Key not configured');
+  const masterKey = getMasterKeyHex();
+  if (!masterKey) throw new Error('KMS Master Key not configured');
 
   // 1. Generate new DEK
   const dek = generateDEK();
 
   // 2. Derive Asset-Specific KEK
-  const kek = deriveKEK(MASTER_KEY_HEX, assetId);
+  const kek = deriveKEK(masterKey, assetId);
 
   // 3. Encrypt DEK using KEK
   const aad = `key_wrapping:${assetId}`;
@@ -54,7 +58,8 @@ export async function createAssetKey(assetId: string): Promise<{ dekPlaintext: B
 }
 
 export async function fetchAndDecryptDEK(assetId: string): Promise<Buffer> {
-  if (!MASTER_KEY_HEX) throw new Error('KMS Master Key not configured');
+  const masterKey = getMasterKeyHex();
+  if (!masterKey) throw new Error('KMS Master Key not configured');
 
   // Retrieve the ACTIVE key version
   const { data: keyRecord, error: keyErr } = await supabaseAdmin
@@ -73,7 +78,7 @@ export async function fetchAndDecryptDEK(assetId: string): Promise<Buffer> {
   if (!activeVersion) throw new Error('No ACTIVE key version found for asset');
 
   const packedDek = JSON.parse(activeVersion.encrypted_dek);
-  const kek = deriveKEK(MASTER_KEY_HEX, assetId);
+  const kek = deriveKEK(masterKey, assetId);
   const aad = `key_wrapping:${assetId}`;
 
   // Decrypt DEK
