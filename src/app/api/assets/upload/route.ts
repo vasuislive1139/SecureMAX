@@ -5,31 +5,37 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 export async function POST(req: Request) {
   try {
     const session = await getVerifiedSession();
-    const body = await req.json().catch(() => ({}));
+    const formData = await req.formData().catch(() => new FormData());
 
-    const { 
-      name, 
-      folder, 
-      classification, 
-      description, 
-      plaintext, 
-      mimeType, 
-      fileType, 
-      sizeBytes,
-      shareScope,
-      targetUserId,
-      canDecryptShared,
-      canDownloadShared,
-      expiresAt,
-      saveDefaultPolicy
-    } = body;
+    const name = formData.get('name') as string;
+    const folder = formData.get('folder') as string;
+    const classification = formData.get('classification') as string;
+    const description = formData.get('description') as string;
+    const shareScope = formData.get('shareScope') as any;
+    const targetUserId = formData.get('targetUserId') as string;
+    const saveDefaultPolicy = formData.get('saveDefaultPolicy') === 'true';
+    
+    const file = formData.get('file') as File | null;
+    const plaintextOpt = formData.get('plaintext') as string | null;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json({ error: 'File name is required' }, { status: 400 });
     }
 
-    if (!plaintext || typeof plaintext !== 'string') {
-      return NextResponse.json({ error: 'File content payload is required for encryption' }, { status: 400 });
+    let plaintext = '';
+    let sizeBytes = 0;
+    let mimeType = 'text/plain';
+    
+    if (file && typeof file === 'object') {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      plaintext = buffer.toString('base64');
+      sizeBytes = file.size;
+      mimeType = file.type || 'application/octet-stream';
+    } else if (plaintextOpt) {
+      plaintext = plaintextOpt;
+      sizeBytes = Buffer.byteLength(plaintext, 'utf8');
+    } else {
+      return NextResponse.json({ error: 'File or content payload is required for encryption' }, { status: 400 });
     }
 
     const validFolders = ['Projects', 'Finance', 'HR', 'Engineering', 'Legal'];

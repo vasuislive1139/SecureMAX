@@ -63,7 +63,27 @@ export function VaultSecurePreviewModal({
 
   const handleDownload = () => {
     if (!result?.decryptedData) return;
-    const blob = new Blob([result.decryptedData], { type: result.mimeType || 'text/plain' });
+    
+    let blob: Blob;
+    const isBase64 = result.mimeType && result.mimeType !== 'text/plain';
+    
+    if (isBase64) {
+      try {
+        const byteCharacters = atob(result.decryptedData);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        blob = new Blob([byteArray], { type: result.mimeType });
+      } catch (e) {
+        // Fallback if not valid base64
+        blob = new Blob([result.decryptedData], { type: result.mimeType || 'text/plain' });
+      }
+    } else {
+      blob = new Blob([result.decryptedData], { type: result.mimeType || 'text/plain' });
+    }
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -179,7 +199,21 @@ export function VaultSecurePreviewModal({
                 </div>
 
                 <div className="p-4 bg-black/90 rounded-lg border border-cyan-500/30 text-xs text-cyan-200 leading-relaxed font-mono whitespace-pre-wrap select-all max-h-64 overflow-y-auto">
-                  {result.decryptedData}
+                  {result.mimeType?.startsWith('image/') ? (
+                    <img 
+                      src={`data:${result.mimeType};base64,${result.decryptedData}`} 
+                      alt={result.assetName} 
+                      className="max-w-full h-auto rounded"
+                    />
+                  ) : (result.mimeType && result.mimeType !== 'text/plain') ? (
+                    <div className="flex flex-col items-center justify-center p-8 text-zinc-500 gap-3">
+                      <FileCode className="w-8 h-8 opacity-50" />
+                      <p>Binary File Preview Not Supported</p>
+                      <p className="text-[10px]">Please download the decrypted file to view its contents.</p>
+                    </div>
+                  ) : (
+                    result.decryptedData
+                  )}
                 </div>
               </div>
 

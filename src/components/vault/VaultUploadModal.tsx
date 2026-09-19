@@ -47,6 +47,7 @@ export function VaultUploadModal({
   const [classification, setClassification] = React.useState('CONFIDENTIAL');
   const [description, setDescription] = React.useState('');
   const [content, setContent] = React.useState('');
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   
   // Access scope selection
   const [shareScope, setShareScope] = React.useState<'PRIVATE' | 'SPECIFIC_USER' | 'ALL_PEOPLE'>(
@@ -74,15 +75,14 @@ export function VaultUploadModal({
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
 
     setName(file.name);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      setContent(text || '');
-    };
-    reader.readAsText(file);
+    setSelectedFile(file);
+    setContent(`[File selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)]`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,19 +100,27 @@ export function VaultUploadModal({
     setError(null);
 
     try {
+      const formData = new FormData();
+      formData.append('name', name.trim());
+      formData.append('folder', folder);
+      formData.append('classification', classification);
+      formData.append('description', description.trim());
+      formData.append('shareScope', shareScope);
+      
+      if (shareScope === 'SPECIFIC_USER') {
+        formData.append('targetUserId', targetUserId);
+      }
+      formData.append('saveDefaultPolicy', String(saveDefaultPolicy));
+
+      if (selectedFile) {
+        formData.append('file', selectedFile);
+      } else {
+        formData.append('plaintext', content);
+      }
+
       const res = await fetch('/api/assets/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          folder,
-          classification,
-          description: description.trim(),
-          plaintext: content,
-          shareScope,
-          targetUserId: shareScope === 'SPECIFIC_USER' ? targetUserId : undefined,
-          saveDefaultPolicy,
-        }),
+        body: formData,
       });
 
       const data = await res.json();
@@ -124,6 +132,7 @@ export function VaultUploadModal({
       setName('');
       setDescription('');
       setContent('');
+      setSelectedFile(null);
       onUploadSuccess();
       onClose();
     } catch (err: any) {
@@ -343,7 +352,8 @@ export function VaultUploadModal({
               placeholder="Enter plaintext or confidential data to be envelope-encrypted with AES-256-GCM..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full rounded-md bg-black/60 border border-zinc-800 p-2 text-zinc-200 text-xs font-mono focus:outline-none focus:border-cyan-500"
+              disabled={!!selectedFile}
+              className="w-full rounded-md bg-black/60 border border-zinc-800 p-2 text-zinc-200 text-xs font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
               required
             />
           </div>
