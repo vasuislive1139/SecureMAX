@@ -78,6 +78,7 @@ export async function approveAccessRequestAction(params: { requestId: string; tt
 }
 
 export async function rejectAccessRequestAction(params: { requestId: string; reason?: string }) {
+  try {
     let adminUserId = 'usr_admin_001';
     try {
       const session = await getVerifiedSession();

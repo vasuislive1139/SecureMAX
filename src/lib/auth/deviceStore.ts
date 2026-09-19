@@ -118,6 +118,7 @@ export interface StoredAccessRequest {
   created_at: string;
   approved_at?: string;
   rejected_at?: string;
+  rejected_reason?: string;
 }
 
 export interface LiveGrant {
@@ -4279,6 +4280,7 @@ class SecureMaxStore {
 
     req.status = 'REJECTED';
     req.rejected_at = new Date().toISOString();
+    req.rejected_reason = reason;
 
     if (req.asset_id) {
       this.logAssetAccess(req.asset_id, req.user_name, `Access request denied: ${reason || 'Security policy restriction'}`, 'DENIED');
