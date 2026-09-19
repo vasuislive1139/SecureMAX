@@ -30,11 +30,26 @@ import {
   generateAndSaveDeviceKey,
   ClientDeviceInfo 
 } from '@/lib/crypto/clientP256';
+import SecureMaxChainIntro from '@/components/ui/SecureMaxChainIntro';
 
 type LoginRole = 'USER' | 'ADMIN' | 'AUDITOR';
 
 export default function SecureMaxHeroLogin() {
   const router = useRouter();
+
+  // Cinematic Intro State
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    // Show cinematic intro once on initial page entry
+    if (typeof window !== 'undefined') {
+      const hasSeen = sessionStorage.getItem('securemax_intro_shown');
+      if (!hasSeen) {
+        setShowIntro(true);
+        sessionStorage.setItem('securemax_intro_shown', 'true');
+      }
+    }
+  }, []);
 
   // Auth Mode: Sign In vs Register
   const [authMode, setAuthMode] = useState<'SIGN_IN' | 'REGISTER'>('SIGN_IN');
@@ -328,8 +343,18 @@ export default function SecureMaxHeroLogin() {
           <a href="#support" className="hover:text-cyan-400 transition-colors">Support</a>
         </nav>
 
-        {/* Right Pill Badge */}
-        <div className="flex items-center gap-3">
+        {/* Right Pill Badge & Cinematic Intro Trigger */}
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setShowIntro(true)}
+            className="border border-cyan-500/50 bg-cyan-950/40 hover:bg-cyan-900/60 px-3.5 py-1.5 rounded-full text-cyan-300 font-mono text-xs tracking-wider shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            title="Play Cinematic Chain & Lock Launch Intro"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+            <span className="hidden sm:inline">Launch Intro</span>
+          </button>
+
           <div className="border border-cyan-500/40 bg-cyan-950/30 px-4 py-1.5 rounded-full text-cyan-300 font-mono text-xs tracking-wider shadow-[0_0_15px_rgba(6,182,212,0.2)] flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
             SIH 2026
@@ -911,6 +936,12 @@ export default function SecureMaxHeroLogin() {
           </div>
         </div>
       )}
+
+      {/* Cinematic Chain & Lock Launch Intro Overlay */}
+      <SecureMaxChainIntro 
+        isOpen={showIntro} 
+        onClose={() => setShowIntro(false)} 
+      />
 
     </div>
   );
