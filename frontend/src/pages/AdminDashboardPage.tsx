@@ -1,310 +1,247 @@
 import React, { useState, useEffect } from "react";
-import { Users, PlusCircle, ArrowRightLeft, Shield, CheckCircle2, RefreshCw } from "lucide-react";
-import { Card } from "../components/Card";
-import { StatusBadge } from "../components/StatusBadge";
-import { AlertBanner } from "../components/AlertBanner";
-import { Modal } from "../components/Modal";
+import { fetchAllAssets, mintAsset } from "../services/assets/assetService";
 import { getAllMockUsers, updateMockUserRole } from "../services/auth/authService";
-import { fetchAllAssets, mintAsset, allocateAsset } from "../services/assets/assetService";
 import { AssetRecord, UserIdentity, UserRole } from "../types";
 import { formatAddress, formatDID } from "../utils/formatters";
 
 export const AdminDashboardPage: React.FC = () => {
-  const [users, setUsers] = useState<UserIdentity[]>([]);
   const [assets, setAssets] = useState<AssetRecord[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
-  // Mint Asset Modal State
-  const [isMintOpen, setIsMintOpen] = useState(false);
-  const [mintForm, setMintForm] = useState({
-    assetId: "AST-HW-2026-0004",
-    assetType: "HARDWARE_SECURITY_MODULE",
-    assetReference: "ipfs://QmDigestExample998811",
-    metadataURI: "https://assets.securemax.org/ast-4.json",
-    recipientDid: "did:assetchain:usr-admin01",
-    recipientAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  });
-
-  // Allocate Asset Modal State
-  const [isAllocateOpen, setIsAllocateOpen] = useState(false);
-  const [selectedTokenId, setSelectedTokenId] = useState<number>(1);
-  const [targetUserDid, setTargetUserDid] = useState<string>("");
-
-  const refreshData = async () => {
-    setLoading(true);
-    setUsers(getAllMockUsers());
-    const asts = await fetchAllAssets();
-    setAssets(asts);
-    setLoading(false);
-  };
+  const [users, setUsers] = useState<UserIdentity[]>([]);
 
   useEffect(() => {
-    refreshData();
+    const loadData = async () => {
+      const allAssets = await fetchAllAssets();
+      setAssets(allAssets);
+      setUsers(getAllMockUsers());
+    };
+    loadData();
   }, []);
-
-  const handleRoleChange = async (did: string, newRole: UserRole) => {
-    updateMockUserRole(did, newRole);
-    setMessage({ type: "success", text: `Role for ${did} updated to ${newRole}` });
-    refreshData();
-  };
-
-  const handleMintSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const res = await mintAsset(
-      mintForm.assetId,
-      mintForm.assetType,
-      mintForm.assetReference,
-      mintForm.metadataURI,
-      mintForm.recipientAddress,
-      mintForm.recipientDid
-    );
-
-    if (res.success) {
-      setMessage({ type: "success", text: `Asset ${mintForm.assetId} successfully minted on-chain!` });
-      setIsMintOpen(false);
-      refreshData();
-    } else {
-      setMessage({ type: "error", text: res.error || "Minting failed" });
-    }
-    setLoading(false);
-  };
-
-  const handleAllocateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const targetUser = users.find((u) => u.did === targetUserDid);
-    if (!targetUser) {
-      setMessage({ type: "error", text: "Target user DID not found." });
-      return;
-    }
-
-    setLoading(true);
-    const res = await allocateAsset(selectedTokenId, targetUser.controllerAddress, targetUser.did);
-    if (res.success) {
-      setMessage({ type: "success", text: `Token #${selectedTokenId} successfully allocated to ${targetUser.did}` });
-      setIsAllocateOpen(false);
-      refreshData();
-    } else {
-      setMessage({ type: "error", text: res.error || "Allocation failed" });
-    }
-    setLoading(false);
-  };
 
   return (
     <div className="space-y-6">
-      {/* Title & Action Buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Administrator Control Vault</h1>
-          <p className="text-xs text-slate-400">
-            System governance, on-chain identity management, RBAC assignment, and asset lifecycle control.
-          </p>
+      {/* Top 4 Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Card 1 */}
+        <div className="bg-[#111827] border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-lg">
+          <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Identities</h3>
+          <div className="flex items-end gap-3">
+            <span className="text-4xl font-bold text-white">{users.length}</span>
+            <span className="text-xs text-slate-500 mb-1">1 suspended</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsMintOpen(true)}
-            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition"
-          >
-            <PlusCircle className="w-4 h-4" />
-            Mint Asset NFT
-          </button>
-          <button
-            onClick={() => setIsAllocateOpen(true)}
-            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
-          >
-            <ArrowRightLeft className="w-4 h-4 text-indigo-400" />
-            Allocate Asset
-          </button>
-          <button
-            onClick={refreshData}
-            className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+
+        {/* Card 2 */}
+        <div className="bg-[#111827] border border-slate-800 rounded-lg p-5 flex flex-col justify-between shadow-lg">
+          <h3 className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Active Assets</h3>
+          <div className="flex items-end gap-3">
+            <span className="text-4xl font-bold text-white">{assets.length}</span>
+            <span className="text-xs text-slate-500 mb-1">AES-256-GCM</span>
+          </div>
+        </div>
+
+        {/* Card 3 (Yellow glow) */}
+        <div className="bg-[#111827] border border-amber-500/30 rounded-lg p-5 flex flex-col justify-between relative overflow-hidden shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+          <h3 className="text-[10px] text-amber-500/80 font-bold uppercase tracking-wider mb-2">Pending Requests</h3>
+          <div className="flex items-end gap-3">
+            <span className="text-4xl font-bold text-amber-400">2</span>
+            <span className="text-xs text-slate-500 mb-1">oldest 25 min</span>
+          </div>
+        </div>
+
+        {/* Card 4 (Red glow) */}
+        <div className="bg-[#111827] border border-rose-500/30 rounded-lg p-5 flex flex-col justify-between relative overflow-hidden shadow-[0_0_15px_rgba(243,64,105,0.1)]">
+          <h3 className="text-[10px] text-rose-500/80 font-bold uppercase tracking-wider mb-2">Open Incidents</h3>
+          <div className="flex items-end gap-3">
+            <span className="text-4xl font-bold text-rose-400">2</span>
+            <span className="text-xs text-slate-500 mb-1">both CRITICAL</span>
+          </div>
         </div>
       </div>
 
-      {message && <AlertBanner type={message.type} message={message.text} onClose={() => setMessage(null)} />}
+      {/* Sub-status text row */}
+      <div className="grid grid-cols-5 gap-4 px-2 pt-2">
+        <div className="text-[9px] font-bold tracking-widest text-emerald-400">IDENTITY<br/>VERIFIED</div>
+        <div className="text-[9px] font-bold tracking-widest text-emerald-400">RBAC<br/>ENFORCED</div>
+        <div className="text-[9px] font-bold tracking-widest text-emerald-400">ASSET REGISTRY<br/>ANCHORED</div>
+        <div className="text-[9px] font-bold tracking-widest text-emerald-400">KEY DOMAIN<br/>PROTECTED</div>
+        <div className="text-[9px] font-bold tracking-widest text-amber-400">SENTINEL<br/>2 OPEN ALERTS</div>
+      </div>
 
-      {/* Section 1: User & Identity Registry Table */}
-      <Card title="Decentralized Identity & RBAC Management" subtitle="Verified identities and on-chain role assignments">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
-              <tr>
-                <th className="pb-3 font-semibold">User DID</th>
-                <th className="pb-3 font-semibold">Controller Address</th>
-                <th className="pb-3 font-semibold">KYC Status</th>
-                <th className="pb-3 font-semibold">Identity Status</th>
-                <th className="pb-3 font-semibold">Current Role</th>
-                <th className="pb-3 font-semibold text-right">Assign Role</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
-              {users.map((u) => (
-                <tr key={u.did} className="hover:bg-slate-800/30 transition">
-                  <td className="py-3 font-medium text-emerald-400">{formatDID(u.did)}</td>
-                  <td className="py-3 text-slate-400">{formatAddress(u.controllerAddress)}</td>
-                  <td className="py-3 font-sans">
-                    <StatusBadge status={u.kycStatus} />
-                  </td>
-                  <td className="py-3 font-sans">
-                    <StatusBadge status={u.identityStatus} />
-                  </td>
-                  <td className="py-3 font-sans">
-                    <StatusBadge status={u.role} />
-                  </td>
-                  <td className="py-3 text-right font-sans">
-                    <select
-                      value={u.role}
-                      onChange={(e) => handleRoleChange(u.did, e.target.value as UserRole)}
-                      className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-emerald-500"
-                    >
-                      <option value="USER">USER</option>
-                      <option value="MANAGER">MANAGER</option>
-                      <option value="ADMIN">ADMIN</option>
-                      <option value="AUDITOR">AUDITOR</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Main Grid Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+        
+        {/* Left Column (2/3 width) */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Access Requests & Live Grants */}
+          <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden flex flex-col shadow-lg">
+            <div className="flex justify-between items-center px-5 py-3 border-b border-slate-800/80">
+              <h3 className="text-xs font-bold text-white">Access requests & live grants</h3>
+              <span className="text-[10px] text-slate-500">Approve signs on Chain-1</span>
+            </div>
+            <div className="p-5 space-y-5">
+              {/* Request 1 */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white mb-0.5">Arjun Verma → SMX-FIN-002</div>
+                  <div className="text-[10px] text-slate-400 mb-0.5">Purpose: reconcile vendor invoices for Substation 4 works</div>
+                  <div className="text-[9px] font-mono text-slate-500">ENGINEER - RESTRICTED - requested 25 min ago</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">TTL <span className="px-2 py-1 bg-[#06090e] border border-slate-700 rounded">30 min</span></div>
+                  <button className="px-3 py-1.5 bg-cyan-400 hover:bg-cyan-300 text-[#06090e] text-[10px] font-bold rounded shadow-[0_0_10px_rgba(34,211,238,0.4)] transition">Approve</button>
+                  <button className="px-3 py-1.5 border border-slate-700 text-slate-400 hover:text-white rounded text-[10px] font-bold transition">Deny</button>
+                </div>
+              </div>
+
+              {/* Request 2 */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white mb-0.5">Neha Iyer → SMX-HR-001</div>
+                  <div className="text-[10px] text-slate-400 mb-0.5">Purpose: statutory PF audit sample check</div>
+                  <div className="text-[9px] font-mono text-slate-500">AUDITOR - CONFIDENTIAL - requested 8 min ago</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">TTL <span className="px-2 py-1 bg-[#06090e] border border-slate-700 rounded">15 min</span></div>
+                  <button className="px-3 py-1.5 bg-cyan-400 hover:bg-cyan-300 text-[#06090e] text-[10px] font-bold rounded shadow-[0_0_10px_rgba(34,211,238,0.4)] transition">Approve</button>
+                  <button className="px-3 py-1.5 border border-slate-700 text-slate-400 hover:text-white rounded text-[10px] font-bold transition">Deny</button>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-800">
+                <h4 className="text-[9px] font-bold text-slate-500 tracking-widest uppercase mb-3">Live Grants</h4>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white mb-0.5">Arjun Verma · SMX-ENG-003</div>
+                    <div className="text-[9px] font-mono text-slate-500">session 1bb04bec · 10.42.7.19 · known device</div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] font-mono text-cyan-400">expires in 21:14</span>
+                    <button className="px-3 py-1.5 border border-rose-500/50 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded text-[10px] font-bold transition shadow-[0_0_10px_rgba(244,63,94,0.1)]">Revoke now</button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-4">
+                  <div>
+                    <div className="text-xs font-bold text-white mb-0.5">Riya Sharma · SMX-HR-001</div>
+                    <div className="text-[9px] font-mono text-slate-500">key v2 · rotated 20 min ago</div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] font-mono text-slate-500">idle</span>
+                    <button className="px-3 py-1.5 border border-slate-700 text-slate-400 hover:text-white rounded text-[10px] font-bold transition">Revoke</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Audit Chain Log */}
+          <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden shadow-lg">
+            <div className="flex justify-between items-center px-5 py-3 border-b border-slate-800/80">
+              <h3 className="text-xs font-bold text-white">Audit chain</h3>
+              <button className="px-3 py-1 text-[10px] border border-slate-700 text-slate-300 rounded font-bold hover:bg-slate-800">Verify chain</button>
+            </div>
+            <div className="p-5 font-mono text-[10px] space-y-3">
+              <div className="grid grid-cols-12 gap-2 text-slate-300 items-center">
+                <div className="col-span-2">14:02</div>
+                <div className="col-span-3 text-white font-bold">BREAK_GLASS_GRANTED</div>
+                <div className="col-span-5 text-slate-500">0x461a99e3...e0c5efb1</div>
+                <div className="col-span-2 text-right text-slate-400">prev linked</div>
+              </div>
+              <div className="grid grid-cols-12 gap-2 text-slate-300 items-center">
+                <div className="col-span-2">13:27</div>
+                <div className="col-span-3 text-rose-400 font-bold">ACCESS_DENIED</div>
+                <div className="col-span-5 text-slate-500">0x8c1f04ba...77d3a916</div>
+                <div className="col-span-2 text-right text-slate-400">Domain 1 / RBAC</div>
+              </div>
+              <div className="grid grid-cols-12 gap-2 text-slate-300 items-center">
+                <div className="col-span-2">13:26</div>
+                <div className="col-span-3 text-rose-400 font-bold">KEY_ACCESS_DENIED</div>
+                <div className="col-span-5 text-slate-500">0x2ad7ee51...b40c8e02</div>
+                <div className="col-span-2 text-right text-slate-400">Domain 2 / KMS</div>
+              </div>
+              <div className="grid grid-cols-12 gap-2 text-slate-300 items-center">
+                <div className="col-span-2">11:14</div>
+                <div className="col-span-3 text-emerald-400 font-bold">DECRYPTION_COMPLETED</div>
+                <div className="col-span-5 text-slate-500">0xf03bd7c2...19ae5d44</div>
+                <div className="col-span-2 text-right text-slate-400">anchored</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </Card>
 
-      {/* Section 2: Organization Assets Table */}
-      <Card title="All Organizational Asset NFTs" subtitle="Current inventory, custody records, and lifecycle statuses">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-800">
-              <tr>
-                <th className="pb-3 font-semibold">Token ID</th>
-                <th className="pb-3 font-semibold">Asset Code</th>
-                <th className="pb-3 font-semibold">Type</th>
-                <th className="pb-3 font-semibold">Current Custodian DID</th>
-                <th className="pb-3 font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
-              {assets.map((a) => (
-                <tr key={a.tokenId} className="hover:bg-slate-800/30 transition">
-                  <td className="py-3 text-emerald-400">#{a.tokenId}</td>
-                  <td className="py-3 text-white font-medium">{a.assetId}</td>
-                  <td className="py-3 text-slate-400">{a.assetType}</td>
-                  <td className="py-3 text-slate-300">{formatDID(a.ownerDid)}</td>
-                  <td className="py-3 font-sans">
-                    <StatusBadge status={a.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Right Column (1/3 width) */}
+        <div className="space-y-6">
+          
+          {/* Sentinel Box */}
+          <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden shadow-lg">
+             <div className="flex justify-between items-center px-5 py-3 border-b border-slate-800/80">
+              <h3 className="text-xs font-bold text-white">Sentinel</h3>
+              <span className="text-[9px] font-mono text-emerald-400">5 / 5 PASSED · 40 min ago</span>
+            </div>
+            <div className="p-5 space-y-3 text-[10px] font-mono">
+              <div className="flex justify-between text-slate-400"><span>Unauthorized asset access</span><span className="text-emerald-400">blocked</span></div>
+              <div className="flex justify-between text-slate-400"><span>Expired temporary key</span><span className="text-emerald-400">blocked</span></div>
+              <div className="flex justify-between text-slate-400"><span>Revoked permission access</span><span className="text-emerald-400">blocked</span></div>
+              <div className="flex justify-between text-slate-400"><span>Privilege escalation</span><span className="text-emerald-400">blocked</span></div>
+              <div className="flex justify-between text-slate-400"><span>Token replay</span><span className="text-emerald-400">blocked</span></div>
+
+              {/* Critical Alert Sub-box */}
+              <div className="mt-5 border border-rose-500/50 bg-rose-500/10 p-4 rounded shadow-[0_0_15px_rgba(243,64,105,0.05)]">
+                <div className="flex items-center gap-2 text-rose-400 font-bold mb-2 text-[11px]">
+                  <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span> CRITICAL · decoy asset opened
+                </div>
+                <p className="text-[10px] text-slate-300 mb-4 font-sans leading-relaxed">
+                  Kabir Rao attempted to decrypt SMX-HNY-008. No user has a business need for this asset. Session frozen automatically.
+                </p>
+                <div className="flex gap-2 font-sans">
+                  <button className="flex-1 bg-rose-500/20 text-rose-400 border border-rose-500/50 py-1.5 rounded hover:bg-rose-500/30 transition">Suspend identity</button>
+                  <button className="flex-1 text-slate-300 border border-slate-700 py-1.5 rounded hover:bg-slate-800 transition">Open incident</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Lifecycle Box */}
+          <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden shadow-lg">
+            <div className="flex justify-between items-center px-5 py-3 border-b border-slate-800/80">
+              <h3 className="text-xs font-bold text-white">Key lifecycle</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              
+              <div>
+                <div className="flex justify-between items-start mb-1">
+                  <div className="text-xs font-bold text-white">SMX-HR-001</div>
+                  <div className="text-[9px] font-mono text-emerald-400 font-bold">v2 ACTIVE</div>
+                </div>
+                <div className="text-[9px] font-mono text-slate-500 mb-2">role-bound · MANAGER, ADMIN · rotate 30d</div>
+                <div className="flex gap-2">
+                  <button className="px-3 py-1 border border-slate-700 text-slate-300 text-[9px] font-bold rounded hover:bg-slate-800">Rotate</button>
+                  <button className="px-3 py-1 border border-slate-700 text-slate-300 text-[9px] font-bold rounded hover:bg-slate-800">Revoke key</button>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-800">
+                <div className="flex justify-between items-start mb-1">
+                  <div className="text-xs font-bold text-white">SMX-ENG-003</div>
+                  <div className="text-[9px] font-mono text-emerald-400 font-bold">v1 ACTIVE</div>
+                </div>
+                <div className="text-[9px] font-mono text-slate-500">time-bound · TTL 30m · session-bound</div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-800">
+                <div className="flex justify-between items-start mb-1">
+                  <div className="text-xs font-bold text-white">SMX-HNY-008</div>
+                  <div className="text-[9px] font-mono text-rose-400 font-bold">DECOY</div>
+                </div>
+                <div className="text-[9px] font-mono text-slate-500">alert on any access · severity CRITICAL</div>
+              </div>
+
+            </div>
+          </div>
+
         </div>
-      </Card>
 
-      {/* Mint Asset Modal */}
-      <Modal isOpen={isMintOpen} onClose={() => setIsMintOpen(false)} title="Mint New Organizational Asset NFT">
-        <form onSubmit={handleMintSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="block text-slate-300 mb-1">Organizational Asset Code *</label>
-            <input
-              type="text"
-              required
-              value={mintForm.assetId}
-              onChange={(e) => setMintForm({ ...mintForm, assetId: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200"
-            />
-          </div>
-          <div>
-            <label className="block text-slate-300 mb-1">Asset Classification *</label>
-            <input
-              type="text"
-              required
-              value={mintForm.assetType}
-              onChange={(e) => setMintForm({ ...mintForm, assetType: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200"
-            />
-          </div>
-          <div>
-            <label className="block text-slate-300 mb-1">Off-Chain Specs Digest / Reference</label>
-            <input
-              type="text"
-              value={mintForm.assetReference}
-              onChange={(e) => setMintForm({ ...mintForm, assetReference: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200"
-            />
-          </div>
-          <div>
-            <label className="block text-slate-300 mb-1">Metadata URI</label>
-            <input
-              type="text"
-              value={mintForm.metadataURI}
-              onChange={(e) => setMintForm({ ...mintForm, metadataURI: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200"
-            />
-          </div>
-          <div>
-            <label className="block text-slate-300 mb-1">Initial Recipient DID</label>
-            <input
-              type="text"
-              value={mintForm.recipientDid}
-              onChange={(e) => setMintForm({ ...mintForm, recipientDid: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 font-mono text-[11px]"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition"
-          >
-            {loading ? "Minting on Blockchain..." : "Confirm & Mint ERC-721 Token"}
-          </button>
-        </form>
-      </Modal>
-
-      {/* Allocate Asset Modal */}
-      <Modal isOpen={isAllocateOpen} onClose={() => setIsAllocateOpen(false)} title="Allocate Asset to Custodian DID">
-        <form onSubmit={handleAllocateSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="block text-slate-300 mb-1">Select Asset Token</label>
-            <select
-              value={selectedTokenId}
-              onChange={(e) => setSelectedTokenId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200"
-            >
-              {assets.map((a) => (
-                <option key={a.tokenId} value={a.tokenId}>
-                  Token #{a.tokenId} - {a.assetId} ({a.assetType})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-slate-300 mb-1">Assign to User DID</label>
-            <select
-              value={targetUserDid}
-              onChange={(e) => setTargetUserDid(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 font-mono text-[11px]"
-            >
-              <option value="">Select a verified user...</option>
-              {users.map((u) => (
-                <option key={u.did} value={u.did}>
-                  {u.did} ({u.role})
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="submit"
-            disabled={loading || !targetUserDid}
-            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition"
-          >
-            {loading ? "Allocating..." : "Authorize Allocation"}
-          </button>
-        </form>
-      </Modal>
+      </div>
     </div>
   );
 };
