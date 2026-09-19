@@ -1,3 +1,4 @@
+import 'server-only';
 import { randomBytes, createHash, hkdfSync } from 'crypto';
 import { internalError } from '../utils/errors';
 

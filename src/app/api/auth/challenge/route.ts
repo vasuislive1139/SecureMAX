@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { createChallenge } from '@/lib/crypto/p256';
 import { deviceStore } from '@/lib/auth/deviceStore';
@@ -19,6 +20,14 @@ export async function POST(req: Request) {
       userId: body.userId,
       deviceId: body.deviceId,
       ttlSeconds: 120, // 2-minute short-lived challenge
+    });
+
+    cookies().set('auth_nonce', record.challengeId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/api/auth',
+      maxAge: 120,
     });
 
     return NextResponse.json({
@@ -52,6 +61,14 @@ export async function GET(req: Request) {
       type,
       walletAddress,
       ttlSeconds: 120,
+    });
+
+    cookies().set('auth_nonce', record.challengeId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/api/auth',
+      maxAge: 120,
     });
 
     return NextResponse.json({

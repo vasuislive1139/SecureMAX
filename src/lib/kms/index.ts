@@ -106,15 +106,23 @@ export interface TempAuthPayload {
   assetId: string;
   sessionId: string;
   permissions: string[];
+  clientIp?: string; // Add IP binding
 }
 
 export async function issueTemporaryDecryptionToken(payload: TempAuthPayload): Promise<string> {
+  const crypto = await import('crypto');
+  
+  // Hash the Session ID + IP Address to cryptographically bind the token to this exact client session context
+  const ipToBind = payload.clientIp || '0.0.0.0';
+  const bindingHash = crypto.createHash('sha256').update(`${payload.sessionId}:${ipToBind}`).digest('hex');
+
   // 30 minute time limit per strict architectural constraints
   const token = await new SignJWT({ 
     userId: payload.userId,
     assetId: payload.assetId,
     sessionId: payload.sessionId,
-    permissions: payload.permissions
+    permissions: payload.permissions,
+    bindingHash
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -124,13 +132,21 @@ export async function issueTemporaryDecryptionToken(payload: TempAuthPayload): P
   return token;
 }
 
-export async function validateTemporaryDecryptionToken(token: string, expectedSessionId: string, expectedAssetId: string): Promise<TempAuthPayload> {
+export async function validateTemporaryDecryptionToken(token: string, expectedSessionId: string, expectedAssetId: string, expectedIp: string = '0.0.0.0'): Promise<TempAuthPayload> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     
     if (payload.sessionId !== expectedSessionId) {
       throw new Error('Session binding mismatch: Token was hijacked or replayed in a different context.');
     }
+    
+    // Validate Cryptographic IP Binding
+    const crypto = await import('crypto');
+    const expectedBindingHash = crypto.createHash('sha256').update(`${expectedSessionId}:${expectedIp}`).digest('hex');
+    if (payload.bindingHash && payload.bindingHash !== expectedBindingHash) {
+      throw new Error('Network binding mismatch: Token was hijacked and replayed from a different IP address.');
+    }
+
     if (payload.assetId !== expectedAssetId) {
       throw new Error('Asset binding mismatch: Token attempting to decrypt unauthorized asset.');
     }

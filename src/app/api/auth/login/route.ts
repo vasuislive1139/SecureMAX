@@ -42,6 +42,17 @@ export async function POST(req: Request) {
         );
       }
 
+      // STRICT NONCE LIFECYCLE: Enforce challengeId matches the HttpOnly cookie
+      const authNonceCookie = cookies().get('auth_nonce')?.value;
+      if (!authNonceCookie || authNonceCookie !== challengeId) {
+        return NextResponse.json(
+          { error: 'Authentication challenge expired or invalid (nonce mismatch). Please request a new challenge.' },
+          { status: 400 }
+        );
+      }
+      // Clear the cookie immediately to prevent replay
+      cookies().set('auth_nonce', '', { maxAge: 0, path: '/api/auth' });
+
       // 1. Retrieve challenge from persistent store
       const storedChallenge = deviceStore.getChallenge(challengeId);
       if (!storedChallenge) {
@@ -239,6 +250,19 @@ export async function POST(req: Request) {
         { error: 'Missing required credentials (email/userId, challengeId, and cryptographic signature required)' },
         { status: 400 }
       );
+    }
+
+    // STRICT NONCE LIFECYCLE: Enforce challengeId matches the HttpOnly cookie
+    if (challengeId) {
+      const authNonceCookie = cookies().get('auth_nonce')?.value;
+      if (!authNonceCookie || authNonceCookie !== challengeId) {
+        return NextResponse.json(
+          { error: 'Cryptographic challenge expired or invalid (nonce mismatch). Please request a new challenge.' },
+          { status: 400 }
+        );
+      }
+      // Clear the cookie immediately to prevent replay
+      cookies().set('auth_nonce', '', { maxAge: 0, path: '/api/auth' });
     }
 
     // 1. Retrieve and validate the challenge from persistent store

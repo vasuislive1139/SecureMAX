@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
 export function isSupabaseConfigured(): boolean {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -53,7 +54,7 @@ export const supabaseAdmin: any = new Proxy({}, {
     if (!_adminClient) {
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-      _adminClient = createClient(url, key);
+      _adminClient = createClient<Database>(url, key);
     }
     const val = _adminClient[prop];
     return typeof val === 'function' ? val.bind(_adminClient) : val;
@@ -67,7 +68,7 @@ export const supabaseClient: any = new Proxy({}, {
     if (!_publicClient) {
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
       const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY!;
-      _publicClient = createClient(url, key);
+      _publicClient = createClient<Database>(url, key);
     }
     const val = _publicClient[prop];
     return typeof val === 'function' ? val.bind(_publicClient) : val;
@@ -78,7 +79,7 @@ export const supabaseClient: any = new Proxy({}, {
 // This enforces RLS and prevents IDOR (as per Hostile Review Architecture updates)
 export const createAuthenticatedClient = (jwt: string) => {
   if (!isSupabaseConfigured()) return mockClient;
-  return createClient(
+  return createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

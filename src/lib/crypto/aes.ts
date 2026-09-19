@@ -1,3 +1,4 @@
+import 'server-only';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import { internalError, validationError } from '../utils/errors';
 
