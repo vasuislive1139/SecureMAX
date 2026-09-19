@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/IRBACRegistry.sol";
+import "../interfaces/IIdentityRegistry.sol";
 
 /**
  * @title AssetNFT
@@ -62,6 +63,9 @@ contract AssetNFT is ERC721URIStorage, Pausable, ReentrancyGuard {
 
     /// @notice Interface to external RBAC Registry (Person 3)
     IRBACRegistry public rbacRegistry;
+    
+    /// @notice Interface to external Identity Registry
+    IIdentityRegistry public immutable identityRegistry;
 
     /// @dev Initial contract deployer / fallback admin
     address public contractOwner;
@@ -150,6 +154,9 @@ contract AssetNFT is ERC721URIStorage, Pausable, ReentrancyGuard {
     error InvalidAssetData(string reason);
     error InvalidStatusTransition(AssetStatus currentStatus, AssetStatus newStatus);
     error ZeroAddressNotAllowed();
+    error IdentityNotRegistered(address controller);
+    error IdentityNotActive(address controller);
+    error DIDMismatch(address controller, string providedDid);
 
     // -------------------------------------------------------------------------
     // MODIFIERS
@@ -170,19 +177,41 @@ contract AssetNFT is ERC721URIStorage, Pausable, ReentrancyGuard {
     }
 
     // -------------------------------------------------------------------------
+    // INTERNAL IDENTITY HELPERS
+    // -------------------------------------------------------------------------
+
+    function _requireActiveIdentity(address controller) internal view {
+        if (!identityRegistry.isIdentityRegistered(controller)) {
+            revert IdentityNotRegistered(controller);
+        }
+        if (!identityRegistry.isIdentityActive(controller)) {
+            revert IdentityNotActive(controller);
+        }
+    }
+
+    function _requireMatchingDid(address controller, string calldata did) internal view {
+        string memory registeredDid = identityRegistry.getDidByController(controller);
+        if (keccak256(bytes(registeredDid)) != keccak256(bytes(did))) {
+            revert DIDMismatch(controller, did);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // CONSTRUCTOR
     // -------------------------------------------------------------------------
 
     constructor(
         string memory _name,
         string memory _symbol,
-        address _rbacRegistry
+        address _rbacRegistry,
+        address _identityRegistry
     ) ERC721(_name, _symbol) {
-        if (_rbacRegistry == address(0)) {
+        if (_rbacRegistry == address(0) || _identityRegistry == address(0)) {
             revert ZeroAddressNotAllowed();
         }
         contractOwner = msg.sender;
         rbacRegistry = IRBACRegistry(_rbacRegistry);
+        identityRegistry = IIdentityRegistry(_identityRegistry);
     }
 
     // -------------------------------------------------------------------------
@@ -267,6 +296,9 @@ contract AssetNFT is ERC721URIStorage, Pausable, ReentrancyGuard {
             revert InvalidRecipientAddress();
         }
 
+        _requireActiveIdentity(newOwner);
+        _requireMatchingDid(newOwner, newOwnerDid);
+
         address previousOwner = asset.currentOwner;
 
         asset.currentOwner = newOwner;
@@ -307,6 +339,10 @@ contract AssetNFT is ERC721URIStorage, Pausable, ReentrancyGuard {
         if (to == address(0)) {
             revert InvalidRecipientAddress();
         }
+
+        _requireActiveIdentity(msg.sender);
+        _requireActiveIdentity(to);
+        _requireMatchingDid(to, toDid);
 
         address from = asset.currentOwner;
 

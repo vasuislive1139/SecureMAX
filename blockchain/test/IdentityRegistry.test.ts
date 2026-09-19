@@ -90,8 +90,8 @@ describe("IdentityRegistry (Person 2 - DID & Decentralized Identity)", function 
         );
 
       expect(await identityRegistry.totalIdentitiesCount()).to.equal(1);
-      expect(await identityRegistry.isIdentityRegistered(VALID_DID_1)).to.be.true;
-      expect(await identityRegistry.isIdentityActive(VALID_DID_1)).to.be.true;
+      expect(await identityRegistry["isIdentityRegistered(string)"](VALID_DID_1)).to.be.true;
+      expect(await identityRegistry["isIdentityActive(string)"](VALID_DID_1)).to.be.true;
     });
 
     it("should correctly record all identity fields", async function () {
@@ -122,8 +122,8 @@ describe("IdentityRegistry (Person 2 - DID & Decentralized Identity)", function 
         .registerIdentity(VALID_DID_2, SAMPLE_PUBLIC_KEY_2, user2.address);
 
       expect(await identityRegistry.totalIdentitiesCount()).to.equal(2);
-      expect(await identityRegistry.isIdentityRegistered(VALID_DID_1)).to.be.true;
-      expect(await identityRegistry.isIdentityRegistered(VALID_DID_2)).to.be.true;
+      expect(await identityRegistry["isIdentityRegistered(string)"](VALID_DID_1)).to.be.true;
+      expect(await identityRegistry["isIdentityRegistered(string)"](VALID_DID_2)).to.be.true;
     });
   });
 
@@ -225,8 +225,8 @@ describe("IdentityRegistry (Person 2 - DID & Decentralized Identity)", function 
     });
 
     it("should return false for isIdentityRegistered and isIdentityActive on unregistered DID", async function () {
-      expect(await identityRegistry.isIdentityRegistered("did:assetchain:unregistered")).to.be.false;
-      expect(await identityRegistry.isIdentityActive("did:assetchain:unregistered")).to.be.false;
+      expect(await identityRegistry["isIdentityRegistered(string)"]("did:assetchain:unregistered")).to.be.false;
+      expect(await identityRegistry["isIdentityActive(string)"]("did:assetchain:unregistered")).to.be.false;
       expect(await identityRegistry.getIdentityStatus("did:assetchain:unregistered")).to.equal(IdentityStatus.None);
     });
   });
@@ -257,8 +257,8 @@ describe("IdentityRegistry (Person 2 - DID & Decentralized Identity)", function 
           await ethers.provider.getBlock("latest").then((b) => b!.timestamp)
         );
 
-      expect(await identityRegistry.isIdentityRegistered(VALID_DID_1)).to.be.true;
-      expect(await identityRegistry.isIdentityActive(VALID_DID_1)).to.be.false;
+      expect(await identityRegistry["isIdentityRegistered(string)"](VALID_DID_1)).to.be.true;
+      expect(await identityRegistry["isIdentityActive(string)"](VALID_DID_1)).to.be.false;
       expect(await identityRegistry.getIdentityStatus(VALID_DID_1)).to.equal(IdentityStatus.Suspended);
     });
 
@@ -271,7 +271,7 @@ describe("IdentityRegistry (Person 2 - DID & Decentralized Identity)", function 
         .connect(registrar)
         .updateIdentityStatus(VALID_DID_1, IdentityStatus.Active);
 
-      expect(await identityRegistry.isIdentityActive(VALID_DID_1)).to.be.true;
+      expect(await identityRegistry["isIdentityActive(string)"](VALID_DID_1)).to.be.true;
       expect(await identityRegistry.getIdentityStatus(VALID_DID_1)).to.equal(IdentityStatus.Active);
     });
 

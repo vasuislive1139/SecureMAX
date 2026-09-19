@@ -398,15 +398,30 @@ contract IdentityRegistry is AccessControl, Pausable {
      * @return registered True if identity exists
      */
     function isIdentityRegistered(string calldata did) external view returns (bool registered) {
-        return _identities[did].status != IdentityStatus.None;
+        return _identities[did].registeredAt != 0;
     }
 
     /**
-     * @notice Checks if a DID is registered AND currently Active.
-     * @param did The DID identifier
-     * @return active True if status is Active
+     * @notice Checks if a DID is currently active.
      */
     function isIdentityActive(string calldata did) external view returns (bool active) {
+        return _identities[did].status == IdentityStatus.Active;
+    }
+
+    /**
+     * @notice Checks if an address controller has a registered DID.
+     */
+    function isIdentityRegistered(address controller) external view returns (bool) {
+        string memory did = _controllerToDid[controller];
+        return bytes(did).length > 0;
+    }
+
+    /**
+     * @notice Checks if an address controller has an active DID.
+     */
+    function isIdentityActive(address controller) external view returns (bool) {
+        string memory did = _controllerToDid[controller];
+        if (bytes(did).length == 0) return false;
         return _identities[did].status == IdentityStatus.Active;
     }
 

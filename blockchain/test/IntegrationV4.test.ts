@@ -42,7 +42,7 @@ describe("Milestone V4: Full System Integration (Identity -> RBAC -> NFT -> Auth
 
     // 2. Deploy AccessControlManager (RBAC)
     const RBACFactory = await ethers.getContractFactory("AccessControlManager");
-    rbacManager = await RBACFactory.deploy(admin.address);
+    rbacManager = await RBACFactory.deploy(admin.address, await identityRegistry.getAddress());
     await rbacManager.waitForDeployment();
 
     MANAGER_ROLE = await rbacManager.MANAGER_ROLE();
@@ -50,7 +50,7 @@ describe("Milestone V4: Full System Integration (Identity -> RBAC -> NFT -> Auth
 
     // 3. Deploy AssetNFT
     const AssetFactory = await ethers.getContractFactory("AssetNFT");
-    assetNFT = await AssetFactory.deploy("SecureMAX Asset", "SMAX", await rbacManager.getAddress());
+    assetNFT = await AssetFactory.deploy("SecureMAX Asset", "SMAX", await rbacManager.getAddress(), await identityRegistry.getAddress());
     await assetNFT.waitForDeployment();
   });
 
@@ -63,8 +63,9 @@ describe("Milestone V4: Full System Integration (Identity -> RBAC -> NFT -> Auth
     const tx2 = await identityRegistry.connect(registrar).registerIdentity(DID_USER_2, PUB_KEY_2, user2.address);
     await expect(tx2).to.emit(identityRegistry, "IdentityRegistered").withArgs(DID_USER_2, DID_USER_2, user2.address, ethers.hexlify(PUB_KEY_2), await ethers.provider.getBlock("latest").then(b => b!.timestamp));
 
-    expect(await identityRegistry.isIdentityActive(DID_USER_1)).to.be.true;
-    expect(await identityRegistry.isIdentityActive(DID_USER_2)).to.be.true;
+    expect(await identityRegistry["isIdentityActive(string)"](DID_USER_1)).to.be.true;
+    expect(await identityRegistry["isIdentityActive(string)"](DID_USER_2)).to.be.true;
+    await identityRegistry.connect(registrar).registerIdentity("did:assetchain:manager", PUB_KEY_1, manager.address);
   });
 
   it("Step 2 (RBAC): Admin assigns roles to users", async function () {
@@ -115,13 +116,13 @@ describe("Milestone V4: Full System Integration (Identity -> RBAC -> NFT -> Auth
     expect(verify.isDidMatch).to.be.true;
   });
 
-  it("Step 5 (Events & Enforcement): User1 transfers asset to User2, Unauthorized fails", async function () {
+  it("Step 5 (Events & Enforcement): User1 transfers asset to User2, Unauthorized fails, Suspended fails", async function () {
     const asset = await assetNFT.getAssetByAssetId(ASSET_ID);
 
     // Unauthorized party attempts transfer -> fails
     await expect(
       assetNFT.connect(unauthorized).transferAsset(asset.tokenId, unauthorized.address, "did:assetchain:fake")
-    ).to.be.revertedWithCustomError(assetNFT, "UnauthorizedAccess");
+    ).to.be.revertedWithCustomError(assetNFT, "IdentityNotRegistered");
 
     // Owner (User1) transfers to User2
     const txTransfer = await assetNFT.connect(user1).transferAsset(asset.tokenId, user2.address, DID_USER_2);

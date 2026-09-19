@@ -5,6 +5,7 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("AccessControlManager (Person 3 - RBAC & Authorization)", function () {
   let rbacManager: AccessControlManager;
+  let identityRegistry: any;
   let admin: HardhatEthersSigner;
   let admin2: HardhatEthersSigner;
   let manager: HardhatEthersSigner;
@@ -22,8 +23,22 @@ describe("AccessControlManager (Person 3 - RBAC & Authorization)", function () {
   beforeEach(async function () {
     [admin, admin2, manager, auditor, user1, unauthorizedUser] = await ethers.getSigners();
 
+    const IdFactory = await ethers.getContractFactory("IdentityRegistry");
+    identityRegistry = await IdFactory.deploy(admin.address);
+    await identityRegistry.waitForDeployment();
+
+    // Register all participants so they can receive roles
+    const participants = [admin, admin2, manager, auditor, user1, unauthorizedUser];
+    for (let i = 0; i < participants.length; i++) {
+        await identityRegistry.connect(admin).registerIdentity(
+            `did:assetchain:user${i}`,
+            ethers.hexlify(ethers.randomBytes(32)),
+            participants[i].address
+        );
+    }
+
     const Factory = await ethers.getContractFactory("AccessControlManager");
-    rbacManager = await Factory.deploy(admin.address);
+    rbacManager = await Factory.deploy(admin.address, await identityRegistry.getAddress());
     await rbacManager.waitForDeployment();
 
     ADMIN_ROLE = await rbacManager.ADMIN_ROLE();
@@ -47,7 +62,7 @@ describe("AccessControlManager (Person 3 - RBAC & Authorization)", function () {
     it("should revert if initialized with zero address admin", async function () {
       const Factory = await ethers.getContractFactory("AccessControlManager");
       await expect(
-        Factory.deploy(ethers.ZeroAddress)
+        Factory.deploy(ethers.ZeroAddress, await identityRegistry.getAddress())
       ).to.be.revertedWithCustomError(rbacManager, "InvalidAccountAddress");
     });
   });
@@ -101,6 +116,22 @@ describe("AccessControlManager (Person 3 - RBAC & Authorization)", function () {
   // =========================================================================
   // 3. SECURITY & NEGATIVE TESTS: ASSIGNMENT
   // =========================================================================
+  describe("Identity Integration", function () {
+    it("should reject role assignment to unregistered address", async function () {
+      const [,,,,, , randomGuy] = await ethers.getSigners();
+      await expect(
+        rbacManager.connect(admin).assignRole(MANAGER_ROLE, randomGuy.address)
+      ).to.be.revertedWithCustomError(rbacManager, "IdentityNotRegistered");
+    });
+    
+    it("should reject role assignment to suspended identity", async function () {
+      await identityRegistry.connect(admin).updateIdentityStatus("did:assetchain:user4", 2); // Suspended
+      await expect(
+        rbacManager.connect(admin).assignRole(MANAGER_ROLE, user1.address)
+      ).to.be.revertedWithCustomError(rbacManager, "IdentityNotActive");
+    });
+  });
+
   describe("Role Assignment Security & Validations", function () {
     it("should reject role assignment by unauthorized User", async function () {
       await expect(

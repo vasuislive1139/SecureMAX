@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/access/IAccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "../interfaces/IRBACRegistry.sol";
+import "../interfaces/IIdentityRegistry.sol";
 
 /**
  * @title AccessControlManager
@@ -29,6 +30,12 @@ contract AccessControlManager is AccessControlEnumerable, Pausable, IRBACRegistr
     bytes32 public constant override MANAGER_ROLE = keccak256("MANAGER_ROLE");
     bytes32 public constant override AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
     bytes32 public constant override USER_ROLE = keccak256("USER_ROLE");
+
+    // -------------------------------------------------------------------------
+    // STATE VARIABLES
+    // -------------------------------------------------------------------------
+
+    IIdentityRegistry public immutable identityRegistry;
 
     // -------------------------------------------------------------------------
     // EVENTS
@@ -58,6 +65,8 @@ contract AccessControlManager is AccessControlEnumerable, Pausable, IRBACRegistr
     error AccountDoesNotHaveRole(bytes32 role, address account);
     error CannotRevokeLastAdmin();
     error UnauthorizedAdminAction(address caller);
+    error IdentityNotRegistered(address controller);
+    error IdentityNotActive(address controller);
 
     // -------------------------------------------------------------------------
     // CONSTRUCTOR
@@ -66,11 +75,14 @@ contract AccessControlManager is AccessControlEnumerable, Pausable, IRBACRegistr
     /**
      * @notice Initializes the Access Control Manager contract.
      * @param initialAdmin Address of the initial system administrator.
+     * @param _identityRegistry Address of the Identity Registry contract.
      */
-    constructor(address initialAdmin) {
-        if (initialAdmin == address(0)) {
+    constructor(address initialAdmin, address _identityRegistry) {
+        if (initialAdmin == address(0) || _identityRegistry == address(0)) {
             revert InvalidAccountAddress();
         }
+
+        identityRegistry = IIdentityRegistry(_identityRegistry);
 
         // Configure DEFAULT_ADMIN_ROLE as the admin for all defined roles
         _setRoleAdmin(ADMIN_ROLE, DEFAULT_ADMIN_ROLE);
@@ -105,6 +117,13 @@ contract AccessControlManager is AccessControlEnumerable, Pausable, IRBACRegistr
         }
         if (hasRole(role, account)) {
             revert AccountAlreadyHasRole(role, account);
+        }
+
+        if (!identityRegistry.isIdentityRegistered(account)) {
+            revert IdentityNotRegistered(account);
+        }
+        if (!identityRegistry.isIdentityActive(account)) {
+            revert IdentityNotActive(account);
         }
 
         _grantRole(role, account);

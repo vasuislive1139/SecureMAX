@@ -5,6 +5,8 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("AssetNFT (Person 4 - NFT + Asset Management)", function () {
   let assetNFT: AssetNFT;
+  let rbacManager: any;
+  let identityRegistry: any;
   let mockRbac: MockRBACRegistry;
   let admin: HardhatEthersSigner;
   let manager: HardhatEthersSigner;
@@ -18,6 +20,7 @@ describe("AssetNFT (Person 4 - NFT + Asset Management)", function () {
   let USER_ROLE: string;
 
   // Test Asset Fixtures
+  const DID_ADMIN = "did:assetchain:user0";
   const ASSET_ID_1 = "AST-HW-2026-0001";
   const ASSET_ID_2 = "AST-LIC-2026-0002";
   const ASSET_TYPE_HW = "HARDWARE_DEVICE";
@@ -27,8 +30,8 @@ describe("AssetNFT (Person 4 - NFT + Asset Management)", function () {
   const METADATA_URI_2 = "https://assets.securemax.org/metadata/ast-0002.json";
   const UPDATED_METADATA_URI = "https://assets.securemax.org/metadata/ast-0001-v2.json";
 
-  const DID_USER_1 = "did:assetchain:usr-1001-alice-7f8a9b";
-  const DID_USER_2 = "did:assetchain:usr-1002-bob-3c4d5e";
+  const DID_USER_1 = "did:assetchain:user2";
+  const DID_USER_2 = "did:assetchain:user3";
 
   // Asset Status Enum
   enum AssetStatus {
@@ -51,6 +54,20 @@ describe("AssetNFT (Person 4 - NFT + Asset Management)", function () {
     MANAGER_ROLE = await mockRbac.MANAGER_ROLE();
     USER_ROLE = await mockRbac.USER_ROLE();
 
+    
+    const IdFactory = await ethers.getContractFactory("IdentityRegistry");
+    identityRegistry = await IdFactory.deploy(admin.address);
+    await identityRegistry.waitForDeployment();
+
+    const participants = [admin, manager, user1, user2, unauthorizedUser];
+    for (let i = 0; i < participants.length; i++) {
+        await identityRegistry.connect(admin).registerIdentity(
+            `did:assetchain:user${i}`,
+            ethers.hexlify(ethers.randomBytes(32)),
+            participants[i].address
+        );
+    }
+    
     // Assign roles in mock RBAC
     await mockRbac.grantRole(ADMIN_ROLE, admin.address);
     await mockRbac.grantRole(MANAGER_ROLE, manager.address);
@@ -62,7 +79,8 @@ describe("AssetNFT (Person 4 - NFT + Asset Management)", function () {
     assetNFT = await AssetNFTFactory.deploy(
       "SecureMAX Organizational Asset",
       "SMX-AST",
-      await mockRbac.getAddress()
+      await mockRbac.getAddress(),
+      await identityRegistry.getAddress()
     );
     await assetNFT.waitForDeployment();
   });
@@ -81,7 +99,7 @@ describe("AssetNFT (Person 4 - NFT + Asset Management)", function () {
     it("should revert if initialized with zero address RBAC registry", async function () {
       const AssetNFTFactory = await ethers.getContractFactory("AssetNFT");
       await expect(
-        AssetNFTFactory.deploy("Name", "SYM", ethers.ZeroAddress)
+        AssetNFTFactory.deploy("Name", "SYM", ethers.ZeroAddress, await identityRegistry.getAddress())
       ).to.be.revertedWithCustomError(assetNFT, "ZeroAddressNotAllowed");
     });
   });
@@ -367,6 +385,34 @@ describe("AssetNFT (Person 4 - NFT + Asset Management)", function () {
   // =========================================================================
   // 6. LIFECYCLE STATUS & DECOMMISSIONING
   // =========================================================================
+  describe("Identity Integration & Negative Tests", function () {
+    it("should reject allocation to unregistered address", async function () {
+      await assetNFT.connect(admin).mintAsset("A1", "Type", "Ref", "URI", admin.address, DID_ADMIN);
+      const [,,,,, , randomGuy] = await ethers.getSigners();
+      await expect(
+        assetNFT.connect(manager).allocateAsset(1, randomGuy.address, "did:assetchain:fake")
+      ).to.be.revertedWithCustomError(assetNFT, "IdentityNotRegistered");
+    });
+    
+    it("should reject allocation with DID mismatch", async function () {
+      await assetNFT.connect(admin).mintAsset("A2", "Type", "Ref", "URI", admin.address, DID_ADMIN);
+      await expect(
+        assetNFT.connect(manager).allocateAsset(1, user1.address, "did:assetchain:fake")
+      ).to.be.revertedWithCustomError(assetNFT, "DIDMismatch");
+    });
+
+    it("should reject transfer if owner is suspended", async function () {
+      await assetNFT.connect(admin).mintAsset("A3", "Type", "Ref", "URI", admin.address, DID_ADMIN);
+      await assetNFT.connect(manager).allocateAsset(1, user1.address, DID_USER_1);
+      
+      await identityRegistry.connect(admin).updateIdentityStatus(DID_USER_1, 2); // Suspend user1
+      
+      await expect(
+        assetNFT.connect(user1).transferAsset(1, user2.address, DID_USER_2)
+      ).to.be.revertedWithCustomError(assetNFT, "IdentityNotActive");
+    });
+  });
+
   describe("Lifecycle Status Management", function () {
     beforeEach(async function () {
       await assetNFT

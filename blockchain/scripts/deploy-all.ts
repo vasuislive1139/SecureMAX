@@ -19,18 +19,14 @@ async function main() {
 
   // 2. Deploy AccessControlManager (RBAC)
   const AccessControlFactory = await ethers.getContractFactory("AccessControlManager");
-  const rbacManager = await AccessControlFactory.deploy(deployer.address);
+  const rbacManager = await AccessControlFactory.deploy(deployer.address, identityAddress);
   await rbacManager.waitForDeployment();
   const rbacAddress = await rbacManager.getAddress();
   console.log(`✅ AccessControlManager deployed at: ${rbacAddress}`);
 
   // 3. Deploy AssetNFT
   const AssetNFTFactory = await ethers.getContractFactory("AssetNFT");
-  const assetNFT = await AssetNFTFactory.deploy(
-    "SecureMAX Organizational Asset",
-    "SMX-AST",
-    rbacAddress
-  );
+  const assetNFT = await AssetNFTFactory.deploy("SecureMAX Organizational Asset", "SMX-AST", rbacAddress, identityAddress);
   await assetNFT.waitForDeployment();
   const assetAddress = await assetNFT.getAddress();
   console.log(`✅ AssetNFT deployed at: ${assetAddress}`);
