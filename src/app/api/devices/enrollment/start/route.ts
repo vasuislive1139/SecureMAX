@@ -3,30 +3,44 @@ import { getVerifiedSession } from '@/lib/auth/session';
 import { deviceStore } from '@/lib/auth/deviceStore';
 import { UserRole } from '@/types';
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const session = await getVerifiedSession();
-    const user = deviceStore.getUserById(session.userId);
+    const body = await req.json().catch(() => ({}));
+    const { targetUserId } = body;
 
-    if (!user) {
-      return NextResponse.json({ error: 'User record not found' }, { status: 404 });
+    let enrollForUserId = session.userId;
+
+    if (session.role === UserRole.ADMIN) {
+      if (!targetUserId) {
+        return NextResponse.json(
+          { error: 'Admin account is strictly hardware-bound. To enroll a device, select an authorized team member.' },
+          { status: 400 }
+        );
+      }
+      enrollForUserId = targetUserId;
     }
 
-    if (session.role === UserRole.ADMIN || user.role === UserRole.ADMIN) {
+    const targetUser = deviceStore.getUserById(enrollForUserId);
+    if (!targetUser) {
+      return NextResponse.json({ error: 'Target user record not found' }, { status: 404 });
+    }
+
+    if (targetUser.role === UserRole.ADMIN) {
       return NextResponse.json(
-        { error: 'Admin account is strictly hardware-bound to the administrator terminal. Additional device enrollment is restricted for root security.' },
+        { error: 'Root administrator accounts cannot have secondary devices.' },
         { status: 403 }
       );
     }
 
-    const enrollment = deviceStore.createEnrollment(session.userId);
+    const enrollment = deviceStore.createEnrollment(targetUser.id, session.userId);
 
     const qrPayload = JSON.stringify({
       app: 'SecureMAX',
       action: 'enroll_device',
       code: enrollment.code,
-      userId: session.userId,
-      userEmail: session.email || user.email,
+      userId: targetUser.id,
+      userEmail: targetUser.email,
       expiresAt: enrollment.expires_at,
     });
 
@@ -36,6 +50,8 @@ export async function POST() {
         code: enrollment.code,
         expiresAt: enrollment.expires_at,
         qrPayload,
+        targetUserName: targetUser.name,
+        targetUserEmail: targetUser.email,
       },
     });
   } catch (error: any) {

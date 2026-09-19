@@ -5,22 +5,40 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 export async function GET() {
   try {
     const session = await getVerifiedSession();
-    const devices = deviceStore.getDevicesForUser(session.userId);
+    const isAdmin = session.role === 'ADMIN';
+
+    const devices = isAdmin 
+      ? deviceStore.getAllDevices() 
+      : deviceStore.getDevicesForUser(session.userId);
 
     const safeDevices = devices.map(d => ({
       id: d.id,
       deviceName: d.device_name,
       status: d.status,
       isAdminDevice: d.is_admin_device,
+      userId: d.user_id,
+      userEmail: (d as any).userEmail || session.email,
+      userName: (d as any).userName || session.name,
       createdAt: d.created_at,
       lastUsedAt: d.last_used_at,
       revokedAt: d.revoked_at,
       publicKeyFingerprint: d.public_key ? `P256-${d.public_key.slice(0, 10)}...${d.public_key.slice(-8)}` : 'UNKNOWN',
     }));
 
+    // If admin, also send registered users list for easy device assignment dropdown
+    let personnelList: Array<{ id: string; name: string; email: string }> = [];
+    if (isAdmin) {
+      for (const u of deviceStore.users.values()) {
+        if (u.role !== 'ADMIN' && !personnelList.some(p => p.id === u.id)) {
+          personnelList.push({ id: u.id, name: u.name, email: u.email });
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       devices: safeDevices,
+      personnel: personnelList,
       user: {
         id: session.userId,
         email: session.email,

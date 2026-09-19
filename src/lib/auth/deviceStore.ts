@@ -284,10 +284,28 @@ class SecureMaxStore {
     return device;
   }
 
-  public revokeDevice(userId: string, deviceId: string): void {
+  public getAllDevices(): Array<UserDevice & { userEmail?: string; userName?: string }> {
+    const list: Array<UserDevice & { userEmail?: string; userName?: string }> = [];
+    for (const d of this.devices.values()) {
+      const user = this.getUserById(d.user_id);
+      list.push({
+        ...d,
+        userEmail: user?.email,
+        userName: user?.name,
+      });
+    }
+    return list;
+  }
+
+  public revokeDevice(callerUserId: string, deviceId: string): void {
     const dev = this.devices.get(deviceId);
     if (!dev) throw new Error('Device not found');
-    if (dev.user_id !== userId) throw new Error('Unauthorized to revoke this device');
+    const caller = this.getUserById(callerUserId);
+    const isCallerAdmin = caller?.role === UserRole.ADMIN;
+
+    if (dev.user_id !== callerUserId && !isCallerAdmin) {
+      throw new Error('Unauthorized to revoke this device');
+    }
     if (dev.is_admin_device) {
       throw new Error('Cannot revoke primary Admin hardware device. Emergency break-glass required.');
     }
@@ -304,12 +322,21 @@ class SecureMaxStore {
   }
 
   // --- DEVICE ENROLLMENT (ONE-TIME CODES) ---
-  public createEnrollment(userId: string): DeviceEnrollment {
-    const user = this.getUserById(userId);
-    if (!user) throw new Error('User not found');
+  public createEnrollment(userId: string, callerUserId?: string): DeviceEnrollment {
+    const targetUser = this.getUserById(userId);
+    if (!targetUser) throw new Error('User not found');
 
-    // Rule: Admin accounts cannot generate enrollment codes for secondary devices
-    if (user.role === UserRole.ADMIN) {
+    // If caller is provided, verify permissions
+    if (callerUserId) {
+      const caller = this.getUserById(callerUserId);
+      const isCallerAdmin = caller?.role === UserRole.ADMIN;
+      if (callerUserId !== userId && !isCallerAdmin) {
+        throw new Error('Unauthorized: only an Admin can issue device enrollment codes for other users');
+      }
+    }
+
+    // Rule: Admin root accounts cannot have secondary devices
+    if (targetUser.role === UserRole.ADMIN) {
       throw new Error('Admin account is strictly device-bound. Multi-device enrollment is disabled for root administrative security.');
     }
 
@@ -319,8 +346,8 @@ class SecureMaxStore {
 
     const enrollment: DeviceEnrollment = {
       code,
-      user_id: userId,
-      expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
+      user_id: targetUser.id,
+      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
       created_at: new Date().toISOString(),
     };
 
