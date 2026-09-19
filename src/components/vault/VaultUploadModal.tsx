@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useBlockchainTransaction } from '@/hooks/useBlockchainTransaction';
-import { AssetNFTABI } from '@/lib/blockchain/abis';
+import { AssetRegistryABI } from '@/lib/blockchain/abis';
 import deployedAddresses from '../../../deployed-addresses.json';
 import { useAccount } from 'wagmi';
 
@@ -65,7 +65,7 @@ export function VaultUploadModal({
 
   const { execute, txState, hash, errorMessage, reset: resetTx } = useBlockchainTransaction();
   const { address } = useAccount();
-  const assetNftAddress = (process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS || deployedAddresses.contracts.AssetNFT) as `0x${string}`;
+  const assetRegistryAddress = (process.env.NEXT_PUBLIC_ASSET_REGISTRY_ADDRESS || (deployedAddresses.contracts as any).AssetRegistry) as `0x${string}`;
 
   React.useEffect(() => {
     if (defaultFolder && defaultFolder !== 'ALL') {
@@ -157,16 +157,15 @@ export function VaultUploadModal({
       if (address) {
         try {
           await execute({
-            address: assetNftAddress,
-            abi: AssetNFTABI,
-            functionName: 'mintAsset',
+            address: assetRegistryAddress,
+            abi: AssetRegistryABI,
+            functionName: 'registerAsset',
             args: [
-              data.asset.code, // assetId
-              classification,  // assetType
-              data.asset.id,   // assetReference
-              "ipfs://mock-uri", // metadataURI
-              address,         // initialRecipient
-              `did:securemax:user:${address.toLowerCase()}` // recipientDid
+              "0x" + Buffer.from(data.asset.id).toString("hex").padEnd(64, '0').slice(0, 64), // bytes32 assetId
+              data.asset.code, // assetCode
+              "0x" + Buffer.from("content_hash_mock").toString("hex").padEnd(64, '0').slice(0, 64), // bytes32 contentHash
+              classification === 'PUBLIC' ? 0 : classification === 'INTERNAL' ? 1 : classification === 'CONFIDENTIAL' ? 2 : 3, // classification
+              `did:securemax:user:${address.toLowerCase()}` // ownerDid
             ],
           });
         } catch (txErr) {

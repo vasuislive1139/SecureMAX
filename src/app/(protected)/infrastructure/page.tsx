@@ -7,9 +7,13 @@ import { useBlockNumber, usePublicClient } from 'wagmi';
 import deployedAddresses from '../../../../deployed-addresses.json';
 
 const CONTRACTS = [
-  { name: 'IdentityRegistry', address: process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS || deployedAddresses.contracts.IdentityRegistry, domain: 'DOMAIN 1' },
-  { name: 'AccessControlManager', address: process.env.NEXT_PUBLIC_ACCESS_CONTROL_MANAGER_ADDRESS || deployedAddresses.contracts.AccessControlManager, domain: 'DOMAIN 1' },
-  { name: 'AssetNFT', address: process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS || deployedAddresses.contracts.AssetNFT, domain: 'DOMAIN 1' }
+  { name: 'IdentityRegistry', address: process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS || (deployedAddresses.contracts as any).IdentityRegistry, domain: 'Chain-1: Identity & Access' },
+  { name: 'RBACManager', address: process.env.NEXT_PUBLIC_RBAC_MANAGER_ADDRESS || (deployedAddresses.contracts as any).RBACManager, domain: 'Chain-1: Identity & Access' },
+  { name: 'AssetRegistry', address: process.env.NEXT_PUBLIC_ASSET_REGISTRY_ADDRESS || (deployedAddresses.contracts as any).AssetRegistry, domain: 'Chain-1: Identity & Access' },
+  { name: 'AuditAnchor', address: process.env.NEXT_PUBLIC_AUDIT_ANCHOR_ADDRESS || (deployedAddresses.contracts as any).AuditAnchor, domain: 'Chain-1: Identity & Access' },
+  { name: 'KeyPolicyManager', address: process.env.NEXT_PUBLIC_KEY_POLICY_MANAGER_ADDRESS || (deployedAddresses.contracts as any).KeyPolicyManager, domain: 'Chain-2: Key Management' },
+  { name: 'KeyLifecycle', address: process.env.NEXT_PUBLIC_KEY_LIFECYCLE_ADDRESS || (deployedAddresses.contracts as any).KeyLifecycle, domain: 'Chain-2: Key Management' },
+  { name: 'DecryptionAuth', address: process.env.NEXT_PUBLIC_DECRYPTION_AUTH_ADDRESS || (deployedAddresses.contracts as any).DecryptionAuth, domain: 'Chain-2: Key Management' }
 ];
 
 export default function InfrastructurePage() {

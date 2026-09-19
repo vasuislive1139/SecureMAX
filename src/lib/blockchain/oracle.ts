@@ -1,7 +1,7 @@
 import 'server-only';
 import { createPublicClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
-import { AssetNFTABI } from './abis';
+import { AssetRegistryABI } from './abis';
 
 import deployedAddresses from '../../../deployed-addresses.json';
 
@@ -22,7 +22,7 @@ const publicClient = createPublicClient({
 });
 
 export async function verifyChain1Access(userId: string, assetId: string): Promise<OracleResult> {
-  const contractAddress = (process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS || deployedAddresses.contracts.AssetNFT) as `0x${string}`;
+  const contractAddress = (process.env.NEXT_PUBLIC_ASSET_REGISTRY_ADDRESS || (deployedAddresses.contracts as any).AssetRegistry) as `0x${string}`;
 
   // Check if asset is known in local store first for instant responsiveness
   try {
@@ -43,12 +43,12 @@ export async function verifyChain1Access(userId: string, assetId: string): Promi
     // Real verification checks owner address against identity.
     const asset = await publicClient.readContract({
       address: contractAddress,
-      abi: AssetNFTABI,
-      functionName: 'getAssetByAssetId',
-      args: [assetId],
+      abi: AssetRegistryABI,
+      functionName: 'getAsset',
+      args: ["0x" + Buffer.from(assetId).toString("hex").padEnd(64, '0').slice(0, 64)],
     });
 
-    if (asset && (asset as any).status !== 3 && (asset as any).status !== 2) { // not decommissioned or suspended
+    if (asset && (asset as any).status !== 0) { // registeredAt != 0 and status active
       return { allowed: true, status: 'AUTHORIZED', chainId: targetChain.id, contractAddress };
     } else {
       return { allowed: false, status: 'DENIED', chainId: targetChain.id, contractAddress, reason: 'No active assignment found on Chain-1' };
