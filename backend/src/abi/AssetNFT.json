@@ -15,6 +15,11 @@
         "internalType": "address",
         "name": "_rbacRegistry",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_identityRegistry",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -62,6 +67,22 @@
       }
     ],
     "name": "AssetNotFound",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "controller",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "providedDid",
+        "type": "string"
+      }
+    ],
+    "name": "DIDMismatch",
     "type": "error"
   },
   {
@@ -175,6 +196,28 @@
   {
     "inputs": [],
     "name": "ExpectedPause",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "controller",
+        "type": "address"
+      }
+    ],
+    "name": "IdentityNotActive",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "controller",
+        "type": "address"
+      }
+    ],
+    "name": "IdentityNotRegistered",
     "type": "error"
   },
   {
@@ -877,6 +920,19 @@
         "internalType": "struct AssetNFT.AssetRecord",
         "name": "record",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "identityRegistry",
+    "outputs": [
+      {
+        "internalType": "contract IIdentityRegistry",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",

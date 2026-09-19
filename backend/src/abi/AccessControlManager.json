@@ -5,6 +5,11 @@
         "internalType": "address",
         "name": "initialAdmin",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_identityRegistry",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -76,6 +81,28 @@
   {
     "inputs": [],
     "name": "ExpectedPause",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "controller",
+        "type": "address"
+      }
+    ],
+    "name": "IdentityNotActive",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "controller",
+        "type": "address"
+      }
+    ],
+    "name": "IdentityNotRegistered",
     "type": "error"
   },
   {
@@ -488,6 +515,19 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "identityRegistry",
+    "outputs": [
+      {
+        "internalType": "contract IIdentityRegistry",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
