@@ -76,3 +76,22 @@ export function decryptData(ciphertextBase64: string, key: Buffer, ivBase64: str
     throw new Error('Decryption failed: Integrity check (AAD/AuthTag) failed or corrupted data.');
   }
 }
+
+/**
+ * Creates a Decipher stream for AES-256-GCM.
+ * This stream can be piped into to prevent buffering large files in memory.
+ */
+export function createDecryptionStream(key: Buffer, ivBase64: string, authTagBase64: string, aadString: string): crypto.Decipher {
+  if (key.length !== KEY_LENGTH) throw new Error('Decryption key must be 32 bytes.');
+
+  const iv = Buffer.from(ivBase64, 'base64');
+  const authTag = Buffer.from(authTagBase64, 'base64');
+  
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+  
+  // Bind the AAD and Auth Tag before piping data
+  decipher.setAAD(Buffer.from(aadString, 'utf8'));
+  decipher.setAuthTag(authTag);
+  
+  return decipher;
+}

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getVerifiedSession } from '@/lib/auth/session';
-import { authorizeAssetAccess, executeDecryption } from '@/lib/api/access-flow';
+import { authorizeAssetAccess, prepareDecryptionStream } from '@/lib/api/access-flow';
+import { Readable } from 'stream';
 import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function POST(req: Request) {
@@ -39,36 +40,37 @@ export async function POST(req: Request) {
       throw authErr;
     }
 
-    // 2. Decrypt encrypted content
-    let encryptedBuffer: Buffer | null = null;
-    try {
-      const { supabaseAdmin } = require('@/lib/db/client');
-      if (supabaseAdmin) {
-        const { data, error } = await supabaseAdmin.storage.from('securemax-vault').download(`assets/${assetId}`);
-        if (!error && data) {
-          encryptedBuffer = Buffer.from(await data.arrayBuffer());
-        }
-      }
-    } catch (e) {
-      console.warn('[Storage] Exception downloading from Supabase:', e);
-    }
-
-    if (!encryptedBuffer) {
-      if (asset.encrypted_content === 'stored_in_supabase_cloud') {
-         return NextResponse.json({ error: 'Asset data missing from memory and storage' }, { status: 500 });
-      }
-      encryptedBuffer = Buffer.from(asset.encrypted_content, 'base64');
-    }
-    const decryptedBuffer = await executeDecryption(
+    // 2. Prepare Decryption Stream
+    const decryptStream = await prepareDecryptionStream(
       assetId,
-      encryptedBuffer,
       asset.iv,
       asset.auth_tag,
       tempToken,
       session.sessionId
     );
 
-    const decryptedText = decryptedBuffer.toString('utf8');
+    let finalWebStream: any;
+
+    if (asset.encrypted_content === 'stored_in_supabase_cloud') {
+      const { supabaseAdmin } = require('@/lib/db/client');
+      if (!supabaseAdmin) throw new Error('Supabase admin client not initialized');
+      
+      const { data, error } = await supabaseAdmin.storage.from('securemax-vault').createSignedUrl(`assets/${assetId}`, 60);
+      if (error || !data?.signedUrl) throw new Error('Failed to generate secure download URL');
+
+      const response = await fetch(data.signedUrl);
+      if (!response.ok || !response.body) throw new Error('Failed to fetch encrypted asset stream');
+
+      const nodeReadable = Readable.fromWeb(response.body as any);
+      const finalNodeStream = nodeReadable.pipe(decryptStream);
+      finalWebStream = Readable.toWeb(finalNodeStream);
+    } else {
+      // Fallback for legacy assets stored in-memory
+      const encryptedBuffer = Buffer.from(asset.encrypted_content, 'base64');
+      const nodeReadable = Readable.from(encryptedBuffer);
+      const finalNodeStream = nodeReadable.pipe(decryptStream);
+      finalWebStream = Readable.toWeb(finalNodeStream);
+    }
 
     // 3. Record successful access log
     deviceStore.recordAssetAccess(
@@ -76,23 +78,15 @@ export async function POST(req: Request) {
       session.userId,
       'DECRYPT',
       'SUCCESS',
-      'In-memory AES-256-GCM controlled decryption completed'
+      'Streaming AES-256-GCM decryption started'
     );
 
-    return NextResponse.json({
-      success: true,
-      assetId: asset.id,
-      assetName: asset.name,
-      classification: asset.classification,
-      folder: asset.folder,
-      fileType: asset.file_type,
-      mimeType: asset.mime_type,
-      fileSizeBytes: asset.file_size_bytes,
-      decryptedData: decryptedText,
-      decryptedAt: new Date().toISOString(),
-      keyVersion: asset.key_version,
-      encryptionStandard: 'AES-256-GCM • Server-Side KMS • Controlled Decryption',
-      authorizedBy: 'SecureMAX Server-Side KMS & Blockchain Identity Layer',
+    return new NextResponse(finalWebStream, {
+      headers: {
+        'Content-Type': asset.mime_type || 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${asset.name.replace(/"/g, '')}"`,
+        'X-SecureMAX-Standard': 'AES-256-GCM • Streaming Decryption'
+      }
     });
   } catch (error: any) {
     console.error('[Decryption API Error]:', error);

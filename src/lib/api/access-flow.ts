@@ -203,6 +203,53 @@ export async function executeDecryption(
   }
 }
 
+export async function prepareDecryptionStream(
+  assetId: string, 
+  encryptedFileIV: string, 
+  encryptedFileAuthTag: string,
+  tempToken: string,
+  sessionId: string
+) {
+  // 1. Cryptographically validate the temporary token before touching KMS
+  await validateTemporaryDecryptionToken(tempToken, sessionId, assetId);
+
+  // 1b. Check session status in database
+  try {
+    const { data: sessionData } = await supabaseAdmin
+      .from('access_sessions')
+      .select('status')
+      .eq('id', sessionId)
+      .single();
+
+    if (sessionData && sessionData.status === 'REVOKED') {
+      throw new Error('Session Revoked');
+    }
+  } catch (err: any) {
+    if (err.message === 'Session Revoked') throw err;
+  }
+
+  // 2. Fetch DEK securely inside the KMS boundary
+  const dekPlaintext = await fetchAndDecryptDEK(assetId);
+
+  // 3. Bind the AAD string
+  const aadString = `asset_data:${assetId}`;
+
+  // 4. Create and return the decryption stream
+  const { createDecryptionStream } = await import('../crypto');
+  const stream = createDecryptionStream(
+    dekPlaintext,
+    encryptedFileIV,
+    encryptedFileAuthTag,
+    aadString
+  );
+  
+  // Note: We can't immediately wipe DEK buffer here because the stream needs it internally.
+  // The Decipher instance copies the key, so it's safe to clear the buffer.
+  dekPlaintext.fill(0);
+  
+  return stream;
+}
+
 export async function revokeAssetAccess(
   adminId: string, 
   targetUserId: string, 

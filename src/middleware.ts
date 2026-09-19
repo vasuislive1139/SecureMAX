@@ -46,6 +46,17 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/devices/enrollment/complete') ||
     pathname === '/api/health';
 
+  // Enforce 5MB payload limit for uploads to prevent memory exhaustion
+  if (pathname === '/api/assets/upload' && request.method === 'POST') {
+    const contentLength = request.headers.get('content-length');
+    if (contentLength && parseInt(contentLength, 10) > 5 * 1024 * 1024) {
+      return NextResponse.json(
+        { success: false, error: { code: 'PAYLOAD_TOO_LARGE', message: 'Payload exceeds 5MB limit' } },
+        { status: 413 }
+      );
+    }
+  }
+
   // Protect dashboard and api routes (except public APIs)
   if (pathname.startsWith('/dashboard') || (pathname.startsWith('/api/') && !isPublicApi)) {
     const session = await validateSession(request);
