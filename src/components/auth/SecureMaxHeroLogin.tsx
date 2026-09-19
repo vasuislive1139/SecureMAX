@@ -36,8 +36,6 @@ import SecureMaxChainIntro from '@/components/ui/SecureMaxChainIntro';
 import AdminBootstrapWizard from '@/components/auth/AdminBootstrapWizard';
 import EmergencyRecoveryModal from '@/components/auth/EmergencyRecoveryModal';
 
-type LoginRole = 'USER' | 'MANAGER' | 'AUDITOR' | 'ADMIN';
-
 export default function SecureMaxHeroLogin() {
   const router = useRouter();
 
@@ -304,33 +302,6 @@ export default function SecureMaxHeroLogin() {
     } catch (err: any) {
       setLoading(false);
       setErrorMessage(err.message || 'Registration failed');
-    }
-  };
-
-  // Fallback demo login helper (Only triggered by quick demo buttons)
-  const handleFallbackDemoLogin = async (role: LoginRole) => {
-    try {
-      setLoading(true);
-      setErrorMessage('');
-      setStatusMessage(`Authenticating ${role} session...`);
-      const res = await fetch('/api/auth/demo-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Authentication failed');
-
-      setStatusMessage(`Authenticated as ${role}. Redirecting...`);
-      setTimeout(() => {
-        if (role === 'ADMIN') router.push('/dashboard/admin');
-        else if (role === 'AUDITOR') router.push('/dashboard/auditor');
-        else router.push('/assets');
-      }, 500);
-    } catch (e: any) {
-      setLoading(false);
-      setErrorMessage(e.message || 'Login failed');
     }
   };
 
@@ -704,52 +675,6 @@ export default function SecureMaxHeroLogin() {
                         <Key className="w-3.5 h-3.5 text-cyan-400" />
                         Use Device Key
                       </button>
-                    </div>
-
-                    {/* Quick Demo Credentials Fillers */}
-                    <div className="pt-2">
-                      <div className="text-[10px] font-mono text-zinc-500 mb-1.5 flex items-center justify-between">
-                        <span>QUICK DEMO PRESETS:</span>
-                        <span className="text-[9px] text-zinc-600">Click to fill</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEmail('admin@securemax.mil');
-                            setPassword('HardwareKey#RootAdmin2026');
-                            setErrorMessage('');
-                          }}
-                          className="py-1.5 px-2 rounded-lg bg-zinc-900/90 hover:bg-cyan-950/40 border border-zinc-800 hover:border-cyan-500/40 text-[11px] font-mono text-cyan-300 transition-all text-center truncate cursor-pointer"
-                          title="Admin: admin@securemax.mil"
-                        >
-                          🛡️ Admin
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEmail('vasu@securemax.mil');
-                            setPassword('MacBook#Enclave2026');
-                            setErrorMessage('');
-                          }}
-                          className="py-1.5 px-2 rounded-lg bg-zinc-900/90 hover:bg-cyan-950/40 border border-zinc-800 hover:border-cyan-500/40 text-[11px] font-mono text-cyan-300 transition-all text-center truncate cursor-pointer"
-                          title="User: vasu@securemax.mil"
-                        >
-                          👤 User
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEmail('auditor@securemax.mil');
-                            setPassword('Auditor#Compliance2026');
-                            setErrorMessage('');
-                          }}
-                          className="py-1.5 px-2 rounded-lg bg-zinc-900/90 hover:bg-cyan-950/40 border border-zinc-800 hover:border-cyan-500/40 text-[11px] font-mono text-cyan-300 transition-all text-center truncate cursor-pointer"
-                          title="Auditor: auditor@securemax.mil"
-                        >
-                          📋 Auditor
-                        </button>
-                      </div>
                     </div>
 
                     {/* State-Aware System Initialization Section (Strictly zero-admin state only) */}
