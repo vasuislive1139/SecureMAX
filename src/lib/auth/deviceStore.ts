@@ -78,6 +78,7 @@ export interface StoredAsset {
   blockchain_token_id: string;
   blockchain_contract: string;
   did: string;
+  is_archived?: boolean;
 }
 
 export interface StoredAssignment {
@@ -101,7 +102,7 @@ export interface StoredAccessRequest {
   user_email: string;
   user_name: string;
   role: string;
-  request_type: 'HIGH_RISK_DATA' | 'AUDIT_UPDATE';
+  request_type: 'HIGH_RISK_DATA' | 'AUDIT_UPDATE' | 'ASSET_ACCESS';
   asset_id?: string;
   asset_code?: string;
   asset_name?: string;
@@ -111,6 +112,7 @@ export interface StoredAccessRequest {
   nft_token_id?: string;
   created_at: string;
   approved_at?: string;
+  rejected_at?: string;
 }
 
 export interface LiveGrant {
@@ -464,6 +466,10 @@ class SecureMaxStore {
 
   public getWrappedDEK(assetId: string) {
     return this.wrappedDEKs.get(assetId);
+  }
+
+  public seedInitialData(): void {
+    this.seedTestDataForTesting(true);
   }
 
   public seedTestDataForTesting(force: boolean = false): void {
@@ -3536,7 +3542,7 @@ class SecureMaxStore {
       const targetUser = this.getUserById(params.targetUserId);
       this.assignments.push({
         asset_id: assetId,
-        user_id: targetUserId,
+        user_id: params.targetUserId,
         can_read: true,
         can_decrypt: params.canDecryptShared !== false,
         can_download: params.canDownloadShared !== false,
@@ -3591,7 +3597,7 @@ class SecureMaxStore {
     const asset = this.assets.get(params.assetId);
     if (!asset) throw new Error('Asset not found');
 
-    const caller = this.getUserById(params.callerUserId);
+    const caller = this.getUserById(callerUserId);
     const callerAssignment = this.getAssignment(callerUserId, params.assetId);
     const isCallerAdmin = caller?.role === UserRole.ADMIN;
     const isOwner = asset.owner_id === callerUserId || asset.owner_name === caller?.name;
@@ -3610,7 +3616,7 @@ class SecureMaxStore {
 
     const assignment = this.setAssignment(
       params.assetId,
-      params.targetUserId,
+      targetUserId,
       (params.permissions?.canRead ?? params.canRead ?? true) !== false,
       (params.permissions?.canDecrypt ?? params.canDecrypt ?? true) !== false,
       (params.permissions?.canDownload ?? params.canDownload ?? false) !== false,
@@ -3922,7 +3928,7 @@ class SecureMaxStore {
   // --- ACCESS REQUESTS (HIGH-RISK DATA & AUDITOR UPDATES) ---
   public createAccessRequest(params: {
     userId: string;
-    requestType: 'HIGH_RISK_DATA' | 'AUDIT_UPDATE';
+    requestType: 'HIGH_RISK_DATA' | 'AUDIT_UPDATE' | 'ASSET_ACCESS';
     assetId?: string;
     reason: string;
   }): StoredAccessRequest {
