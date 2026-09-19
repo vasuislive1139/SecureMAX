@@ -63,7 +63,7 @@ export async function getVerifiedSession(): Promise<SessionPayload> {
 
   // Zero-Trust Live User Account Verification & Authoritative Role Freshness
   if (payload.userId) {
-    const user = deviceStore.getUserById(payload.userId);
+    let user = deviceStore.getUserById(payload.userId);
     if (!user) {
       // VERCEL COLD-START MITIGATION: Rehydrate user from cryptographically valid JWT if in-memory store was wiped
       const hydratedUser = {
