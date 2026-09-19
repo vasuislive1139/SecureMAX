@@ -241,10 +241,19 @@ export function MyAccessView() {
   // Initial load
   React.useEffect(() => {
     fetchSessionData();
+  }, [fetchSessionData]);
+
+  React.useEffect(() => {
     fetchAssetsData();
+  }, [fetchAssetsData]);
+
+  React.useEffect(() => {
     fetchDevicesData();
+  }, [fetchDevicesData]);
+
+  React.useEffect(() => {
     fetchRequestsData();
-  }, [fetchSessionData, fetchAssetsData, fetchDevicesData, fetchRequestsData]);
+  }, [fetchRequestsData]);
 
   // ----------------------------------------------------
   // REAL-TIME SYNC & LIVE GRANTS
