@@ -605,11 +605,11 @@ export default function SecureMaxHeroLogin() {
             {authMode === 'SIGN_IN' ? (
               <>
                 {/* Role Switcher Pills */}
-                <div className="grid grid-cols-3 gap-1.5 bg-zinc-950/70 p-1.5 rounded-xl border border-zinc-800/80 mb-5 relative z-10">
+                <div className="grid grid-cols-4 gap-1.5 bg-zinc-950/70 p-1.5 rounded-xl border border-zinc-800/80 mb-5 relative z-10">
                   <button
                     type="button"
                     onClick={() => handleRoleChange('USER')}
-                    className={`py-2 px-2 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer ${
                       selectedRole === 'USER'
                         ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
                         : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
@@ -621,21 +621,21 @@ export default function SecureMaxHeroLogin() {
 
                   <button
                     type="button"
-                    onClick={() => handleRoleChange('ADMIN')}
-                    className={`py-2 px-2 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                      selectedRole === 'ADMIN'
+                    onClick={() => handleRoleChange('MANAGER')}
+                    className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                      selectedRole === 'MANAGER'
                         ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
                         : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
                     }`}
                   >
-                    <Shield className="w-3.5 h-3.5 text-cyan-400" />
-                    Admin
+                    <Briefcase className="w-3.5 h-3.5 text-cyan-400" />
+                    Manager
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleRoleChange('AUDITOR')}
-                    className={`py-2 px-2 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer ${
                       selectedRole === 'AUDITOR'
                         ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
                         : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
@@ -644,143 +644,287 @@ export default function SecureMaxHeroLogin() {
                     <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
                     Auditor
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!systemInitialized) {
+                        setShowBootstrapWizard(true);
+                      } else {
+                        handleRoleChange('ADMIN');
+                      }
+                    }}
+                    className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                      selectedRole === 'ADMIN'
+                        ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+                        : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                    }`}
+                  >
+                    <Shield className="w-3.5 h-3.5 text-cyan-400" />
+                    Admin
+                    {!systemInitialized && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse ml-0.5" title="Uninitialized" />
+                    )}
+                  </button>
                 </div>
 
-                {/* Login Form */}
-                <form onSubmit={handlePrimaryLogin} className="space-y-4 relative z-10">
-                  
-                  {/* Input 1: User ID / Email */}
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                      <Mail className="w-4 h-4" />
+                {selectedRole === 'ADMIN' ? (
+                  /* Dedicated Root Administrator Login Form */
+                  <form onSubmit={handleAdminLogin} className="space-y-4 relative z-10">
+                    <div className="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-mono uppercase tracking-wider text-cyan-400">Root Identity Security</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                          AAL-3 Required
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-400 mt-1">
+                        Root Administrator authentication requires your singleton hardware-bound device and WebAuthn credentials.
+                      </p>
                     </div>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter User ID or Email"
-                      required
-                      className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
-                    />
-                  </div>
 
-                  {/* Input 2: Password / Device Signature */}
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                      <Lock className="w-4 h-4" />
+                    {/* Administrator ID */}
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5">
+                        Administrator ID
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                          <Shield className="w-4 h-4 text-cyan-400" />
+                        </div>
+                        <input
+                          type="text"
+                          value={adminIdInput}
+                          onChange={(e) => setAdminIdInput(e.target.value)}
+                          placeholder="ADM-0001"
+                          required
+                          className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 font-mono transition-colors"
+                        />
+                      </div>
                     </div>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter Password or Device Signature"
-                      required
-                      className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-10 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
 
-                  {/* Status Message */}
-                  {loading && (
-                    <div className="p-3 bg-zinc-900/90 border border-cyan-500/30 rounded-xl flex items-center gap-2.5 text-xs font-mono text-cyan-300 animate-in fade-in">
-                      <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
-                      <span className="truncate">{statusMessage}</span>
+                    {/* Trusted Device */}
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5">
+                        Trusted Device
+                      </label>
+                      <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Laptop className="w-4 h-4 text-cyan-400" />
+                          <span className="text-xs font-mono text-zinc-200">{deviceInfo?.deviceName || 'SecureMAX Admin Laptop'}</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          ● Bound (1/1)
+                        </span>
+                      </div>
                     </div>
-                  )}
 
-                  {/* Error Message */}
-                  {errorMessage && (
-                    <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-xl space-y-2 text-red-400 text-xs font-mono animate-in fade-in">
-                      <div className="flex items-start gap-2">
+                    {/* Status Message */}
+                    {loading && (
+                      <div className="p-3 bg-zinc-900/90 border border-cyan-500/30 rounded-xl flex items-center gap-2.5 text-xs font-mono text-cyan-300 animate-in fade-in">
+                        <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
+                        <span className="truncate">{statusMessage}</span>
+                      </div>
+                    )}
+
+                    {/* Error Message */}
+                    {errorMessage && (
+                      <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-xl flex items-start gap-2 text-red-400 text-xs font-mono animate-in fade-in">
                         <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                         <span>{errorMessage}</span>
                       </div>
-                      {errorMessage.toLowerCase().includes('not registered') && (
+                    )}
+
+                    {/* Authenticate Button */}
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+                    >
+                      <Key className="w-4 h-4" />
+                      <span>AUTHENTICATE WITH DEVICE</span>
+                    </button>
+
+                    <div className="text-center text-[11px] text-zinc-500 pt-1">
+                      Use your device security: Face ID • Fingerprint • Windows Hello • PIN
+                    </div>
+
+                    {/* Emergency Recovery Link */}
+                    <div className="pt-3 text-center border-t border-zinc-800/80">
+                      <button
+                        type="button"
+                        onClick={() => setShowRecoveryModal(true)}
+                        className="text-xs text-amber-400 hover:text-amber-300 font-mono underline flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+                      >
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        Emergency Recovery Ceremony
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  /* Staff Login Form */
+                  <form onSubmit={handlePrimaryLogin} className="space-y-4 relative z-10">
+                    
+                    {/* Input 1: User ID / Email */}
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter User ID or Email"
+                        required
+                        className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                      />
+                    </div>
+
+                    {/* Input 2: Password / Device Signature */}
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter Password or Device Signature"
+                        required
+                        className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-10 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-500 hover:text-zinc-300 transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+
+                    {/* Status Message */}
+                    {loading && (
+                      <div className="p-3 bg-zinc-900/90 border border-cyan-500/30 rounded-xl flex items-center gap-2.5 text-xs font-mono text-cyan-300 animate-in fade-in">
+                        <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
+                        <span className="truncate">{statusMessage}</span>
+                      </div>
+                    )}
+
+                    {/* Error Message */}
+                    {errorMessage && (
+                      <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-xl space-y-2 text-red-400 text-xs font-mono animate-in fade-in">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>{errorMessage}</span>
+                        </div>
+                        {errorMessage.toLowerCase().includes('not registered') && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRegEmail(email);
+                              setAuthMode('REGISTER');
+                              setErrorMessage('');
+                            }}
+                            className="text-cyan-400 hover:text-cyan-300 underline font-semibold flex items-center gap-1.5 cursor-pointer pl-6 pt-1 text-xs"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                            Register &quot;{email}&quot; as a new user now →
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* CONNECT BUTTON: "Login ->" */}
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+                    >
+                      <span>Login</span>
+                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+
+                    {/* Divider: "Or continue with" */}
+                    <div className="relative flex items-center justify-center my-4">
+                      <div className="border-t border-zinc-800 w-full"></div>
+                      <span className="bg-[#0a0f18] px-3 text-[10px] font-mono text-zinc-500 tracking-wider uppercase shrink-0">
+                        Or continue with
+                      </span>
+                      <div className="border-t border-zinc-800 w-full"></div>
+                    </div>
+
+                    {/* Secondary Connect Buttons */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowEnrollModal(true)}
+                        className="py-2.5 px-3 rounded-xl bg-zinc-950/80 border border-zinc-800 hover:border-cyan-500/40 hover:bg-cyan-950/20 text-zinc-300 hover:text-white text-xs font-mono tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        <QrCode className="w-3.5 h-3.5 text-cyan-400" />
+                        Pair Device
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleUseDeviceKey}
+                        disabled={loading}
+                        className="py-2.5 px-3 rounded-xl bg-zinc-950/80 border border-zinc-800 hover:border-cyan-500/40 hover:bg-cyan-950/20 text-zinc-300 hover:text-white text-xs font-mono tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        <Key className="w-3.5 h-3.5 text-cyan-400" />
+                        Use Device Key
+                      </button>
+                    </div>
+
+                    {/* State-Aware System Initialization Section */}
+                    {!systemInitialized && (
+                      <div className="pt-4 border-t border-zinc-800/80 mt-6">
+                        <div className="flex items-center justify-between p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30">
+                          <div className="text-left">
+                            <div className="text-xs font-semibold text-cyan-300 flex items-center gap-1.5 font-mono">
+                              <Settings className="w-3.5 h-3.5 text-cyan-400" />
+                              SYSTEM UNINITIALIZED
+                            </div>
+                            <div className="text-[11px] text-zinc-400">
+                              No Administrator configured yet
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowBootstrapWizard(true)}
+                            className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold font-mono tracking-wider transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.4)] cursor-pointer"
+                          >
+                            <Shield className="w-3.5 h-3.5" />
+                            ⚙ Initialize Administrator
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Register Link & Watermark */}
+                    <div className="pt-2 flex items-center justify-between text-[11px]">
+                      <span className="text-zinc-400 font-light">
+                        New user?{' '}
                         <button
                           type="button"
                           onClick={() => {
-                            setRegEmail(email);
+                            if (email) setRegEmail(email);
                             setAuthMode('REGISTER');
                             setErrorMessage('');
                           }}
-                          className="text-cyan-400 hover:text-cyan-300 underline font-semibold flex items-center gap-1.5 cursor-pointer pl-6 pt-1 text-xs"
+                          className="text-cyan-400 hover:text-cyan-300 underline font-medium cursor-pointer"
                         >
-                          <UserPlus className="w-3.5 h-3.5" />
-                          Register &quot;{email}&quot; as a new user now →
+                          Register account
                         </button>
-                      )}
+                      </span>
+                      <div className="text-[7px] font-mono tracking-[0.2em] text-cyan-500/40 uppercase text-right leading-tight">
+                        TRUST<br />ENCRYPT<br />EMPOWER
+                      </div>
                     </div>
-                  )}
 
-                  {/* CONNECT BUTTON: "Login ->" */}
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
-                  >
-                    <span>Login</span>
-                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                  </button>
-
-                  {/* Divider: "Or continue with" */}
-                  <div className="relative flex items-center justify-center my-4">
-                    <div className="border-t border-zinc-800 w-full"></div>
-                    <span className="bg-[#0a0f18] px-3 text-[10px] font-mono text-zinc-500 tracking-wider uppercase shrink-0">
-                      Or continue with
-                    </span>
-                    <div className="border-t border-zinc-800 w-full"></div>
-                  </div>
-
-                  {/* Secondary Connect Buttons */}
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => setShowEnrollModal(true)}
-                      className="py-2.5 px-3 rounded-xl bg-zinc-950/80 border border-zinc-800 hover:border-cyan-500/40 hover:bg-cyan-950/20 text-zinc-300 hover:text-white text-xs font-mono tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
-                    >
-                      <QrCode className="w-3.5 h-3.5 text-cyan-400" />
-                      Pair Device
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleUseDeviceKey}
-                      disabled={loading}
-                      className="py-2.5 px-3 rounded-xl bg-zinc-950/80 border border-zinc-800 hover:border-cyan-500/40 hover:bg-cyan-950/20 text-zinc-300 hover:text-white text-xs font-mono tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
-                    >
-                      <Key className="w-3.5 h-3.5 text-cyan-400" />
-                      Use Device Key
-                    </button>
-                  </div>
-
-                  {/* Register Link & Watermark */}
-                  <div className="pt-2 flex items-center justify-between text-[11px]">
-                    <span className="text-zinc-400 font-light">
-                      New user?{' '}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (email) setRegEmail(email);
-                          setAuthMode('REGISTER');
-                          setErrorMessage('');
-                        }}
-                        className="text-cyan-400 hover:text-cyan-300 underline font-medium cursor-pointer"
-                      >
-                        Register account
-                      </button>
-                    </span>
-                    <div className="text-[7px] font-mono tracking-[0.2em] text-cyan-500/40 uppercase text-right leading-tight">
-                      TRUST<br />ENCRYPT<br />EMPOWER
-                    </div>
-                  </div>
-
-                </form>
+                  </form>
+                )}
               </>
             ) : (
               /* Self-Registration Form */
@@ -1031,6 +1175,30 @@ export default function SecureMaxHeroLogin() {
           </div>
         </div>
       )}
+
+      {/* Admin Bootstrap Ceremony Wizard Modal */}
+      <AdminBootstrapWizard
+        isOpen={showBootstrapWizard}
+        onClose={() => setShowBootstrapWizard(false)}
+        onSuccess={() => {
+          setSystemInitialized(true);
+          setAdminCount(1);
+          setShowBootstrapWizard(false);
+          setSelectedRole('ADMIN');
+          router.refresh();
+        }}
+      />
+
+      {/* Emergency Recovery Ceremony Modal */}
+      <EmergencyRecoveryModal
+        isOpen={showRecoveryModal}
+        onClose={() => setShowRecoveryModal(false)}
+        onSuccess={() => {
+          setShowRecoveryModal(false);
+          setSelectedRole('ADMIN');
+          router.refresh();
+        }}
+      />
 
       {/* Cinematic Chain & Lock Launch Intro Overlay */}
       <SecureMaxChainIntro 
