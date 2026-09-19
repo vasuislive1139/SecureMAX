@@ -22,7 +22,7 @@ export function toUuid(input: string): string {
  * This guarantees state survival across Vercel container recycles and multi-worker instances.
  */
 export async function syncLedgerToSupabase(payload: any): Promise<boolean> {
-  if (!isSupabaseConfigured) return false;
+  if (!isSupabaseConfigured()) return false;
   try {
     const jsonString = JSON.stringify(payload);
     const { error } = await supabaseAdmin.storage
@@ -47,7 +47,7 @@ export async function syncLedgerToSupabase(payload: any): Promise<boolean> {
  * Downloads the latest persistent vault ledger from Supabase Cloud Storage.
  */
 export async function fetchLedgerFromSupabase(): Promise<any | null> {
-  if (!isSupabaseConfigured) return null;
+  if (!isSupabaseConfigured()) return null;
   try {
     const { data, error } = await supabaseAdmin.storage
       .from('securemax-vault')
@@ -74,22 +74,25 @@ export async function syncUserToSupabase(user: {
   email: string;
   status?: string;
 }): Promise<void> {
-  if (!isSupabaseConfigured || !user.email) return;
+  if (!isSupabaseConfigured() || !user.email) return;
   try {
     const uuid = toUuid(user.id);
     const status = user.status === 'REVOKED' ? 'REVOKED' : user.status === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE';
     
-    await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from('users')
       .upsert({
         id: uuid,
         display_name: user.name || user.email,
         email: user.email.toLowerCase().trim(),
         status,
-        updated_at: new Date().toISOString(),
       }, { onConflict: 'email' });
+
+    if (error) {
+      console.warn('[SupabaseSync] User sync error:', error.message);
+    }
   } catch (err: any) {
-    console.warn('[SupabaseSync] User sync error:', err.message);
+    console.warn('[SupabaseSync] User sync exception:', err.message);
   }
 }
 
@@ -106,7 +109,7 @@ export async function syncAssetToSupabase(asset: {
   owner_id?: string;
   status?: string;
 }): Promise<void> {
-  if (!isSupabaseConfigured || !asset.asset_code) return;
+  if (!isSupabaseConfigured() || !asset.asset_code) return;
   try {
     const uuid = toUuid(asset.id);
     const ownerUuid = toUuid(asset.ownerId || asset.owner_id || 'usr_admin_001');
@@ -114,16 +117,20 @@ export async function syncAssetToSupabase(asset: {
     const classification = validClassifications.includes(asset.classification) ? asset.classification : 'CONFIDENTIAL';
 
     // Ensure owner exists first in Supabase to satisfy foreign key
-    await supabaseAdmin
+    const { error: ownerErr } = await supabaseAdmin
       .from('users')
       .upsert({
         id: ownerUuid,
         display_name: 'Asset Owner',
+        email: `owner_${ownerUuid.slice(0, 8)}@securemax.system`,
         status: 'ACTIVE',
-        updated_at: new Date().toISOString(),
       }, { onConflict: 'id' });
 
-    await supabaseAdmin
+    if (ownerErr) {
+      console.warn('[SupabaseSync] Asset owner upsert error:', ownerErr.message);
+    }
+
+    const { error: assetErr } = await supabaseAdmin
       .from('assets')
       .upsert({
         id: uuid,
@@ -135,8 +142,12 @@ export async function syncAssetToSupabase(asset: {
         status: asset.status === 'ARCHIVED' ? 'ARCHIVED' : 'ACTIVE',
         updated_at: new Date().toISOString(),
       }, { onConflict: 'asset_code' });
+
+    if (assetErr) {
+      console.warn('[SupabaseSync] Asset sync error:', assetErr.message);
+    }
   } catch (err: any) {
-    console.warn('[SupabaseSync] Asset sync error:', err.message);
+    console.warn('[SupabaseSync] Asset sync exception:', err.message);
   }
 }
 
@@ -151,7 +162,7 @@ export async function syncDeviceToSupabase(device: {
   device_name?: string;
   status?: string;
 }): Promise<void> {
-  if (!isSupabaseConfigured) return;
+  if (!isSupabaseConfigured()) return;
   try {
     const uuid = toUuid(device.id);
     const userUuid = toUuid(device.userId || device.user_id || 'usr_admin_001');
@@ -159,16 +170,20 @@ export async function syncDeviceToSupabase(device: {
     const fingerprint = `${device.deviceName || device.device_name || 'workstation'}_${device.id}`;
 
     // Ensure user exists first
-    await supabaseAdmin
+    const { error: userErr } = await supabaseAdmin
       .from('users')
       .upsert({
         id: userUuid,
         display_name: 'Device Owner',
+        email: `device_owner_${userUuid.slice(0, 8)}@securemax.system`,
         status: 'ACTIVE',
-        updated_at: new Date().toISOString(),
       }, { onConflict: 'id' });
 
-    await supabaseAdmin
+    if (userErr) {
+      console.warn('[SupabaseSync] Device user upsert error:', userErr.message);
+    }
+
+    const { error: devErr } = await supabaseAdmin
       .from('devices')
       .upsert({
         id: uuid,
@@ -177,8 +192,12 @@ export async function syncDeviceToSupabase(device: {
         status,
         last_seen_at: new Date().toISOString(),
       }, { onConflict: 'device_fingerprint' });
+
+    if (devErr) {
+      console.warn('[SupabaseSync] Device sync error:', devErr.message);
+    }
   } catch (err: any) {
-    console.warn('[SupabaseSync] Device sync error:', err.message);
+    console.warn('[SupabaseSync] Device sync exception:', err.message);
   }
 }
 
@@ -192,7 +211,7 @@ export async function syncAccessRequestToSupabase(req: {
   reason?: string;
   status?: string;
 }): Promise<void> {
-  if (!isSupabaseConfigured || !req.asset_id) return;
+  if (!isSupabaseConfigured() || !req.asset_id) return;
   try {
     const uuid = toUuid(req.id);
     const userUuid = toUuid(req.user_id);
@@ -200,7 +219,7 @@ export async function syncAccessRequestToSupabase(req: {
     const validStatuses = ['PENDING', 'AUTHORIZED', 'DENIED', 'EXPIRED', 'REVOKED'];
     const mappedStatus = req.status === 'APPROVED' ? 'AUTHORIZED' : req.status === 'REJECTED' ? 'DENIED' : 'PENDING';
 
-    await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from('access_requests')
       .upsert({
         id: uuid,
@@ -210,7 +229,11 @@ export async function syncAccessRequestToSupabase(req: {
         status: mappedStatus,
         created_at: new Date().toISOString(),
       }, { onConflict: 'id' });
+
+    if (error) {
+      console.warn('[SupabaseSync] Access request sync error:', error.message);
+    }
   } catch (err: any) {
-    console.warn('[SupabaseSync] Access request sync error:', err.message);
+    console.warn('[SupabaseSync] Access request sync exception:', err.message);
   }
 }

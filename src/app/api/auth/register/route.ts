@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { deviceStore } from '@/lib/auth/deviceStore';
 import { getJwtSecret } from '@/lib/auth/session';
 import { UserRole, UserStatus } from '@/types';
+import { syncUserToSupabase } from '@/lib/db/supabase-sync';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -27,13 +28,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User already registered with this email address' }, { status: 409 });
     }
 
-    // FOR HACKATHON PROTOTYPE ONLY (Since Supabase DB is skipped):
-    // Allow self-assignment of roles so users don't have to wait for Admin approval,
-    // because the unapproved requests list gets wiped by Vercel cold starts.
-    const validRoles = ['USER', 'MANAGER', 'AUDITOR', 'ADMIN'];
-    const userRole = requestedRole && validRoles.includes(requestedRole.toUpperCase())
-      ? (requestedRole.toUpperCase() as UserRole)
-      : UserRole.USER;
+    // Zero-Trust: Public self-registration ALWAYS defaults to USER.
+    // Privileged roles (ADMIN, MANAGER, AUDITOR) require Administrator approval / enrollment.
+    const userRole = UserRole.USER;
 
     const userId = 'usr_' + crypto.randomUUID().slice(0, 8);
     const did = `did:securemax:user:${userId.slice(-6)}`;
@@ -52,6 +49,7 @@ export async function POST(req: Request) {
 
     deviceStore.users.set(newUser.id, newUser);
     deviceStore.users.set(newUser.email, newUser);
+    syncUserToSupabase(newUser).catch(() => {});
 
     // Enroll initial device credential
     const device = deviceStore.registerDevice({

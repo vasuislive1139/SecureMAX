@@ -2784,9 +2784,11 @@ class SecureMaxStore {
     const cleanRaw = plaintextCode.toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
     const codeHash = crypto.createHash('sha256').update(cleanRaw).digest('hex');
 
+    const now = Date.now();
     const durationMinutes = params.durationMinutes || 15;
     const enrollmentId = 'enr_' + crypto.randomUUID().slice(0, 8);
-    const expiresAt = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
+    const createdAt = new Date(now).toISOString();
+    const expiresAt = new Date(now + durationMinutes * 60 * 1000).toISOString();
 
     const capability: StoredEnrollmentCapability = {
       id: enrollmentId,
@@ -2800,7 +2802,7 @@ class SecureMaxStore {
       max_devices: params.maxDevices || 1,
       devices_enrolled: 0,
       created_by: params.callerUserId ? (this.getUserById(params.callerUserId)?.name || 'Admin') : targetUser.name,
-      created_at: new Date().toISOString(),
+      created_at: createdAt,
       expires_at: expiresAt,
       status: 'ACTIVE',
       target_device_type: params.targetDeviceType,

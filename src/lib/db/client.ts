@@ -1,21 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+export function isSupabaseConfigured(): boolean {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Missing Supabase environment variables. Database client is unavailable.');
+  return Boolean(
+    supabaseUrl &&
+    !supabaseUrl.includes('localhost:8000') &&
+    !supabaseUrl.includes('your-project') &&
+    (
+      (supabaseServiceKey && !supabaseServiceKey.includes('dummy') && !supabaseServiceKey.includes('your-service-role-key')) ||
+      (supabaseAnonKey && !supabaseAnonKey.includes('dummy') && !supabaseAnonKey.includes('your-anon-key'))
+    )
+  );
 }
-
-export const isSupabaseConfigured = Boolean(
-  supabaseUrl &&
-  !supabaseUrl.includes('localhost:8000') &&
-  !supabaseUrl.includes('your-project') &&
-  supabaseServiceKey &&
-  !supabaseServiceKey.includes('dummy') &&
-  !supabaseServiceKey.includes('your-service-role-key')
-);
 
 const createMockChain = () => {
   const chain: any = {
@@ -34,25 +33,54 @@ const createMockChain = () => {
 
 const mockClient: any = {
   from: () => createMockChain(),
+  storage: {
+    from: () => ({
+      upload: () => Promise.resolve({ data: null, error: new Error('Supabase offline / not configured') }),
+      download: () => Promise.resolve({ data: null, error: new Error('Supabase offline / not configured') }),
+      list: () => Promise.resolve({ data: [], error: null }),
+    }),
+    listBuckets: () => Promise.resolve({ data: [], error: null }),
+  },
 };
 
-// Client for public operations and browser environments
-export const supabaseClient = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabaseAnonKey!)
-  : mockClient;
+let _adminClient: any = null;
+let _publicClient: any = null;
 
 // Client strictly for server-side secure operations (bypasses RLS)
-export const supabaseAdmin = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabaseServiceKey!)
-  : mockClient;
+export const supabaseAdmin: any = new Proxy({}, {
+  get(_target, prop) {
+    if (!isSupabaseConfigured()) return mockClient[prop];
+    if (!_adminClient) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      _adminClient = createClient(url, key);
+    }
+    const val = _adminClient[prop];
+    return typeof val === 'function' ? val.bind(_adminClient) : val;
+  },
+});
+
+// Client for public operations and browser environments
+export const supabaseClient: any = new Proxy({}, {
+  get(_target, prop) {
+    if (!isSupabaseConfigured()) return mockClient[prop];
+    if (!_publicClient) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY!;
+      _publicClient = createClient(url, key);
+    }
+    const val = _publicClient[prop];
+    return typeof val === 'function' ? val.bind(_publicClient) : val;
+  },
+});
 
 // Function to generate a client dynamically bound to a user's JWT
 // This enforces RLS and prevents IDOR (as per Hostile Review Architecture updates)
 export const createAuthenticatedClient = (jwt: string) => {
-  if (!isSupabaseConfigured) return mockClient;
+  if (!isSupabaseConfigured()) return mockClient;
   return createClient(
-    supabaseUrl!,
-    supabaseAnonKey!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       global: {
         headers: {
@@ -62,4 +90,3 @@ export const createAuthenticatedClient = (jwt: string) => {
     }
   );
 };
-
