@@ -7,7 +7,22 @@ export async function POST(req: Request) {
     const session = await getVerifiedSession();
     const body = await req.json().catch(() => ({}));
 
-    const { name, folder, classification, description, plaintext, mimeType, fileType, sizeBytes } = body;
+    const { 
+      name, 
+      folder, 
+      classification, 
+      description, 
+      plaintext, 
+      mimeType, 
+      fileType, 
+      sizeBytes,
+      shareScope,
+      targetUserId,
+      canDecryptShared,
+      canDownloadShared,
+      expiresAt,
+      saveDefaultPolicy
+    } = body;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json({ error: 'File name is required' }, { status: 400 });
@@ -23,6 +38,10 @@ export async function POST(req: Request) {
     const validClassifications = ['PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'RESTRICTED'];
     const assignedClassification = validClassifications.includes(classification) ? classification : 'CONFIDENTIAL';
 
+    const effectiveShareScope = ['PRIVATE', 'SPECIFIC_USER', 'ALL_PEOPLE'].includes(shareScope) 
+      ? shareScope 
+      : 'PRIVATE';
+
     const newAsset = deviceStore.createAsset({
       name: name.trim(),
       folder: assignedFolder,
@@ -34,7 +53,17 @@ export async function POST(req: Request) {
       ownerId: session.userId,
       ownerName: session.name || session.email || 'Authorized User',
       sizeBytes: sizeBytes || Buffer.byteLength(plaintext, 'utf8'),
+      shareScope: effectiveShareScope,
+      targetUserId: effectiveShareScope === 'SPECIFIC_USER' ? targetUserId : undefined,
+      canDecryptShared: canDecryptShared !== false,
+      canDownloadShared: canDownloadShared !== false,
+      expiresAt,
     });
+
+    if (saveDefaultPolicy) {
+      const policyToSave = effectiveShareScope === 'ALL_PEOPLE' ? 'ORGANIZATION' : 'PRIVATE';
+      deviceStore.setUserDefaultAccessPolicy(session.userId, policyToSave);
+    }
 
     return NextResponse.json({
       success: true,
@@ -47,8 +76,11 @@ export async function POST(req: Request) {
         fileType: newAsset.file_type,
         fileSizeBytes: newAsset.file_size_bytes,
         status: newAsset.status,
+        ownerId: newAsset.owner_id,
+        ownerName: newAsset.owner_name,
+        sharedWithAll: newAsset.shared_with_all,
       },
-      message: 'Asset encrypted with AES-256-GCM and registered successfully.',
+      message: `Asset encrypted with AES-256-GCM and registered successfully (${effectiveShareScope === 'ALL_PEOPLE' ? 'Shared with All People' : effectiveShareScope === 'SPECIFIC_USER' ? 'Shared with Specific Person' : 'Private to You'}).`,
     });
   } catch (error: any) {
     console.error('[Vault Upload Error]:', error);

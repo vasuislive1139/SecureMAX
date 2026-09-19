@@ -2,19 +2,50 @@ import { NextResponse } from 'next/server';
 import { getVerifiedSession } from '@/lib/auth/session';
 import { deviceStore } from '@/lib/auth/deviceStore';
 
+export async function GET(req: Request) {
+  try {
+    await getVerifiedSession();
+    const url = new URL(req.url);
+    const assetId = url.searchParams.get('assetId');
+
+    if (!assetId) {
+      return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
+    }
+
+    const shares = deviceStore.getSharesForAsset(assetId);
+    return NextResponse.json({
+      success: true,
+      shares,
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Unauthorized' }, { status: 401 });
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const session = await getVerifiedSession();
     const body = await req.json().catch(() => ({}));
 
-    const { assetId, targetUserId, canRead, canDecrypt, canDownload, canEdit, canDelete, expiry } = body;
+    const { action, assetId, targetUserId, canRead, canDecrypt, canDownload, canEdit, canDelete, expiry } = body;
 
     if (!assetId) {
       return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
     }
 
+    if (action === 'revoke') {
+      if (!targetUserId) {
+        return NextResponse.json({ error: 'Target user ID is required to revoke' }, { status: 400 });
+      }
+      deviceStore.revokeAssetShare(assetId, targetUserId, session.userId);
+      return NextResponse.json({
+        success: true,
+        message: `Access revoked for ${targetUserId === 'ALL' ? 'All People' : targetUserId}.`,
+      });
+    }
+
     if (!targetUserId) {
-      return NextResponse.json({ error: 'Target user ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Target user ID is required (specify user ID or "ALL")' }, { status: 400 });
     }
 
     let expiresAt: string | null = null;
@@ -45,10 +76,13 @@ export async function POST(req: Request) {
       expiresAt,
     });
 
+    const isAll = targetUserId === 'ALL';
+    const targetLabel = isAll ? 'All People (Organization-Wide)' : targetUserId;
+
     return NextResponse.json({
       success: true,
       assignment,
-      message: `Access granted to user ${targetUserId}${expiresAt ? ` until ${new Date(expiresAt).toLocaleString()}` : ' (Permanent)'}.`,
+      message: `Access granted to ${targetLabel}${expiresAt ? ` until ${new Date(expiresAt).toLocaleString()}` : ' (Permanent)'}.`,
     });
   } catch (error: any) {
     console.error('[Vault Share Error]:', error);

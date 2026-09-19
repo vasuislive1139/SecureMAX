@@ -11,6 +11,7 @@ export interface StoredUser {
   kyc_status: 'VERIFIED' | 'PENDING' | 'REJECTED';
   status: UserStatus;
   did: string;
+  default_access_policy?: 'PRIVATE' | 'ORGANIZATION';
   created_at: string;
 }
 
@@ -46,7 +47,10 @@ export interface StoredAsset {
   file_type: 'PDF' | 'XLSX' | 'ZIP' | 'PNG' | 'DOC' | 'JSON' | 'TXT' | string;
   mime_type: string;
   file_size_bytes: number;
+  owner_id?: string;
   owner_name: string;
+  shared_with_all?: boolean;
+  default_access_policy?: 'PRIVATE' | 'ORGANIZATION';
   created_at: string;
   last_accessed_at?: string;
   key_version: string;
@@ -59,7 +63,7 @@ export interface StoredAsset {
 
 export interface StoredAssignment {
   asset_id: string;
-  user_id: string;
+  user_id: string; // specific user ID or 'ALL'
   can_read: boolean;
   can_decrypt: boolean;
   can_download: boolean;
@@ -69,6 +73,7 @@ export interface StoredAssignment {
   assigned_at: string;
   expires_at: string | null;
   shared_by?: string;
+  shared_with_name?: string;
 }
 
 export interface StoredAccessRequest {
@@ -215,7 +220,9 @@ class SecureMaxStore {
       file_type: string;
       mime_type: string;
       file_size_bytes: number;
+      owner_id: string;
       owner_name: string;
+      shared_with_all?: boolean;
       key_version: string;
       description: string;
       plaintext: string;
@@ -234,7 +241,8 @@ class SecureMaxStore {
         file_type: 'PDF',
         mime_type: 'application/pdf',
         file_size_bytes: 2516582,
-        owner_name: 'Vasu (Lead Engineer)',
+        owner_id: standardUser.id,
+        owner_name: standardUser.name,
         key_version: 'v2',
         description: 'Confidential design specifications for tactical communications and payload encapsulation.',
         plaintext: 'TOP SECRET // CONFIDENTIAL DEFENSE INTEL: Project Alpha utilizes multi-frequency hopping at 2.4GHz with AES-256-GCM authenticated payload encapsulation. Authorization strictly validated by SecureMAX on-chain registry.',
@@ -259,7 +267,8 @@ class SecureMaxStore {
         file_type: 'ZIP',
         mime_type: 'application/zip',
         file_size_bytes: 15518976,
-        owner_name: 'Vasu (Lead Engineer)',
+        owner_id: standardUser.id,
+        owner_name: standardUser.name,
         key_version: 'v1',
         description: 'Comprehensive architectural diagrams, CAD schematics, and microservice definitions for Project Beta.',
         plaintext: 'INTERNAL SYSTEM BLUEPRINTS: Distributed edge node architecture with zero-trust device binding. Mesh communication over authenticated TLS 1.3 channels with ECDSA P-256 peer attestation.',
@@ -282,7 +291,8 @@ class SecureMaxStore {
         file_type: 'XLSX',
         mime_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         file_size_bytes: 1258291,
-        owner_name: 'Compliance Auditor',
+        owner_id: auditorUser.id,
+        owner_name: auditorUser.name,
         key_version: 'v1',
         description: 'Quarterly financial compliance, hardware procurement, and cryptographic subsystem expenditures.',
         plaintext: 'FINANCIAL REPORT // Q3 FY26: Procurement expenditures: $4,200,000. Cryptographic hardware allocation: $850,000. All allocations compliant with statutory requirements.',
@@ -305,7 +315,8 @@ class SecureMaxStore {
         file_type: 'XLSX',
         mime_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         file_size_bytes: 3250585,
-        owner_name: 'Vasu (Administrator)',
+        owner_id: adminUser.id,
+        owner_name: adminUser.name,
         key_version: 'v1',
         description: 'Forecast budget models and supplier bids for next-generation cryptographic hardware.',
         plaintext: 'FY27 ESTIMATES // Confidential forward projections: Hardware Security Modules (HSM): $1.2M. Secure Enclave deployment: $900k. Contract awards pending Q4 review.',
@@ -328,7 +339,9 @@ class SecureMaxStore {
         file_type: 'PDF',
         mime_type: 'application/pdf',
         file_size_bytes: 870400,
-        owner_name: 'Vasu (Administrator)',
+        owner_id: adminUser.id,
+        owner_name: adminUser.name,
+        shared_with_all: true,
         key_version: 'v1',
         description: 'Organizational guidelines on cryptographic key custody, zero-trust hygiene, and KYC verification.',
         plaintext: 'POLICY DOCUMENT 2026-A: All personnel must enroll hardware-bound ECDSA P-256 keys. Passwords alone are strictly prohibited. Multi-factor device attestation required for all asset access.',
@@ -349,7 +362,8 @@ class SecureMaxStore {
         file_type: 'DOC',
         mime_type: 'application/msword',
         file_size_bytes: 1887436,
-        owner_name: 'Vasu (Administrator)',
+        owner_id: adminUser.id,
+        owner_name: adminUser.name,
         key_version: 'v2',
         description: 'Field operative identity mappings, tactical assignments, and cryptographic public key fingerprints.',
         plaintext: 'RESTRICTED PERSONNEL ROSTER: Classified field operative roster and hardware token fingerprints. Unauthorized access will trigger immediate zero-trust lockout.',
@@ -372,7 +386,8 @@ class SecureMaxStore {
         file_type: 'PDF',
         mime_type: 'application/pdf',
         file_size_bytes: 5872025,
-        owner_name: 'Vasu (Administrator)',
+        owner_id: adminUser.id,
+        owner_name: adminUser.name,
         key_version: 'v2',
         description: 'Hardware interface diagrams, bus timings, and electronic warfare countermeasure protocols.',
         plaintext: 'RESTRICTED HARDWARE SPEC: ARINC 429 high-speed bus pinout configuration with MIL-STD-1553 redundant multiplexing. Target acquisition frequencies calibrated.',
@@ -395,7 +410,8 @@ class SecureMaxStore {
         file_type: 'ZIP',
         mime_type: 'application/zip',
         file_size_bytes: 8598323,
-        owner_name: 'Vasu (Administrator)',
+        owner_id: adminUser.id,
+        owner_name: adminUser.name,
         key_version: 'v2',
         description: 'Firmware binaries and zeroization routines for the cryptographic key storage layer.',
         plaintext: 'CONFIDENTIAL MICROCODE // Version 2.4.0-RC3: Anti-tamper envelope triggers active zeroization of master KEK upon enclosure breach detection.',
@@ -418,7 +434,9 @@ class SecureMaxStore {
         file_type: 'PDF',
         mime_type: 'application/pdf',
         file_size_bytes: 430080,
-        owner_name: 'Compliance Auditor',
+        owner_id: auditorUser.id,
+        owner_name: auditorUser.name,
+        shared_with_all: true,
         key_version: 'v1',
         description: 'Statutory audit compliance certificate confirming adherence to NIST SP 800-207 standards.',
         plaintext: 'COMPLIANCE CERTIFICATE: SecureMAX meets or exceeds all DoD Zero Trust Strategy (2022-2027) requirements for device attestation and cryptographic micro-segmentation.',
@@ -439,7 +457,8 @@ class SecureMaxStore {
         file_type: 'DOC',
         mime_type: 'application/msword',
         file_size_bytes: 696320,
-        owner_name: 'Compliance Auditor',
+        owner_id: auditorUser.id,
+        owner_name: auditorUser.name,
         key_version: 'v1',
         description: 'Standard nondisclosure agreements and operational security protocols for defense contractors.',
         plaintext: 'NON-DISCLOSURE AGREEMENT: All defense contractors handling SMX-series cryptographic materials are subject to severe federal penalties under 18 U.S.C. Section 793.',
@@ -480,7 +499,10 @@ class SecureMaxStore {
         file_type: item.file_type,
         mime_type: item.mime_type,
         file_size_bytes: item.file_size_bytes,
+        owner_id: item.owner_id,
         owner_name: item.owner_name,
+        shared_with_all: item.shared_with_all || false,
+        default_access_policy: item.shared_with_all ? 'ORGANIZATION' : 'PRIVATE',
         created_at: item.versions[0]?.created_at || '2026-09-01T00:00:00.000Z',
         last_accessed_at: item.access_history[0]?.timestamp,
         key_version: item.key_version,
@@ -492,8 +514,40 @@ class SecureMaxStore {
       });
     }
 
-    // 5. ASSET ASSIGNMENTS FOR VASU (Lead Engineer)
-    // Full access: Read + Decrypt + Download + Edit on Project Alpha
+    // 5. ASSET ASSIGNMENTS
+    // Organization-wide (All People) Access
+    this.assignments.push({
+      asset_id: 'ast_hr_policy',
+      user_id: 'ALL',
+      can_read: true,
+      can_decrypt: true,
+      can_download: true,
+      can_edit: false,
+      can_delete: false,
+      status: 'ACTIVE',
+      assigned_at: '2026-09-01T00:00:00.000Z',
+      expires_at: null,
+      shared_by: 'Vasu (Administrator)',
+      shared_with_name: 'All People (Organization-Wide)',
+    });
+
+    this.assignments.push({
+      asset_id: 'ast_compliance',
+      user_id: 'ALL',
+      can_read: true,
+      can_decrypt: true,
+      can_download: true,
+      can_edit: false,
+      can_delete: false,
+      status: 'ACTIVE',
+      assigned_at: '2026-09-05T00:00:00.000Z',
+      expires_at: null,
+      shared_by: 'Compliance Auditor',
+      shared_with_name: 'All People (Organization-Wide)',
+    });
+
+    // Assignments for Vasu (Lead Engineer)
+    // Full owner access on Project Alpha & Beta
     this.assignments.push({
       asset_id: 'ast_alpha',
       user_id: standardUser.id,
@@ -501,27 +555,30 @@ class SecureMaxStore {
       can_decrypt: true,
       can_download: true,
       can_edit: true,
-      can_delete: false,
+      can_delete: true,
       status: 'ACTIVE',
       assigned_at: '2026-09-02T00:00:00.000Z',
       expires_at: null,
+      shared_by: 'Self (Owner)',
+      shared_with_name: standardUser.name,
     });
 
-    // Read + Decrypt + Download on Project Beta
     this.assignments.push({
       asset_id: 'ast_beta',
       user_id: standardUser.id,
       can_read: true,
       can_decrypt: true,
       can_download: true,
-      can_edit: false,
-      can_delete: false,
+      can_edit: true,
+      can_delete: true,
       status: 'ACTIVE',
       assigned_at: '2026-09-10T00:00:00.000Z',
       expires_at: null,
+      shared_by: 'Self (Owner)',
+      shared_with_name: standardUser.name,
     });
 
-    // Read + Decrypt on Financial Audit Report
+    // Specific person-to-person shares with Vasu
     this.assignments.push({
       asset_id: 'ast_finance',
       user_id: standardUser.id,
@@ -533,9 +590,10 @@ class SecureMaxStore {
       status: 'ACTIVE',
       assigned_at: '2026-09-08T00:00:00.000Z',
       expires_at: null,
+      shared_by: 'Compliance Auditor',
+      shared_with_name: standardUser.name,
     });
 
-    // Expiring Access: Read + Decrypt on FY27 Estimates (expires in 7 days)
     this.assignments.push({
       asset_id: 'ast_procure',
       user_id: standardUser.id,
@@ -548,37 +606,9 @@ class SecureMaxStore {
       assigned_at: '2026-09-12T00:00:00.000Z',
       expires_at: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
       shared_by: 'Vasu (Administrator)',
+      shared_with_name: standardUser.name,
     });
 
-    // Public / General: HR Policy
-    this.assignments.push({
-      asset_id: 'ast_hr_policy',
-      user_id: standardUser.id,
-      can_read: true,
-      can_decrypt: true,
-      can_download: true,
-      can_edit: false,
-      can_delete: false,
-      status: 'ACTIVE',
-      assigned_at: '2026-09-01T00:00:00.000Z',
-      expires_at: null,
-    });
-
-    // Public: Compliance Certificate
-    this.assignments.push({
-      asset_id: 'ast_compliance',
-      user_id: standardUser.id,
-      can_read: true,
-      can_decrypt: true,
-      can_download: true,
-      can_edit: false,
-      can_delete: false,
-      status: 'ACTIVE',
-      assigned_at: '2026-09-05T00:00:00.000Z',
-      expires_at: null,
-    });
-
-    // Confidential: Contractor NDA
     this.assignments.push({
       asset_id: 'ast_nda',
       user_id: standardUser.id,
@@ -590,9 +620,10 @@ class SecureMaxStore {
       status: 'ACTIVE',
       assigned_at: '2026-09-04T00:00:00.000Z',
       expires_at: null,
+      shared_by: 'Compliance Auditor',
+      shared_with_name: standardUser.name,
     });
 
-    // Restricted: Avionics Radar (Read-only, Decrypt requires Admin NFT Permit)
     this.assignments.push({
       asset_id: 'ast_avionics',
       user_id: standardUser.id,
@@ -604,9 +635,10 @@ class SecureMaxStore {
       status: 'ACTIVE',
       assigned_at: '2026-09-11T00:00:00.000Z',
       expires_at: null,
+      shared_by: 'Vasu (Administrator)',
+      shared_with_name: standardUser.name,
     });
 
-    // Restricted: Personnel Roster (Read-only, Decrypt prohibited)
     this.assignments.push({
       asset_id: 'ast_roster',
       user_id: standardUser.id,
@@ -618,9 +650,10 @@ class SecureMaxStore {
       status: 'ACTIVE',
       assigned_at: '2026-09-14T00:00:00.000Z',
       expires_at: null,
+      shared_by: 'Vasu (Administrator)',
+      shared_with_name: standardUser.name,
     });
 
-    // Expired Access: KMS Microcode (Clearance expired 24 hours ago)
     this.assignments.push({
       asset_id: 'ast_kms',
       user_id: standardUser.id,
@@ -633,6 +666,38 @@ class SecureMaxStore {
       assigned_at: '2026-09-13T00:00:00.000Z',
       expires_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
       shared_by: 'Vasu (Administrator)',
+      shared_with_name: standardUser.name,
+    });
+
+    // Assignments for Auditor
+    this.assignments.push({
+      asset_id: 'ast_finance',
+      user_id: auditorUser.id,
+      can_read: true,
+      can_decrypt: true,
+      can_download: true,
+      can_edit: true,
+      can_delete: true,
+      status: 'ACTIVE',
+      assigned_at: '2026-09-08T00:00:00.000Z',
+      expires_at: null,
+      shared_by: 'Self (Owner)',
+      shared_with_name: auditorUser.name,
+    });
+
+    this.assignments.push({
+      asset_id: 'ast_nda',
+      user_id: auditorUser.id,
+      can_read: true,
+      can_decrypt: true,
+      can_download: true,
+      can_edit: true,
+      can_delete: true,
+      status: 'ACTIVE',
+      assigned_at: '2026-09-04T00:00:00.000Z',
+      expires_at: null,
+      shared_by: 'Self (Owner)',
+      shared_with_name: auditorUser.name,
     });
 
     // Admin has global rights on all assets
@@ -648,6 +713,8 @@ class SecureMaxStore {
         status: 'ACTIVE',
         assigned_at: '2026-09-01T00:00:00.000Z',
         expires_at: null,
+        shared_by: 'System Administrator',
+        shared_with_name: adminUser.name,
       });
     }
 
@@ -904,7 +971,10 @@ class SecureMaxStore {
   }
 
   // --- ASSET ASSIGNMENTS & ACCESS ENFORCEMENT ---
-  public getAssetsForUser(userId: string): Array<{
+  public getAssetsForUser(
+    userId: string,
+    options?: { scope?: 'MY_DATA' | 'ALL_DATA' }
+  ): Array<{
     asset: StoredAsset;
     can_read: boolean;
     can_decrypt: boolean;
@@ -914,6 +984,10 @@ class SecureMaxStore {
     status: string;
     expires_at: string | null;
     shared_by?: string;
+    is_owner: boolean;
+    sharing_scope: 'PRIVATE' | 'SPECIFIC_USERS' | 'ALL_PEOPLE';
+    assigned_users_count: number;
+    shares?: Array<{ user_id: string; user_name: string; permissions: string; expires_at: string | null }>;
   }> {
     const results: Array<{
       asset: StoredAsset;
@@ -925,48 +999,124 @@ class SecureMaxStore {
       status: string;
       expires_at: string | null;
       shared_by?: string;
+      is_owner: boolean;
+      sharing_scope: 'PRIVATE' | 'SPECIFIC_USERS' | 'ALL_PEOPLE';
+      assigned_users_count: number;
+      shares?: Array<{ user_id: string; user_name: string; permissions: string; expires_at: string | null }>;
     }> = [];
     const user = this.getUserById(userId);
+    const isCallerAdmin = user?.role === UserRole.ADMIN;
+    const showAllDataForAdmin = isCallerAdmin && options?.scope === 'ALL_DATA';
 
     for (const asset of this.assets.values()) {
-      const match = this.assignments.find(a => a.asset_id === asset.id && a.user_id === userId);
-      if (match) {
-        const isExpired = match.expires_at ? (new Date(match.expires_at).getTime() < Date.now()) : false;
-        const effectiveStatus = isExpired ? 'EXPIRED' : match.status;
-        const canDecrypt = effectiveStatus === 'ACTIVE' && match.can_decrypt;
-        const canDownload = effectiveStatus === 'ACTIVE' && (match.can_download ?? canDecrypt);
-        const canEdit = effectiveStatus === 'ACTIVE' && Boolean(match.can_edit);
-        const canDelete = effectiveStatus === 'ACTIVE' && Boolean(match.can_delete);
+      const isOwner = Boolean(asset.owner_id === userId || (user?.name && asset.owner_name === user.name));
+      const userAssignment = this.assignments.find(a => a.asset_id === asset.id && a.user_id === userId);
+      const allAssignment = this.assignments.find(a => a.asset_id === asset.id && a.user_id === 'ALL');
+      const isSharedWithAll = Boolean(asset.shared_with_all || (allAssignment && allAssignment.status === 'ACTIVE'));
 
-        results.push({
-          asset,
-          can_read: match.can_read,
-          can_decrypt: canDecrypt,
-          can_download: canDownload,
-          can_edit: canEdit,
-          can_delete: canDelete,
-          status: effectiveStatus,
-          expires_at: match.expires_at,
-          shared_by: match.shared_by,
-        });
-      } else if (user?.role === UserRole.ADMIN) {
-        results.push({
-          asset,
-          can_read: true,
-          can_decrypt: true,
-          can_download: true,
-          can_edit: true,
-          can_delete: true,
-          status: 'ACTIVE',
-          expires_at: null,
-        });
+      // STRICT ACCESS ISOLATION:
+      // Only data the user owns, has a specific assignment for, is shared with all people,
+      // or admin in global organization overview mode will come to that user!
+      const hasAccess = isOwner || Boolean(userAssignment) || isSharedWithAll || showAllDataForAdmin;
+      if (!hasAccess) {
+        continue;
       }
+
+      let canRead = false;
+      let canDecrypt = false;
+      let canDownload = false;
+      let canEdit = false;
+      let canDelete = false;
+      let effectiveStatus = 'ACTIVE';
+      let expiresAt: string | null = null;
+      let sharedBy: string | undefined = undefined;
+
+      if (userAssignment) {
+        const isExpired = userAssignment.expires_at ? (new Date(userAssignment.expires_at).getTime() < Date.now()) : false;
+        effectiveStatus = isExpired ? 'EXPIRED' : userAssignment.status;
+        canRead = userAssignment.can_read;
+        canDecrypt = effectiveStatus === 'ACTIVE' && userAssignment.can_decrypt;
+        canDownload = effectiveStatus === 'ACTIVE' && (userAssignment.can_download ?? canDecrypt);
+        canEdit = effectiveStatus === 'ACTIVE' && Boolean(userAssignment.can_edit);
+        canDelete = effectiveStatus === 'ACTIVE' && Boolean(userAssignment.can_delete);
+        expiresAt = userAssignment.expires_at;
+        sharedBy = userAssignment.shared_by;
+      } else if (isOwner) {
+        canRead = true;
+        canDecrypt = true;
+        canDownload = true;
+        canEdit = true;
+        canDelete = true;
+        effectiveStatus = 'ACTIVE';
+      } else if (isSharedWithAll && allAssignment) {
+        const isExpired = allAssignment.expires_at ? (new Date(allAssignment.expires_at).getTime() < Date.now()) : false;
+        effectiveStatus = isExpired ? 'EXPIRED' : allAssignment.status;
+        canRead = allAssignment.can_read;
+        canDecrypt = effectiveStatus === 'ACTIVE' && allAssignment.can_decrypt;
+        canDownload = effectiveStatus === 'ACTIVE' && (allAssignment.can_download ?? canDecrypt);
+        canEdit = effectiveStatus === 'ACTIVE' && Boolean(allAssignment.can_edit);
+        canDelete = false;
+        expiresAt = allAssignment.expires_at;
+        sharedBy = allAssignment.shared_by;
+      } else if (showAllDataForAdmin) {
+        canRead = true;
+        canDecrypt = true;
+        canDownload = true;
+        canEdit = true;
+        canDelete = true;
+        effectiveStatus = 'ACTIVE';
+      }
+
+      // Calculate active sharing scope
+      const activeShares = this.assignments.filter(a => a.asset_id === asset.id && a.status === 'ACTIVE');
+      let sharingScope: 'PRIVATE' | 'SPECIFIC_USERS' | 'ALL_PEOPLE' = 'PRIVATE';
+      if (isSharedWithAll) {
+        sharingScope = 'ALL_PEOPLE';
+      } else if (activeShares.length > 1 || (activeShares.length === 1 && activeShares[0].user_id !== asset.owner_id)) {
+        sharingScope = 'SPECIFIC_USERS';
+      }
+
+      const sharesSummary = activeShares.map(s => {
+        const target = s.user_id === 'ALL' ? null : this.getUserById(s.user_id);
+        const name = s.user_id === 'ALL' ? 'All People (Organization-Wide)' : (target?.name || s.shared_with_name || s.user_id);
+        const perms = [
+          s.can_read && 'Read',
+          s.can_decrypt && 'Decrypt',
+          s.can_download && 'Download',
+          s.can_edit && 'Edit',
+        ].filter(Boolean).join(', ');
+        return {
+          user_id: s.user_id,
+          user_name: name,
+          permissions: perms,
+          expires_at: s.expires_at,
+        };
+      });
+
+      results.push({
+        asset,
+        can_read: canRead,
+        can_decrypt: canDecrypt,
+        can_download: canDownload,
+        can_edit: canEdit,
+        can_delete: canDelete,
+        status: effectiveStatus,
+        expires_at: expiresAt,
+        shared_by: sharedBy,
+        is_owner: isOwner,
+        sharing_scope: sharingScope,
+        assigned_users_count: activeShares.length,
+        shares: sharesSummary,
+      });
     }
 
     return results;
   }
 
   public getAssignment(userId: string, assetId: string): StoredAssignment | null {
+    const asset = this.assets.get(assetId);
+
+    // 1. Direct assignment for user
     const match = this.assignments.find(a => a.asset_id === assetId && a.user_id === userId);
     if (match) {
       const isExpired = match.expires_at ? (new Date(match.expires_at).getTime() < Date.now()) : false;
@@ -983,6 +1133,43 @@ class SecureMaxStore {
       return match;
     }
 
+    // 2. Owner has implicit full access
+    if (asset && (asset.owner_id === userId || (userId && this.getUserById(userId)?.name === asset.owner_name))) {
+      return {
+        asset_id: assetId,
+        user_id: userId,
+        can_read: true,
+        can_decrypt: true,
+        can_download: true,
+        can_edit: true,
+        can_delete: true,
+        status: 'ACTIVE',
+        assigned_at: asset.created_at,
+        expires_at: null,
+      };
+    }
+
+    // 3. Organization-wide 'ALL' assignment
+    const allMatch = this.assignments.find(a => a.asset_id === assetId && a.user_id === 'ALL');
+    if (allMatch) {
+      const isExpired = allMatch.expires_at ? (new Date(allMatch.expires_at).getTime() < Date.now()) : false;
+      if (isExpired) {
+        return {
+          ...allMatch,
+          status: 'EXPIRED',
+          can_decrypt: false,
+          can_download: false,
+          can_edit: false,
+          can_delete: false,
+        };
+      }
+      return {
+        ...allMatch,
+        user_id: userId,
+      };
+    }
+
+    // 4. Admin fallback
     const user = this.getUserById(userId);
     if (user?.role === UserRole.ADMIN) {
       return {
@@ -1011,7 +1198,8 @@ class SecureMaxStore {
     canEdit: boolean = false,
     canDelete: boolean = false,
     expiresAt: string | null = null,
-    sharedBy?: string
+    sharedBy?: string,
+    sharedWithName?: string
   ): StoredAssignment {
     const index = this.assignments.findIndex(a => a.asset_id === assetId && a.user_id === userId);
     const assignment: StoredAssignment = {
@@ -1026,6 +1214,7 @@ class SecureMaxStore {
       assigned_at: new Date().toISOString(),
       expires_at: expiresAt,
       shared_by: sharedBy,
+      shared_with_name: sharedWithName,
     };
 
     if (index >= 0) {
@@ -1085,6 +1274,11 @@ class SecureMaxStore {
     ownerId: string;
     ownerName: string;
     sizeBytes?: number;
+    shareScope?: 'PRIVATE' | 'SPECIFIC_USER' | 'ALL_PEOPLE';
+    targetUserId?: string;
+    canDecryptShared?: boolean;
+    canDownloadShared?: boolean;
+    expiresAt?: string | null;
   }): StoredAsset {
     const masterKey = process.env.SECUREMAX_KMS_MASTER_KEY || '0000000000000000000000000000000000000000000000000000000000000000';
     const assetId = 'ast_' + crypto.randomUUID().slice(0, 8);
@@ -1106,6 +1300,9 @@ class SecureMaxStore {
     const fileType = params.fileType || (params.name.includes('.') ? params.name.split('.').pop()?.toUpperCase() || 'TXT' : 'TXT');
     const mimeType = params.mimeType || 'text/plain';
 
+    const shareScope = params.shareScope || 'PRIVATE';
+    const isSharedWithAll = shareScope === 'ALL_PEOPLE';
+
     const newAsset: StoredAsset = {
       id: assetId,
       asset_code: assetCode,
@@ -1121,7 +1318,10 @@ class SecureMaxStore {
       file_type: fileType,
       mime_type: mimeType,
       file_size_bytes: fileSizeBytes,
+      owner_id: params.ownerId,
       owner_name: params.ownerName,
+      shared_with_all: isSharedWithAll,
+      default_access_policy: isSharedWithAll ? 'ORGANIZATION' : 'PRIVATE',
       created_at: new Date().toISOString(),
       last_accessed_at: new Date().toISOString(),
       key_version: 'v1',
@@ -1151,7 +1351,7 @@ class SecureMaxStore {
 
     this.assets.set(assetId, newAsset);
 
-    // Grant owner full assignment
+    // 1. Grant owner full assignment (Private to creator by default)
     this.assignments.push({
       asset_id: assetId,
       user_id: params.ownerId,
@@ -1163,11 +1363,49 @@ class SecureMaxStore {
       status: 'ACTIVE',
       assigned_at: new Date().toISOString(),
       expires_at: null,
+      shared_by: 'Self (Owner)',
+      shared_with_name: params.ownerName,
     });
+
+    // 2. If organization-wide sharing is selected:
+    if (isSharedWithAll) {
+      this.assignments.push({
+        asset_id: assetId,
+        user_id: 'ALL',
+        can_read: true,
+        can_decrypt: params.canDecryptShared !== false,
+        can_download: params.canDownloadShared !== false,
+        can_edit: false,
+        can_delete: false,
+        status: 'ACTIVE',
+        assigned_at: new Date().toISOString(),
+        expires_at: params.expiresAt || null,
+        shared_by: params.ownerName,
+        shared_with_name: 'All People (Organization-Wide)',
+      });
+    } 
+    // 3. If specific person is selected:
+    else if (shareScope === 'SPECIFIC_USER' && params.targetUserId) {
+      const targetUser = this.getUserById(params.targetUserId);
+      this.assignments.push({
+        asset_id: assetId,
+        user_id: params.targetUserId,
+        can_read: true,
+        can_decrypt: params.canDecryptShared !== false,
+        can_download: params.canDownloadShared !== false,
+        can_edit: false,
+        can_delete: false,
+        status: 'ACTIVE',
+        assigned_at: new Date().toISOString(),
+        expires_at: params.expiresAt || null,
+        shared_by: params.ownerName,
+        shared_with_name: targetUser?.name || params.targetUserId,
+      });
+    }
 
     this.recordAuditEvent({
       eventType: 'ASSET_ENCRYPTED_AND_STORED',
-      description: `Asset registered and encrypted with AES-256-GCM: ${params.name} (${assetCode})`,
+      description: `Asset registered and encrypted with AES-256-GCM: ${params.name} (${assetCode}) [Scope: ${shareScope}]`,
       targetId: assetId,
       userName: params.ownerName,
       severity: 'INFO',
@@ -1178,7 +1416,7 @@ class SecureMaxStore {
 
   public shareAsset(params: {
     assetId: string;
-    targetUserId: string;
+    targetUserId: string; // specific userId or 'ALL'
     callerUserId: string;
     canRead?: boolean;
     canDecrypt?: boolean;
@@ -1193,10 +1431,19 @@ class SecureMaxStore {
     const caller = this.getUserById(params.callerUserId);
     const callerAssignment = this.getAssignment(params.callerUserId, params.assetId);
     const isCallerAdmin = caller?.role === UserRole.ADMIN;
+    const isOwner = asset.owner_id === params.callerUserId || asset.owner_name === caller?.name;
 
-    if (!isCallerAdmin && (!callerAssignment || !callerAssignment.can_edit)) {
+    if (!isCallerAdmin && !isOwner && (!callerAssignment || !callerAssignment.can_edit)) {
       throw new Error('Unauthorized: You do not have permission to share or manage access to this asset.');
     }
+
+    const isAll = params.targetUserId === 'ALL';
+    if (isAll) {
+      asset.shared_with_all = true;
+    }
+
+    const targetUser = isAll ? null : this.getUserById(params.targetUserId);
+    const targetName = isAll ? 'All People (Organization-Wide)' : (targetUser?.name || params.targetUserId);
 
     const assignment = this.setAssignment(
       params.assetId,
@@ -1207,19 +1454,101 @@ class SecureMaxStore {
       Boolean(params.canEdit),
       Boolean(params.canDelete),
       params.expiresAt || null,
-      caller?.name || 'Authorized User'
+      caller?.name || 'Authorized User',
+      targetName
     );
 
-    const targetUser = this.getUserById(params.targetUserId);
     this.recordAuditEvent({
-      eventType: 'ASSET_ACCESS_SHARED',
-      description: `Access to asset ${asset.name} shared with ${targetUser?.name || params.targetUserId}${params.expiresAt ? ` (Expires: ${params.expiresAt})` : ''}`,
+      eventType: isAll ? 'ASSET_SHARED_ORGANIZATION_WIDE' : 'ASSET_ACCESS_SHARED',
+      description: `Access to asset "${asset.name}" shared with ${targetName}${params.expiresAt ? ` (Expires: ${params.expiresAt})` : ''}`,
       targetId: params.assetId,
       userName: caller?.name,
       severity: 'INFO',
     });
 
     return assignment;
+  }
+
+  public revokeAssetShare(assetId: string, targetUserId: string, callerUserId: string): void {
+    const asset = this.assets.get(assetId);
+    if (!asset) throw new Error('Asset not found');
+
+    const caller = this.getUserById(callerUserId);
+    const callerAssignment = this.getAssignment(callerUserId, assetId);
+    const isCallerAdmin = caller?.role === UserRole.ADMIN;
+    const isOwner = asset.owner_id === callerUserId || asset.owner_name === caller?.name;
+
+    if (!isCallerAdmin && !isOwner && (!callerAssignment || !callerAssignment.can_edit)) {
+      throw new Error('Unauthorized: You do not have permission to revoke access to this asset.');
+    }
+
+    if (targetUserId === 'ALL') {
+      asset.shared_with_all = false;
+      this.assignments = this.assignments.filter(a => !(a.asset_id === assetId && a.user_id === 'ALL'));
+    } else {
+      this.assignments = this.assignments.filter(a => !(a.asset_id === assetId && a.user_id === targetUserId));
+    }
+
+    this.recordAuditEvent({
+      eventType: 'ASSET_ACCESS_REVOKED',
+      description: `Access to asset "${asset.name}" revoked for ${targetUserId === 'ALL' ? 'All People' : targetUserId}`,
+      targetId: assetId,
+      userName: caller?.name,
+      severity: 'WARNING',
+    });
+  }
+
+  public getSharesForAsset(assetId: string): Array<{
+    userId: string;
+    userName: string;
+    userEmail?: string;
+    canRead: boolean;
+    canDecrypt: boolean;
+    canDownload: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+    status: string;
+    expiresAt: string | null;
+    isAll: boolean;
+  }> {
+    return this.assignments
+      .filter(a => a.asset_id === assetId && a.status === 'ACTIVE')
+      .map(a => {
+        const isAll = a.user_id === 'ALL';
+        const user = isAll ? null : this.getUserById(a.user_id);
+        return {
+          userId: a.user_id,
+          userName: isAll ? 'All People (Organization-Wide)' : (user?.name || a.shared_with_name || a.user_id),
+          userEmail: isAll ? 'all@organization.mil' : user?.email,
+          canRead: a.can_read,
+          canDecrypt: a.can_decrypt,
+          canDownload: a.can_download,
+          canEdit: a.can_edit,
+          canDelete: a.can_delete,
+          status: a.status,
+          expiresAt: a.expires_at,
+          isAll,
+        };
+      });
+  }
+
+  public setUserDefaultAccessPolicy(userId: string, policy: 'PRIVATE' | 'ORGANIZATION'): void {
+    const user = this.getUserById(userId);
+    if (user) {
+      user.default_access_policy = policy;
+      this.recordAuditEvent({
+        eventType: 'USER_POLICY_UPDATED',
+        description: `Default access policy set to ${policy} for user ${user.name}`,
+        targetId: userId,
+        userName: user.name,
+        severity: 'INFO',
+      });
+    }
+  }
+
+  public getUserDefaultAccessPolicy(userId: string): 'PRIVATE' | 'ORGANIZATION' {
+    const user = this.getUserById(userId);
+    return user?.default_access_policy || 'PRIVATE';
   }
 
   public deleteAsset(assetId: string, callerUserId: string): void {

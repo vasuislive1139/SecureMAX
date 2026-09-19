@@ -8,9 +8,10 @@ export async function GET(req: Request) {
     const session = await getVerifiedSession();
     const url = new URL(req.url);
     const targetUserId = url.searchParams.get('userId') || session.userId;
+    const scope = (url.searchParams.get('scope') as 'MY_DATA' | 'ALL_DATA') || 'MY_DATA';
     const targetUser = deviceStore.getUserById(targetUserId);
 
-    const assetsWithPermissions = deviceStore.getAssetsForUser(targetUserId);
+    const assetsWithPermissions = deviceStore.getAssetsForUser(targetUserId, { scope });
 
     const safeList = assetsWithPermissions.map(item => ({
       id: item.asset.id,
@@ -30,6 +31,7 @@ export async function GET(req: Request) {
       fileType: item.asset.file_type,
       mimeType: item.asset.mime_type,
       fileSizeBytes: item.asset.file_size_bytes,
+      ownerId: item.asset.owner_id,
       ownerName: item.asset.owner_name,
       createdAt: item.asset.created_at,
       lastAccessedAt: item.asset.last_accessed_at,
@@ -39,6 +41,10 @@ export async function GET(req: Request) {
       blockchainTokenId: item.asset.blockchain_token_id,
       blockchainContract: item.asset.blockchain_contract,
       did: item.asset.did,
+      isOwner: item.is_owner,
+      sharingScope: item.sharing_scope,
+      assignedUsersCount: item.assigned_users_count,
+      shares: item.shares || [],
     }));
 
     // Calculate total vault storage used
@@ -57,12 +63,15 @@ export async function GET(req: Request) {
         role: u.role,
       }));
 
+    const defaultAccessPolicy = deviceStore.getUserDefaultAccessPolicy(targetUserId);
+
     return NextResponse.json({
       success: true,
       assets: safeList,
       role: session.role,
       userId: targetUserId,
       userName: targetUser?.name || session.name || session.email || 'Authorized User',
+      defaultAccessPolicy,
       storage: {
         usedBytes: totalStorageBytes,
         maxBytes: 524288000, // 500 MB
@@ -78,11 +87,24 @@ export async function POST(req: Request) {
   try {
     const session = await getVerifiedSession();
     const body = await req.json().catch(() => ({}));
-    const { action, assetId, targetUserId, canRead, canDecrypt } = body;
+    const { action, assetId, targetUserId, canRead, canDecrypt, policy } = body;
     const effectiveTargetUserId = targetUserId || session.userId;
+
+    if (action === 'set_default_policy') {
+      if (policy !== 'PRIVATE' && policy !== 'ORGANIZATION') {
+        return NextResponse.json({ error: 'Invalid policy option' }, { status: 400 });
+      }
+      deviceStore.setUserDefaultAccessPolicy(session.userId, policy);
+      return NextResponse.json({ success: true, message: `Default access policy set to ${policy}.` });
+    }
 
     if (!assetId) {
       return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
+    }
+
+    if (action === 'revoke_share') {
+      deviceStore.revokeAssetShare(assetId, effectiveTargetUserId, session.userId);
+      return NextResponse.json({ success: true, message: `Access for user ${effectiveTargetUserId} revoked.` });
     }
 
     // Admins can modify any user; users can toggle their own assignment

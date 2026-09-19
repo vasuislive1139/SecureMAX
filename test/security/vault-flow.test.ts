@@ -134,4 +134,117 @@ describe('Secure Data Vault Core Features & Lifecycle Flow', () => {
     expect(latestLog.status).toBe('SUCCESS');
     expect(latestLog.details).toBe('Test audit log entry');
   });
+
+  it('7. Strict access isolation: User only receives owned data, assigned data, or org-wide data', () => {
+    // Auditor creates a private asset
+    const auditorPrivate = deviceStore.createAsset({
+      name: 'Auditor_Confidential_Log.txt',
+      folder: 'Finance',
+      classification: 'RESTRICTED',
+      description: 'Private financial audit log',
+      plaintext: 'Confidential ledger anomalies identified.',
+      ownerId: auditorId,
+      ownerName: 'Security Auditor',
+      shareScope: 'PRIVATE',
+    });
+
+    expect(auditorPrivate.owner_id).toBe(auditorId);
+    expect(auditorPrivate.shared_with_all).toBe(false);
+
+    // Vasu requests his vault
+    const vasuVault = deviceStore.getAssetsForUser(vasuId, { scope: 'MY_DATA' });
+    const foundInVasuVault = vasuVault.find(item => item.asset.id === auditorPrivate.id);
+    expect(foundInVasuVault).toBeUndefined(); // Vasu CANNOT see auditor's private asset!
+
+    // Auditor requests their vault
+    const auditorVault = deviceStore.getAssetsForUser(auditorId, { scope: 'MY_DATA' });
+    const foundInAuditorVault = auditorVault.find(item => item.asset.id === auditorPrivate.id);
+    expect(foundInAuditorVault).toBeDefined();
+    expect(foundInAuditorVault?.is_owner).toBe(true);
+    expect(foundInAuditorVault?.sharing_scope).toBe('PRIVATE');
+  });
+
+  it('8. Sharing with ALL (Org-Wide) makes data accessible to all users', () => {
+    const orgAsset = deviceStore.createAsset({
+      name: 'Company_All_Hands_Notice.pdf',
+      folder: 'HR',
+      classification: 'INTERNAL',
+      description: 'Company-wide quarterly meeting announcement',
+      plaintext: 'All-Hands meeting scheduled for Friday 1000 UTC.',
+      ownerId: vasuId,
+      ownerName: 'Vasu (Lead Engineer)',
+      shareScope: 'ALL_PEOPLE',
+      canDecryptShared: true,
+      canDownloadShared: true,
+    });
+
+    expect(orgAsset.shared_with_all).toBe(true);
+
+    // Verify Auditor can see and decrypt it
+    const auditorVault = deviceStore.getAssetsForUser(auditorId, { scope: 'MY_DATA' });
+    const foundInAuditor = auditorVault.find(item => item.asset.id === orgAsset.id);
+    expect(foundInAuditor).toBeDefined();
+    expect(foundInAuditor?.can_read).toBe(true);
+    expect(foundInAuditor?.can_decrypt).toBe(true);
+    expect(foundInAuditor?.sharing_scope).toBe('ALL_PEOPLE');
+
+    // Verify getAssignment handles ALL
+    const assignment = deviceStore.getAssignment(auditorId, orgAsset.id);
+    expect(assignment?.can_read).toBe(true);
+    expect(assignment?.can_decrypt).toBe(true);
+  });
+
+  it('9. Person-to-person sharing and revoking access', () => {
+    // Vasu creates private asset
+    const privateDoc = deviceStore.createAsset({
+      name: 'Proprietary_Algorithm.py',
+      folder: 'Engineering',
+      classification: 'CONFIDENTIAL',
+      description: 'Core optimization algorithm',
+      plaintext: 'def optimize(): return True',
+      ownerId: vasuId,
+      ownerName: 'Vasu (Lead Engineer)',
+      shareScope: 'PRIVATE',
+    });
+
+    // Auditor cannot see it yet
+    expect(deviceStore.getAssetsForUser(auditorId, { scope: 'MY_DATA' }).some(a => a.asset.id === privateDoc.id)).toBe(false);
+
+    // Vasu shares it with Auditor
+    deviceStore.shareAsset({
+      assetId: privateDoc.id,
+      targetUserId: auditorId,
+      callerUserId: vasuId,
+      canRead: true,
+      canDecrypt: true,
+    });
+
+    // Auditor now sees it
+    const auditorDoc = deviceStore.getAssetsForUser(auditorId, { scope: 'MY_DATA' }).find(a => a.asset.id === privateDoc.id);
+    expect(auditorDoc).toBeDefined();
+    expect(auditorDoc?.can_decrypt).toBe(true);
+
+    // Active shares list shows Auditor
+    const shares = deviceStore.getSharesForAsset(privateDoc.id);
+    expect(shares.some(s => s.userId === auditorId)).toBe(true);
+
+    // Vasu revokes Auditor's share
+    deviceStore.revokeAssetShare(privateDoc.id, auditorId, vasuId);
+
+    // Auditor no longer sees it in MY_DATA vault
+    expect(deviceStore.getAssetsForUser(auditorId, { scope: 'MY_DATA' }).some(a => a.asset.id === privateDoc.id)).toBe(false);
+  });
+
+  it('10. User default access policy persistence', () => {
+    // Default is PRIVATE
+    expect(deviceStore.getUserDefaultAccessPolicy(vasuId)).toBe('PRIVATE');
+
+    // Change to ORGANIZATION
+    deviceStore.setUserDefaultAccessPolicy(vasuId, 'ORGANIZATION');
+    expect(deviceStore.getUserDefaultAccessPolicy(vasuId)).toBe('ORGANIZATION');
+
+    // Change back to PRIVATE
+    deviceStore.setUserDefaultAccessPolicy(vasuId, 'PRIVATE');
+    expect(deviceStore.getUserDefaultAccessPolicy(vasuId)).toBe('PRIVATE');
+  });
 });
