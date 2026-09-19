@@ -26,18 +26,31 @@ export function AssignAssetButton({ assetId, assigneeDid }: { assetId: string, a
   const checksLoaded = !assetLoading;
 
   const handleAssign = () => {
+    let assigneeAddress = assigneeDid.split(':').pop() || "0x0000000000000000000000000000000000000000";
+    if (!assigneeAddress.startsWith('0x') || assigneeAddress.length !== 42) {
+      // Fallback for hackathon demo if DID doesn't contain an address
+      assigneeAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Hardhat account 1
+    }
+
     execute({
       address: assetNftAddress,
       abi: AssetNFTABI,
       functionName: 'allocateAsset',
-      args: [isRegistered ? (assetData as any).tokenId : 0n, "0x0000000000000000000000000000000000000000"], // Dummy address, it needs the real assignee address which we might not have here? We only have assigneeDid.
+      args: [
+        isRegistered ? (assetData as any).tokenId : 0n, 
+        assigneeAddress, 
+        assigneeDid
+      ],
     });
   };
 
   const getButtonText = () => {
-    if (txState !== 'IDLE') return txState;
-    if (checksLoaded && !isRegistered) return 'Asset Not Found';
-    return 'Assign Access (Domain 1)';
+    if (txState === 'PREPARING' || txState === 'WALLET_CONFIRMATION_REQUIRED') return 'Confirm in Wallet...';
+    if (txState === 'SUBMITTED' || txState === 'CONFIRMING') return 'Tx Pending...';
+    if (txState === 'FAILED' || txState === 'REJECTED') return 'Tx Failed';
+    if (txState === 'CONFIRMED') return 'Asset Allocated!';
+    if (checksLoaded && !isRegistered) return 'Asset Not Minted';
+    return 'Allocate via Smart Contract';
   };
 
   return (

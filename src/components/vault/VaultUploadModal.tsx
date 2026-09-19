@@ -17,6 +17,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useBlockchainTransaction } from '@/hooks/useBlockchainTransaction';
+import { AssetNFTABI } from '@/lib/blockchain/abis';
+import deployedAddresses from '../../../deployed-addresses.json';
+import { useAccount } from 'wagmi';
 
 interface UserOption {
   id: string;
@@ -58,6 +62,10 @@ export function VaultUploadModal({
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  const { execute, txState, hash, errorMessage, reset: resetTx } = useBlockchainTransaction();
+  const { address } = useAccount();
+  const assetNftAddress = (process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS || deployedAddresses.contracts.AssetNFT) as `0x${string}`;
 
   React.useEffect(() => {
     if (defaultFolder && defaultFolder !== 'ALL') {
@@ -128,19 +136,53 @@ export function VaultUploadModal({
         throw new Error(data.error || 'Failed to upload and encrypt asset');
       }
 
-      // Reset form
-      setName('');
-      setDescription('');
-      setContent('');
-      setSelectedFile(null);
-      onUploadSuccess();
-      onClose();
+      // Mint on Blockchain
+      if (address) {
+        try {
+          await execute({
+            address: assetNftAddress,
+            abi: AssetNFTABI,
+            functionName: 'mintAsset',
+            args: [
+              data.asset.code, // assetId
+              classification,  // assetType
+              data.asset.id,   // assetReference
+              "ipfs://mock-uri", // metadataURI
+              address,         // initialRecipient
+              `did:securemax:user:${address.toLowerCase()}` // recipientDid
+            ],
+          });
+        } catch (txErr) {
+          console.warn("Blockchain minting skipped or failed:", txErr);
+        }
+      }
+
+      // We won't close immediately if blockchain tx is pending
+      if (!address) {
+        finishUpload();
+      }
     } catch (err: any) {
       setError(err.message || 'Upload error');
-    } finally {
       setLoading(false);
-    }
+    } 
   };
+
+  const finishUpload = () => {
+    setName('');
+    setDescription('');
+    setContent('');
+    setSelectedFile(null);
+    resetTx();
+    setLoading(false);
+    onUploadSuccess();
+    onClose();
+  };
+
+  React.useEffect(() => {
+    if (txState === 'CONFIRMED') {
+      finishUpload();
+    }
+  }, [txState]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -359,32 +401,57 @@ export function VaultUploadModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-zinc-800">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-              className="text-zinc-400 hover:text-zinc-100 text-xs font-mono"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-cyan-500 text-zinc-950 hover:bg-cyan-400 font-mono font-bold text-xs"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
-                  Encrypting...
-                </>
-              ) : (
-                <>
-                  <Lock className="w-3.5 h-3.5 mr-1.5" />
-                  Encrypt &amp; Store
-                </>
-              )}
-            </Button>
+          <div className="flex flex-col gap-2 pt-2 border-t border-zinc-800">
+            {txState !== 'IDLE' && (
+              <div className="text-[10px] p-2 bg-zinc-900/50 rounded flex justify-between items-center border border-zinc-800">
+                <span className="text-zinc-400">Blockchain State:</span>
+                <span className={`font-bold ${txState === 'FAILED' || txState === 'REJECTED' ? 'text-red-400' : 'text-cyan-400'}`}>
+                  {txState}
+                </span>
+              </div>
+            )}
+            
+            {errorMessage && (
+              <div className="text-[10px] p-2 bg-red-950/30 text-red-400 rounded border border-red-900/50 break-all">
+                {errorMessage}
+              </div>
+            )}
+            
+            <div className="flex items-center justify-end gap-2.5 mt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  resetTx();
+                  onClose();
+                }}
+                className="text-zinc-400 hover:text-zinc-100 text-xs font-mono"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || txState === 'PREPARING' || txState === 'WALLET_CONFIRMATION_REQUIRED' || txState === 'SUBMITTED' || txState === 'CONFIRMING'}
+                className="bg-cyan-500 text-zinc-950 hover:bg-cyan-400 font-mono font-bold text-xs"
+              >
+                {loading || txState === 'CONFIRMING' ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : txState === 'WALLET_CONFIRMATION_REQUIRED' ? (
+                  <>
+                    <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
+                    Confirm in Wallet
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-3.5 h-3.5 mr-1.5" />
+                    Encrypt &amp; Mint NFT
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
         </form>
