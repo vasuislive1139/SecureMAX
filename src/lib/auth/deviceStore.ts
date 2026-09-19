@@ -2,6 +2,7 @@ import 'server-only';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+
 import { 
   UserRole, 
   UserStatus, 
@@ -293,6 +294,9 @@ class SecureMaxStore {
   }
 
   private getDbFilePath(): string {
+    if (process.env.SECUREMAX_STORE_PATH) {
+      return process.env.SECUREMAX_STORE_PATH;
+    }
     return path.join(process.cwd(), '.securemax_db', 'vault_ledger.json');
   }
 
@@ -457,6 +461,7 @@ class SecureMaxStore {
       failed_admin_logins: 0,
     };
     this.recoveryVault = null;
+    this.saveToDisk();
   }
 
   public isSystemInitialized(): boolean {
@@ -2391,6 +2396,7 @@ class SecureMaxStore {
     durationMinutes?: number;
     maxDevices?: number;
     callerUserId?: string;
+    callerRole?: UserRole;
     targetDeviceType?: string;
   }): { enrollment: StoredEnrollmentCapability; plaintextCode: string } {
     const targetUser = this.getUserById(params.userId);
@@ -2402,7 +2408,7 @@ class SecureMaxStore {
 
     if (params.callerUserId) {
       const caller = this.getUserById(params.callerUserId);
-      const isCallerAdmin = caller?.role === UserRole.ADMIN;
+      const isCallerAdmin = (params.callerRole === UserRole.ADMIN) || (caller?.role === UserRole.ADMIN);
       if (params.callerUserId !== params.userId && !isCallerAdmin) {
         throw new Error('Unauthorized: only an Admin can issue device enrollment capabilities for other users');
       }
@@ -2715,6 +2721,8 @@ class SecureMaxStore {
       userName: user.name,
       severity: 'INFO',
     });
+
+    this.saveToDisk();
 
     return { passport, user };
   }
@@ -4420,4 +4428,4 @@ class SecureMaxStore {
 // Global singleton
 const globalForStore = global as unknown as { secureMaxStore?: SecureMaxStore };
 export const deviceStore = globalForStore.secureMaxStore || new SecureMaxStore();
-if (process.env.NODE_ENV !== 'production') globalForStore.secureMaxStore = deviceStore;
+globalForStore.secureMaxStore = deviceStore;

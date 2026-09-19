@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import { SignJWT } from 'jose';
 import crypto from 'crypto';
 import { deviceStore } from '@/lib/auth/deviceStore';
-import { UserRole } from '@/types';
+import { getVerifiedSession } from '@/lib/auth/session';
+import { UserRole, UserStatus } from '@/types';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,9 +17,43 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-
  */
 export async function GET() {
   try {
-    const isInitialized = deviceStore.isSystemInitialized();
-    const adminCount = deviceStore.getAdminCount();
-    const settings = deviceStore.getSystemSettings();
+    let isInitialized = deviceStore.isSystemInitialized();
+    let adminCount = deviceStore.getAdminCount();
+    let settings = deviceStore.getSystemSettings();
+
+    if (!isInitialized) {
+      try {
+        const session = await getVerifiedSession();
+        if (session && session.role === UserRole.ADMIN) {
+          if (!deviceStore.getUserById(session.userId)) {
+            const adminUser = {
+              id: session.userId,
+              name: session.name || 'Administrator',
+              email: session.email || 'admin@securemax.mil',
+              role: UserRole.ADMIN,
+              position: 'Root Administrator',
+              position_id: 'pos_root_admin',
+              kyc_status: 'VERIFIED' as const,
+              status: UserStatus.ACTIVE,
+              did: session.did || `did:securemax:admin:${session.userId.toLowerCase()}`,
+              created_at: new Date().toISOString(),
+            };
+            deviceStore.users.set(adminUser.id, adminUser);
+            deviceStore.users.set(adminUser.email, adminUser);
+            deviceStore.systemSettings.admin_initialized = true;
+            deviceStore.systemSettings.bootstrap_enabled = false;
+            deviceStore.systemSettings.system_state = 'SYSTEM_LOCKED';
+            deviceStore.systemSettings.root_admin_id = adminUser.id;
+            deviceStore.saveToDisk();
+          }
+          isInitialized = true;
+          adminCount = Math.max(adminCount, 1);
+          settings = deviceStore.getSystemSettings();
+        }
+      } catch {
+        // No active session or invalid token
+      }
+    }
 
     return NextResponse.json({
       initialized: isInitialized,
