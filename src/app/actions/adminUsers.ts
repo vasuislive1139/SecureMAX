@@ -3,6 +3,7 @@
 import { deviceStore, StoredUser } from '@/lib/auth/deviceStore';
 import { UserRole, UserStatus } from '@/types';
 import crypto from 'crypto';
+import { syncUserToSupabase } from '@/lib/db/supabase-sync';
 
 export interface AdminCreateUserResult {
   success: boolean;
@@ -122,6 +123,7 @@ export async function registerNewUserByAdmin(formData: {
     });
 
     deviceStore.saveToDisk();
+    syncUserToSupabase(newUser).catch(() => {});
 
     return {
       success: true,

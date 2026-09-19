@@ -24,6 +24,14 @@ import {
   AssuranceLevel
 } from '@/types';
 import { deriveKEK, generateDEK, encryptData } from '../crypto';
+import { 
+  syncLedgerToSupabase, 
+  fetchLedgerFromSupabase, 
+  syncUserToSupabase, 
+  syncAssetToSupabase, 
+  syncDeviceToSupabase, 
+  syncAccessRequestToSupabase 
+} from '@/lib/db/supabase-sync';
 
 export interface StoredUser {
   id: string;
@@ -310,8 +318,21 @@ class SecureMaxStore {
     if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
       const loaded = this.loadFromDisk();
       if (!loaded) {
-        this.seedInitialData();
-        this.saveToDisk();
+        // Attempt to load from Supabase cloud storage (e.g. on Vercel cold starts)
+        this.loadFromCloud().then(cloudLoaded => {
+          if (!cloudLoaded && this.users.size === 0) {
+            this.seedInitialData();
+            this.saveToDisk();
+          }
+        }).catch(() => {
+          if (this.users.size === 0) {
+            this.seedInitialData();
+            this.saveToDisk();
+          }
+        });
+      } else {
+        // Background check if cloud has newer state
+        this.loadFromCloud().catch(() => {});
       }
     }
   }
@@ -323,13 +344,184 @@ class SecureMaxStore {
     return path.join(process.cwd(), '.securemax_db', 'vault_ledger.json');
   }
 
-  public saveToDisk(): void {
+  public hydrate(parsed: any): boolean {
+    if (!parsed || !Array.isArray(parsed.users) || parsed.users.length === 0) {
+      return false;
+    }
+
+    this.users.clear();
+    for (const u of parsed.users) {
+      this.users.set(u.id, u);
+      this.users.set(u.email, u);
+    }
+
+    if (Array.isArray(parsed.devices)) {
+      this.devices.clear();
+      for (const d of parsed.devices) {
+        this.devices.set(d.id, d);
+      }
+    }
+
+    if (Array.isArray(parsed.sessions)) {
+      this.sessions.clear();
+      for (const s of parsed.sessions) {
+        this.sessions.set(s.session_id, s);
+      }
+    }
+
+    if (Array.isArray(parsed.enrollments)) {
+      this.enrollments.clear();
+      for (const e of parsed.enrollments) {
+        this.enrollments.set(e.code, e);
+      }
+    }
+
+    if (Array.isArray(parsed.assets)) {
+      this.assets.clear();
+      for (const a of parsed.assets) {
+        this.assets.set(a.id, a);
+      }
+    }
+
+    if (Array.isArray(parsed.assignments)) {
+      this.assignments = parsed.assignments;
+    }
+
+    if (Array.isArray(parsed.accessRequests)) {
+      this.accessRequests = parsed.accessRequests;
+    }
+
+    if (Array.isArray(parsed.liveGrants)) {
+      this.liveGrants = parsed.liveGrants;
+    }
+
+    if (Array.isArray(parsed.auditEvents)) {
+      this.auditEvents = parsed.auditEvents;
+    }
+
+    if (Array.isArray(parsed.notifications)) {
+      this.notifications = parsed.notifications;
+    }
+
+    if (Array.isArray(parsed.loginHistory)) {
+      this.loginHistory = parsed.loginHistory;
+    }
+
+    if (Array.isArray(parsed.positions)) {
+      this.positions.clear();
+      for (const p of parsed.positions) {
+        this.positions.set(p.id, p);
+      }
+    }
+
+    if (Array.isArray(parsed.devicePassports)) {
+      this.devicePassports.clear();
+      for (const dp of parsed.devicePassports) {
+        this.devicePassports.set(dp.id || dp.device_id, dp);
+      }
+    }
+
+    if (parsed.systemSettings) {
+      this.systemSettings = parsed.systemSettings;
+    }
+
+    // If active admins are loaded, ensure system state reflects initialized
+    if (this.getAdminCount() > 0) {
+      this.systemSettings.admin_initialized = true;
+      this.systemSettings.bootstrap_enabled = false;
+      if (this.systemSettings.system_state === 'UNINITIALIZED') {
+        this.systemSettings.system_state = 'SYSTEM_LOCKED';
+      }
+    }
+
+    if (parsed.recoveryVault) {
+      this.recoveryVault = parsed.recoveryVault;
+    }
+
+    if (process.env.ADMIN_WALLET) {
+      this.adminWallet = process.env.ADMIN_WALLET.toLowerCase();
+    } else if (parsed.adminWallet) {
+      this.adminWallet = parsed.adminWallet.toLowerCase();
+    }
+
+    if (Array.isArray(parsed.challenges)) {
+      this.challenges.clear();
+      for (const c of parsed.challenges) {
+        if (!c.consumed && new Date(c.expiresAt).getTime() > Date.now()) {
+          this.challenges.set(c.challengeId, c);
+          this.challengeCache.set(c.challengeId, {
+            challengeId: c.challengeId,
+            identifier: c.identifier,
+            nonce: c.nonce,
+            message: c.message,
+            expiresAt: c.expiresAt,
+          });
+        }
+      }
+    }
+
+    return true;
+  }
+
+  public async loadFromCloud(): Promise<boolean> {
+    try {
+      const cloudData = await fetchLedgerFromSupabase();
+      if (cloudData && this.hydrate(cloudData)) {
+        // Cache to local disk for fast subsequent reads
+        this.saveToDisk(false);
+        return true;
+      }
+    } catch (e) {
+      console.warn('[SecureMaxStore] Cloud load error:', e);
+    }
+    return false;
+  }
+
+  public saveToDisk(syncToCloud: boolean = true): void {
     if ((process.env.NODE_ENV === 'test' || process.env.VITEST) && !process.env.SECUREMAX_STORE_PATH) return;
     try {
       const filePath = this.getDbFilePath();
       const dir = path.dirname(filePath);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
+      }
+
+      const isTest = process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST);
+
+      // Safe multi-process merge: only in non-test environments
+      if (!isTest && fs.existsSync(filePath)) {
+        try {
+          const onDisk = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          if (Array.isArray(onDisk.users)) {
+            for (const u of onDisk.users) {
+              if (!this.users.has(u.id)) {
+                this.users.set(u.id, u);
+                this.users.set(u.email, u);
+              }
+            }
+          }
+          if (Array.isArray(onDisk.assets)) {
+            for (const a of onDisk.assets) {
+              if (!this.assets.has(a.id)) {
+                this.assets.set(a.id, a);
+              }
+            }
+          }
+          if (Array.isArray(onDisk.devices)) {
+            for (const d of onDisk.devices) {
+              if (!this.devices.has(d.id)) {
+                this.devices.set(d.id, d);
+              }
+            }
+          }
+          if (Array.isArray(onDisk.accessRequests)) {
+            for (const r of onDisk.accessRequests) {
+              if (!this.accessRequests.some(ar => ar.id === r.id)) {
+                this.accessRequests.push(r);
+              }
+            }
+          }
+        } catch {}
       }
 
       // Deduplicate users by ID to prevent duplicate user array entries in JSON
@@ -360,6 +552,11 @@ class SecureMaxStore {
       fs.writeFileSync(tmpPath, JSON.stringify(payload, null, 2), 'utf8');
       fs.renameSync(tmpPath, filePath);
       storeEvents.emit('change', { type: 'STATE_MUTATION', timestamp: Date.now() });
+
+      // Asynchronously sync to Supabase Cloud Storage (non-blocking)
+      if (syncToCloud && !isTest) {
+        syncLedgerToSupabase(payload).catch(() => {});
+      }
     } catch (err) {
       console.error('[SecureMaxStore] Disk save error:', err);
     }
@@ -373,123 +570,7 @@ class SecureMaxStore {
       }
       const raw = fs.readFileSync(filePath, 'utf8');
       const parsed = JSON.parse(raw);
-
-      if (Array.isArray(parsed.users) && parsed.users.length > 0) {
-        this.users.clear();
-        for (const u of parsed.users) {
-          this.users.set(u.id, u);
-          this.users.set(u.email, u);
-        }
-      } else {
-        return false;
-      }
-
-      if (Array.isArray(parsed.devices)) {
-        this.devices.clear();
-        for (const d of parsed.devices) {
-          this.devices.set(d.id, d);
-        }
-      }
-
-      if (Array.isArray(parsed.sessions)) {
-        this.sessions.clear();
-        for (const s of parsed.sessions) {
-          this.sessions.set(s.session_id, s);
-        }
-      }
-
-      if (Array.isArray(parsed.enrollments)) {
-        this.enrollments.clear();
-        for (const e of parsed.enrollments) {
-          this.enrollments.set(e.code, e);
-        }
-      }
-
-      if (Array.isArray(parsed.assets)) {
-        this.assets.clear();
-        for (const a of parsed.assets) {
-          this.assets.set(a.id, a);
-        }
-      }
-
-      if (Array.isArray(parsed.assignments)) {
-        this.assignments = parsed.assignments;
-      }
-
-      if (Array.isArray(parsed.accessRequests)) {
-        this.accessRequests = parsed.accessRequests;
-      }
-
-      if (Array.isArray(parsed.liveGrants)) {
-        this.liveGrants = parsed.liveGrants;
-      }
-
-      if (Array.isArray(parsed.auditEvents)) {
-        this.auditEvents = parsed.auditEvents;
-      }
-
-      if (Array.isArray(parsed.notifications)) {
-        this.notifications = parsed.notifications;
-      }
-
-      if (Array.isArray(parsed.loginHistory)) {
-        this.loginHistory = parsed.loginHistory;
-      }
-
-      if (Array.isArray(parsed.positions)) {
-        this.positions.clear();
-        for (const p of parsed.positions) {
-          this.positions.set(p.id, p);
-        }
-      }
-
-      if (Array.isArray(parsed.devicePassports)) {
-        this.devicePassports.clear();
-        for (const dp of parsed.devicePassports) {
-          this.devicePassports.set(dp.id || dp.device_id, dp);
-        }
-      }
-
-      if (parsed.systemSettings) {
-        this.systemSettings = parsed.systemSettings;
-      }
-
-      // If active admins are loaded from disk, ensure system state reflects initialized
-      if (this.getAdminCount() > 0) {
-        this.systemSettings.admin_initialized = true;
-        this.systemSettings.bootstrap_enabled = false;
-        if (this.systemSettings.system_state === 'UNINITIALIZED') {
-          this.systemSettings.system_state = 'SYSTEM_LOCKED';
-        }
-      }
-
-      if (parsed.recoveryVault) {
-        this.recoveryVault = parsed.recoveryVault;
-      }
-
-      if (process.env.ADMIN_WALLET) {
-        this.adminWallet = process.env.ADMIN_WALLET.toLowerCase();
-      } else if (parsed.adminWallet) {
-        this.adminWallet = parsed.adminWallet.toLowerCase();
-      }
-
-      if (Array.isArray(parsed.challenges)) {
-        this.challenges.clear();
-        for (const c of parsed.challenges) {
-          if (!c.consumed && new Date(c.expiresAt).getTime() > Date.now()) {
-            this.challenges.set(c.challengeId, c);
-            this.challengeCache.set(c.challengeId, {
-              challengeId: c.challengeId,
-              identifier: c.identifier,
-              nonce: c.nonce,
-              message: c.message,
-              expiresAt: c.expiresAt,
-            });
-          }
-        }
-      }
-
-      return true;
+      return this.hydrate(parsed);
     } catch (err) {
       console.error('[SecureMaxStore] Disk load error:', err);
       return false;
@@ -1794,6 +1875,7 @@ class SecureMaxStore {
     });
 
     this.saveToDisk();
+    syncUserToSupabase(user).catch(() => {});
 
     return { user, enrollmentCode: 'SMX-' + plaintextCode };
   }
@@ -2986,6 +3068,7 @@ class SecureMaxStore {
     });
 
     this.saveToDisk();
+    syncDeviceToSupabase(passport).catch(() => {});
 
     storeEvents.emit('change', {
       type: 'DEVICE_ENROLLED',
@@ -4073,6 +4156,7 @@ class SecureMaxStore {
     });
 
     this.saveToDisk();
+    syncAssetToSupabase(newAsset).catch(() => {});
     return newAsset;
   }
 
@@ -4492,6 +4576,7 @@ class SecureMaxStore {
     });
 
     this.saveToDisk();
+    syncAccessRequestToSupabase(accessReq).catch(() => {});
 
     storeEvents.emit('change', {
       type: 'ACCESS_REQUEST_SUBMITTED',
