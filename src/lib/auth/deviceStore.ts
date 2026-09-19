@@ -305,8 +305,11 @@ class SecureMaxStore {
         fs.mkdirSync(dir, { recursive: true });
       }
 
+      // Deduplicate users by ID to prevent duplicate user array entries in JSON
+      const uniqueUsers = Array.from(new Map(Array.from(this.users.values()).map(u => [u.id, u])).values());
+
       const payload = {
-        users: Array.from(this.users.values()),
+        users: uniqueUsers,
         devices: Array.from(this.devices.values()),
         enrollments: Array.from(this.enrollments.values()),
         assets: Array.from(this.assets.values()),
@@ -413,6 +416,15 @@ class SecureMaxStore {
         this.systemSettings = parsed.systemSettings;
       }
 
+      // If active admins are loaded from disk, ensure system state reflects initialized
+      if (this.getAdminCount() > 0) {
+        this.systemSettings.admin_initialized = true;
+        this.systemSettings.bootstrap_enabled = false;
+        if (this.systemSettings.system_state === 'UNINITIALIZED') {
+          this.systemSettings.system_state = 'SYSTEM_LOCKED';
+        }
+      }
+
       if (parsed.recoveryVault) {
         this.recoveryVault = parsed.recoveryVault;
       }
@@ -448,7 +460,19 @@ class SecureMaxStore {
   }
 
   public isSystemInitialized(): boolean {
-    return this.systemSettings.admin_initialized && this.getAdminCount() > 0;
+    const adminCount = this.getAdminCount();
+    if (adminCount > 0) {
+      if (!this.systemSettings.admin_initialized || this.systemSettings.bootstrap_enabled) {
+        this.systemSettings.admin_initialized = true;
+        this.systemSettings.bootstrap_enabled = false;
+        if (this.systemSettings.system_state === 'UNINITIALIZED') {
+          this.systemSettings.system_state = 'SYSTEM_LOCKED';
+        }
+        this.saveToDisk();
+      }
+      return true;
+    }
+    return Boolean(this.systemSettings.admin_initialized && adminCount > 0);
   }
 
   public getAdminCount(): number {
@@ -1428,6 +1452,32 @@ class SecureMaxStore {
     // Seed permanent audit ledger
     this.auditEvents.push(
       {
+        id: 'aud_seed_admin_root',
+        event_type: 'ROOT_ADMIN_CREATED',
+        description: `Root administrator registered and identity anchored: ${adminUser.name} (${adminUser.id}) bound to ${adminDevice.device_name}`,
+        target_id: adminUser.id,
+        user_email: adminUser.email,
+        user_name: adminUser.name,
+        performed_by: adminUser.name,
+        severity: 'INFO',
+        event_hash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
+        block_number: 6849200,
+        created_at: new Date(Date.now() - 150 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 'aud_seed_admin_dev',
+        event_type: 'ADMIN_DEVICE_REGISTERED',
+        description: `Singleton hardware terminal bound to Root Admin: ${adminDevice.device_name} (ID: ${adminDevice.id})`,
+        target_id: adminDevice.id,
+        user_email: adminUser.email,
+        user_name: adminUser.name,
+        performed_by: adminUser.name,
+        severity: 'INFO',
+        event_hash: '0x2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c',
+        block_number: 6849205,
+        created_at: new Date(Date.now() - 140 * 60 * 1000).toISOString(),
+      },
+      {
         id: 'aud_seed_1',
         event_type: 'USER_IDENTITY_REGISTERED',
         description: 'DID generated for Vasu (Field Operator): did:securemax:user:002',
@@ -1642,13 +1692,17 @@ class SecureMaxStore {
       eventType: 'SYSTEM_INITIALIZATION_STARTED',
       description: `SecureMAX bootstrap started for organization: ${params.orgName} (ID: ${orgId})`,
       performedBy: 'DEPLOYMENT_BOOTSTRAP',
+      userName: adminUser.name,
+      userEmail: adminUser.email,
       severity: 'INFO',
     });
     this.recordAuditEvent({
       eventType: 'ROOT_ADMIN_CREATED',
-      description: `Root administrator created: ${adminUser.name} (${adminUser.id})`,
+      description: `Root administrator registered: ${adminUser.name} (${adminUser.id}) for organization: ${params.orgName}`,
       performedBy: adminUser.name,
       targetId: adminUser.id,
+      userName: adminUser.name,
+      userEmail: adminUser.email,
       severity: 'INFO',
     });
     this.recordAuditEvent({
@@ -1656,6 +1710,8 @@ class SecureMaxStore {
       description: `Singleton Admin device bound: ${adminDevice.device_name} (ID: ${adminDevice.id})`,
       performedBy: adminUser.name,
       targetId: adminDevice.id,
+      userName: adminUser.name,
+      userEmail: adminUser.email,
       severity: 'INFO',
     });
     this.recordAuditEvent({
@@ -1663,20 +1719,29 @@ class SecureMaxStore {
       description: `WebAuthn / Passkey credential registered for ${adminUser.name}`,
       performedBy: adminUser.name,
       targetId: adminDevice.credential_id,
+      userName: adminUser.name,
+      userEmail: adminUser.email,
       severity: 'INFO',
     });
     this.recordAuditEvent({
       eventType: 'SYSTEM_INITIALIZATION_COMPLETED',
-      description: `SecureMAX system fully initialized and locked`,
+      description: `SecureMAX system fully initialized and locked with root admin: ${adminUser.name}`,
       performedBy: adminUser.name,
+      userName: adminUser.name,
+      userEmail: adminUser.email,
       severity: 'INFO',
     });
     this.recordAuditEvent({
       eventType: 'ADMIN_BOOTSTRAP_DISABLED',
       description: `Admin bootstrap permanently disabled. System state: SYSTEM_LOCKED`,
       performedBy: 'SYSTEM_SECURITY_POLICY',
+      userName: adminUser.name,
+      userEmail: adminUser.email,
       severity: 'WARNING',
     });
+
+    // Commit state immediately to disk
+    this.saveToDisk();
 
     return {
       rootAdmin: adminUser,

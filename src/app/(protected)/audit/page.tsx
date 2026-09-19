@@ -17,7 +17,7 @@ export default async function AuditTrailPage() {
     created_at: e.created_at,
     event_type: e.event_type,
     status: e.severity === 'CRITICAL' ? 'DENIED' : 'SUCCESS',
-    actor_did: e.user_email || 'SYSTEM',
+    actor_did: e.user_name ? `${e.user_name} (${e.user_email || 'ADMIN'})` : (e.user_email || e.performed_by || 'SYSTEM'),
     target_type: e.target_id || 'Identity Ledger',
     source: 'CRYPTOGRAPHIC AUDIT LEDGER',
     event_hash: e.event_hash,

@@ -5,6 +5,9 @@ import crypto from 'crypto';
 import { deviceStore } from '@/lib/auth/deviceStore';
 import { UserRole } from '@/types';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
 
 /**
@@ -23,6 +26,10 @@ export async function GET() {
       bootstrapEnabled: settings.bootstrap_enabled,
       systemState: settings.system_state,
       organization: settings.organization || null,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      }
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to query bootstrap state' }, { status: 500 });

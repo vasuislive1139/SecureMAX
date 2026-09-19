@@ -42,8 +42,9 @@ export default function SecureMaxHeroLogin() {
   const router = useRouter();
 
   // State-Aware System State (Admin Count = 0 vs 1)
-  const [systemInitialized, setSystemInitialized] = useState<boolean>(false);
-  const [adminCount, setAdminCount] = useState<number>(0);
+  const [systemInitialized, setSystemInitialized] = useState<boolean>(true);
+  const [isCheckingBootstrap, setIsCheckingBootstrap] = useState<boolean>(true);
+  const [adminCount, setAdminCount] = useState<number>(1);
   const [showBootstrapWizard, setShowBootstrapWizard] = useState<boolean>(false);
   const [showRecoveryModal, setShowRecoveryModal] = useState<boolean>(false);
 
@@ -64,14 +65,16 @@ export default function SecureMaxHeroLogin() {
   // Check initialization status on mount
   const checkBootstrapState = async () => {
     try {
-      const res = await fetch('/api/admin/bootstrap');
+      const res = await fetch('/api/admin/bootstrap', { cache: 'no-store' });
       if (res.ok) {
         const d = await res.json();
         setSystemInitialized(Boolean(d.initialized));
-        setAdminCount(d.adminCount || 0);
+        setAdminCount(typeof d.adminCount === 'number' ? d.adminCount : (d.initialized ? 1 : 0));
       }
     } catch (e) {
       console.error('Failed to check bootstrap status', e);
+    } finally {
+      setIsCheckingBootstrap(false);
     }
   };
 
@@ -703,8 +706,54 @@ export default function SecureMaxHeroLogin() {
                       </button>
                     </div>
 
-                    {/* State-Aware System Initialization Section */}
-                    {!systemInitialized && (
+                    {/* Quick Demo Credentials Fillers */}
+                    <div className="pt-2">
+                      <div className="text-[10px] font-mono text-zinc-500 mb-1.5 flex items-center justify-between">
+                        <span>QUICK DEMO PRESETS:</span>
+                        <span className="text-[9px] text-zinc-600">Click to fill</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEmail('admin@securemax.mil');
+                            setPassword('HardwareKey#RootAdmin2026');
+                            setErrorMessage('');
+                          }}
+                          className="py-1.5 px-2 rounded-lg bg-zinc-900/90 hover:bg-cyan-950/40 border border-zinc-800 hover:border-cyan-500/40 text-[11px] font-mono text-cyan-300 transition-all text-center truncate cursor-pointer"
+                          title="Admin: admin@securemax.mil"
+                        >
+                          🛡️ Admin
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEmail('vasu@securemax.mil');
+                            setPassword('MacBook#Enclave2026');
+                            setErrorMessage('');
+                          }}
+                          className="py-1.5 px-2 rounded-lg bg-zinc-900/90 hover:bg-cyan-950/40 border border-zinc-800 hover:border-cyan-500/40 text-[11px] font-mono text-cyan-300 transition-all text-center truncate cursor-pointer"
+                          title="User: vasu@securemax.mil"
+                        >
+                          👤 User
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEmail('auditor@securemax.mil');
+                            setPassword('Auditor#Compliance2026');
+                            setErrorMessage('');
+                          }}
+                          className="py-1.5 px-2 rounded-lg bg-zinc-900/90 hover:bg-cyan-950/40 border border-zinc-800 hover:border-cyan-500/40 text-[11px] font-mono text-cyan-300 transition-all text-center truncate cursor-pointer"
+                          title="Auditor: auditor@securemax.mil"
+                        >
+                          📋 Auditor
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* State-Aware System Initialization Section (Strictly zero-admin state only) */}
+                    {!isCheckingBootstrap && !systemInitialized && adminCount === 0 && (
                       <div className="pt-4 border-t border-zinc-800/80 mt-6">
                         <div className="flex items-center justify-between p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30">
                           <div className="text-left">

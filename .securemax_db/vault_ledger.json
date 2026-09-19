@@ -13,18 +13,6 @@
       "created_at": "2026-09-19T17:00:20.810Z"
     },
     {
-      "id": "ADM-0001",
-      "name": "Alpha Admin",
-      "email": "alpha@defense.org",
-      "role": "ADMIN",
-      "position": "Root Administrator",
-      "position_id": "pos_root_admin",
-      "kyc_status": "VERIFIED",
-      "status": "ACTIVE",
-      "did": "did:securemax:admin:adm-0001",
-      "created_at": "2026-09-19T17:00:20.810Z"
-    },
-    {
       "id": "usr_admin_001",
       "name": "Vasu (Administrator)",
       "email": "admin@securemax.mil",
@@ -35,30 +23,6 @@
       "status": "ACTIVE",
       "did": "did:securemax:admin:001",
       "created_at": "2026-09-01T00:00:00.000Z"
-    },
-    {
-      "id": "usr_admin_001",
-      "name": "Vasu (Administrator)",
-      "email": "admin@securemax.mil",
-      "role": "ADMIN",
-      "position": "Root Administrator",
-      "position_id": "pos_root_admin",
-      "kyc_status": "VERIFIED",
-      "status": "ACTIVE",
-      "did": "did:securemax:admin:001",
-      "created_at": "2026-09-01T00:00:00.000Z"
-    },
-    {
-      "id": "usr_vasu_002",
-      "name": "Vasu (Lead Engineer)",
-      "email": "vasu@securemax.mil",
-      "role": "USER",
-      "position": "Manager",
-      "position_id": "pos_manager",
-      "kyc_status": "VERIFIED",
-      "status": "ACTIVE",
-      "did": "did:securemax:user:002",
-      "created_at": "2026-09-02T00:00:00.000Z"
     },
     {
       "id": "usr_vasu_002",
@@ -85,28 +49,6 @@
       "created_at": "2026-09-03T00:00:00.000Z"
     },
     {
-      "id": "usr_auditor_003",
-      "name": "Compliance Auditor",
-      "email": "auditor@securemax.mil",
-      "role": "AUDITOR",
-      "position": "Auditor",
-      "position_id": "pos_auditor",
-      "kyc_status": "VERIFIED",
-      "status": "ACTIVE",
-      "did": "did:securemax:auditor:003",
-      "created_at": "2026-09-03T00:00:00.000Z"
-    },
-    {
-      "id": "usr_ritik_004",
-      "name": "Ritik (Systems Architect)",
-      "email": "ritik@securemax.mil",
-      "role": "USER",
-      "kyc_status": "VERIFIED",
-      "status": "ACTIVE",
-      "did": "did:securemax:user:004",
-      "created_at": "2026-09-04T00:00:00.000Z"
-    },
-    {
       "id": "usr_ritik_004",
       "name": "Ritik (Systems Architect)",
       "email": "ritik@securemax.mil",
@@ -127,16 +69,6 @@
       "created_at": "2026-09-05T00:00:00.000Z"
     },
     {
-      "id": "usr_vaani_005",
-      "name": "Vaani (Security Analyst)",
-      "email": "vaani@securemax.mil",
-      "role": "USER",
-      "kyc_status": "VERIFIED",
-      "status": "ACTIVE",
-      "did": "did:securemax:user:005",
-      "created_at": "2026-09-05T00:00:00.000Z"
-    },
-    {
       "id": "usr_arjun_006",
       "name": "Arjun Verma",
       "email": "arjun.verma@securemax.mil",
@@ -144,26 +76,6 @@
       "kyc_status": "VERIFIED",
       "status": "ACTIVE",
       "did": "did:securemax:user:arjun006",
-      "created_at": "2026-09-10T00:00:00.000Z"
-    },
-    {
-      "id": "usr_arjun_006",
-      "name": "Arjun Verma",
-      "email": "arjun.verma@securemax.mil",
-      "role": "USER",
-      "kyc_status": "VERIFIED",
-      "status": "ACTIVE",
-      "did": "did:securemax:user:arjun006",
-      "created_at": "2026-09-10T00:00:00.000Z"
-    },
-    {
-      "id": "usr_riya_007",
-      "name": "Riya Sharma",
-      "email": "riya.sharma@securemax.mil",
-      "role": "USER",
-      "kyc_status": "VERIFIED",
-      "status": "ACTIVE",
-      "did": "did:securemax:user:riya007",
       "created_at": "2026-09-10T00:00:00.000Z"
     },
     {
@@ -2576,7 +2488,9 @@
       "severity": "WARNING",
       "event_hash": "0x9363af91e50bddd8ee745c6cef47040baa09a3071053ab8e6666a1e2b26a3ab4",
       "block_number": 6849529,
-      "created_at": "2026-09-19T17:00:20.816Z"
+      "created_at": "2026-09-19T17:00:20.816Z",
+      "user_name": "SYSTEM_SECURITY_POLICY",
+      "user_email": "admin@securemax.mil"
     },
     {
       "id": "aud_f8071b73",
@@ -2586,7 +2500,9 @@
       "severity": "INFO",
       "event_hash": "0xd6274d068a3398fb5a859890e045d4dd144494babaa451b43859af75753414ec",
       "block_number": 6849465,
-      "created_at": "2026-09-19T17:00:20.815Z"
+      "created_at": "2026-09-19T17:00:20.815Z",
+      "user_name": "Alpha Admin",
+      "user_email": "admin@securemax.mil"
     },
     {
       "id": "aud_6c0656b5",
@@ -2598,7 +2514,9 @@
       "severity": "INFO",
       "event_hash": "0x95abb04b40e91977baf4a3c0db5af86bba62b98d793587626154664553c9a80d",
       "block_number": 6849346,
-      "created_at": "2026-09-19T17:00:20.815Z"
+      "created_at": "2026-09-19T17:00:20.815Z",
+      "user_name": "Alpha Admin",
+      "user_email": "admin@securemax.mil"
     },
     {
       "id": "aud_bde46d1a",
@@ -2610,7 +2528,9 @@
       "severity": "INFO",
       "event_hash": "0xe490e2ae99eee4bffdf7ab805f8e67a003bfa24f1b9e63a7541f6c33f3f32385",
       "block_number": 6849333,
-      "created_at": "2026-09-19T17:00:20.812Z"
+      "created_at": "2026-09-19T17:00:20.812Z",
+      "user_name": "Alpha Admin",
+      "user_email": "admin@securemax.mil"
     },
     {
       "id": "aud_3715f6ac",
@@ -2622,7 +2542,9 @@
       "severity": "INFO",
       "event_hash": "0x35f82ad08bc734d97f00cb847f13e9ba91c669d31dbdb5853fccc0c5c4dd2832",
       "block_number": 6849610,
-      "created_at": "2026-09-19T17:00:20.812Z"
+      "created_at": "2026-09-19T17:00:20.812Z",
+      "user_name": "Alpha Admin",
+      "user_email": "admin@securemax.mil"
     },
     {
       "id": "aud_907e388c",
@@ -2632,7 +2554,9 @@
       "severity": "INFO",
       "event_hash": "0xed5a741dba739ff5a0223163daea89bc13d2fb6d4c4b83b1990934f5b1a9c19b",
       "block_number": 6849217,
-      "created_at": "2026-09-19T17:00:20.810Z"
+      "created_at": "2026-09-19T17:00:20.810Z",
+      "user_name": "DEPLOYMENT_BOOTSTRAP",
+      "user_email": "admin@securemax.mil"
     },
     {
       "id": "aud_seed_1",
