@@ -21,8 +21,8 @@ async function validateSession(req: NextRequest) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // If visiting /login while already authenticated, redirect to appropriate dashboard
-  if (pathname === '/login') {
+  // If visiting /login or / while already authenticated, redirect to appropriate dashboard
+  if (pathname === '/login' || pathname === '/') {
     const session = await validateSession(request);
     if (session) {
       if (session.role === 'ADMIN') return NextResponse.redirect(new URL('/dashboard/admin', request.url));
@@ -40,7 +40,7 @@ export async function middleware(request: NextRequest) {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Session required' } }, { status: 401 });
       }
-      return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(new URL('/login', request.url));
     }
 
     // Role-based routing checks
@@ -53,5 +53,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/api/:path*', '/login', '/'],
 };
