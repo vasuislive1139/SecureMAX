@@ -29,7 +29,9 @@ import {
   Lock,
   PauseCircle,
   PlayCircle,
-  UserPlus
+  UserPlus,
+  ExternalLink,
+  Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,6 +125,7 @@ export default function DevicesPage() {
   const [selectedPassport, setSelectedPassport] = React.useState<EnrolledDevicePassport | null>(null);
 
   // Enrollment Generator State
+  const [enrollmentMode, setEnrollmentMode] = React.useState<'NEW_USER' | 'EXISTING_USER'>('NEW_USER');
   const [selectedPersonnelId, setSelectedPersonnelId] = React.useState<string>('');
   const [newUserName, setNewUserName] = React.useState<string>('');
   const [newUserEmail, setNewUserEmail] = React.useState<string>('');
@@ -141,6 +144,7 @@ export default function DevicesPage() {
   const [generatedUrl, setGeneratedUrl] = React.useState<string | null>(null);
   const [showQrModal, setShowQrModal] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+  const [copiedUrl, setCopiedUrl] = React.useState(false);
   const [countdown, setCountdown] = React.useState<string>('15:00');
 
   const fetchDevicesData = React.useCallback(async () => {
@@ -153,8 +157,9 @@ export default function DevicesPage() {
         if (data.positions) setPositions(data.positions);
         if (data.personnel) {
           setPersonnel(data.personnel);
-          if (data.personnel.length > 0 && !selectedPersonnelId) {
-            setSelectedPersonnelId(data.personnel[0].id);
+          const nonAdmins = data.personnel.filter((p: any) => p.role !== 'ADMIN');
+          if (nonAdmins.length > 0 && !selectedPersonnelId) {
+            setSelectedPersonnelId(nonAdmins[0].id);
           }
         }
         if (data.sessions) setSessions(data.sessions);
@@ -192,16 +197,18 @@ export default function DevicesPage() {
   // Admin generates 15-minute enrollment code
   const handleGenerateEnrollmentCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isNewUser = selectedPersonnelId === '__NEW_USER__';
+    const isNewUser = enrollmentMode === 'NEW_USER';
 
     if (isNewUser) {
       if (!newUserName.trim() || !newUserEmail.trim()) {
         setEnrollmentError('Please provide both Full Name and Email Address for the new user.');
         return;
       }
-    } else if (!selectedPersonnelId) {
-      setEnrollmentError('Please select a recipient user or choose "+ New User"');
-      return;
+    } else {
+      if (!selectedPersonnelId || selectedPersonnelId === '__NEW_USER__') {
+        setEnrollmentError('Please select a registered team member.');
+        return;
+      }
     }
 
     setEnrollmentLoading(true);
@@ -285,6 +292,14 @@ export default function DevicesPage() {
       navigator.clipboard.writeText(generatedCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleCopyUrl = () => {
+    if (generatedUrl) {
+      navigator.clipboard.writeText(generatedUrl);
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
     }
   };
 
@@ -517,12 +532,98 @@ export default function DevicesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Segmented Mode Switch: Onboard New User vs Existing Team Member */}
+                <div className="flex rounded-xl bg-zinc-950 p-1 border border-zinc-800 mb-4 font-mono">
+                  <button
+                    type="button"
+                    onClick={() => { setEnrollmentMode('NEW_USER'); setEnrollmentError(null); }}
+                    className={`flex-1 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                      enrollmentMode === 'NEW_USER'
+                        ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-400/60 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
+                        : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                    }`}
+                  >
+                    👤 Onboard New User
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEnrollmentMode('EXISTING_USER'); setEnrollmentError(null); }}
+                    className={`flex-1 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                      enrollmentMode === 'EXISTING_USER'
+                        ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-400/60 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
+                        : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                    }`}
+                  >
+                    💻 Existing User Device
+                  </button>
+                </div>
+
                 <form onSubmit={handleGenerateEnrollmentCode} className="space-y-4 font-mono text-xs">
                   
+                  {enrollmentMode === 'NEW_USER' ? (
+                    /* Onboard New User Inputs */
+                    <div className="space-y-3 p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30 animate-in fade-in">
+                      <div className="text-[11px] font-mono text-cyan-300 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                        <UserPlus className="w-3.5 h-3.5 text-cyan-400" />
+                        New Identity Credentials
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-zinc-400 block font-mono uppercase">Full Name *</label>
+                        <input
+                          type="text"
+                          value={newUserName}
+                          onChange={(e) => setNewUserName(e.target.value)}
+                          placeholder="e.g. Vikram Singh"
+                          required
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-zinc-400 block font-mono uppercase">Official Email Address *</label>
+                        <input
+                          type="email"
+                          value={newUserEmail}
+                          onChange={(e) => setNewUserEmail(e.target.value)}
+                          placeholder="e.g. vikram@securemax.mil"
+                          required
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    /* Select Existing Non-Admin User */
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] text-zinc-300 block font-semibold">
+                        Select Registered Team Member
+                      </label>
+                      {personnel.filter(p => p.role !== 'ADMIN').length === 0 ? (
+                        <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 text-[11px] text-amber-400">
+                          No non-admin personnel enrolled yet. Switch to &quot;Onboard New User&quot; above to add your first team member.
+                        </div>
+                      ) : (
+                        <select
+                          value={selectedPersonnelId}
+                          onChange={(e) => setSelectedPersonnelId(e.target.value)}
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-cyan-400"
+                        >
+                          <option value="">-- Choose Team Member --</option>
+                          {personnel.filter(p => p.role !== 'ADMIN').map(p => (
+                            <option key={p.id} value={p.id}>
+                              {p.name} ({p.email}) — {p.position || p.role}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <p className="text-[10px] text-zinc-500">
+                        ℹ Administrator accounts are strictly single-device hardware-bound.
+                      </p>
+                    </div>
+                  )}
+
                   {/* Select Position */}
                   <div className="space-y-1.5">
                     <label className="text-[11px] text-zinc-300 block font-semibold">
-                      Select Position
+                      Assign Organizational Position / Role
                     </label>
                     <select
                       value={selectedPositionId}
@@ -538,71 +639,10 @@ export default function DevicesPage() {
                     </select>
                   </div>
 
-                  {/* Select User */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] text-zinc-300 block font-semibold">
-                      Recipient User
-                    </label>
-                    <select
-                      value={selectedPersonnelId}
-                      onChange={(e) => setSelectedPersonnelId(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-cyan-400"
-                    >
-                      <option value="">-- Select Recipient or Onboard New User --</option>
-                      <option value="__NEW_USER__" className="text-cyan-300 font-bold bg-zinc-900">
-                        ➕ New User / Onboard New Identity
-                      </option>
-                      {personnel.length > 0 && (
-                        <optgroup label="Existing Registered Personnel">
-                          {personnel.map(p => (
-                            <option key={p.id} value={p.id}>
-                              {p.name} ({p.email})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                    </select>
-                  </div>
-
-                  {/* New User Specific Inputs */}
-                  {selectedPersonnelId === '__NEW_USER__' && (
-                    <div className="p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30 space-y-3 animate-in fade-in">
-                      <div className="text-[11px] font-mono text-cyan-300 font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                        <UserPlus className="w-3.5 h-3.5 text-cyan-400" />
-                        New Identity Details
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] text-zinc-400 block font-mono uppercase">Full Name</label>
-                        <input
-                          type="text"
-                          value={newUserName}
-                          onChange={(e) => setNewUserName(e.target.value)}
-                          placeholder="e.g. Vikram Singh"
-                          required
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] text-zinc-400 block font-mono uppercase">Email Address</label>
-                        <input
-                          type="email"
-                          value={newUserEmail}
-                          onChange={(e) => setNewUserEmail(e.target.value)}
-                          placeholder="e.g. vikram@securemax.mil"
-                          required
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400"
-                        />
-                      </div>
-                      <p className="text-[10px] text-cyan-400/80 font-mono">
-                        ℹ The user will be created and bound to the selected position above upon enrollment.
-                      </p>
-                    </div>
-                  )}
-
                   {/* Duration */}
                   <div className="space-y-1.5">
                     <label className="text-[11px] text-zinc-300 block font-semibold">
-                      Validity Duration
+                      Code Validity Duration
                     </label>
                     <select
                       value={durationMinutes}
@@ -613,21 +653,6 @@ export default function DevicesPage() {
                       <option value={30}>30 minutes</option>
                       <option value={60}>1 hour</option>
                     </select>
-                  </div>
-
-                  {/* Max Devices */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] text-zinc-300 block font-semibold">
-                      Maximum Devices
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={5}
-                      value={maxDevices}
-                      onChange={(e) => setMaxDevices(Number(e.target.value))}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-cyan-400"
-                    />
                   </div>
 
                   {/* Enrollment Scope & Device Binding */}
@@ -657,11 +682,11 @@ export default function DevicesPage() {
 
                   <Button
                     type="submit"
-                    disabled={enrollmentLoading}
+                    disabled={enrollmentLoading || (enrollmentMode === 'EXISTING_USER' && personnel.filter(p => p.role !== 'ADMIN').length === 0)}
                     className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {enrollmentLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
-                    GENERATE ENROLLMENT CODE
+                    {enrollmentMode === 'NEW_USER' ? 'GENERATE NEW USER ONBOARDING CODE' : 'GENERATE DEVICE PAIRING CODE'}
                   </Button>
                 </form>
               </CardContent>
@@ -699,22 +724,49 @@ export default function DevicesPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-center gap-3">
+                  {generatedUrl && (
+                    <div className="p-3 bg-cyan-950/20 border border-cyan-500/20 rounded-xl text-center space-y-1">
+                      <div className="text-[10px] text-zinc-400 font-mono">One-Time Registration Link:</div>
+                      <div className="text-xs text-cyan-300 font-mono break-all select-all font-semibold">
+                        {generatedUrl}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center justify-center gap-2.5">
                     <Button 
                       variant="outline" 
                       onClick={handleCopyCode}
-                      className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs font-mono flex items-center gap-2"
+                      className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs font-mono flex items-center gap-1.5"
                     >
-                      <Copy className="w-4 h-4" />
-                      {copied ? 'Copied!' : 'Copy Code'}
+                      <Copy className="w-3.5 h-3.5" />
+                      {copied ? 'Copied Code!' : 'Copy Code'}
+                    </Button>
+
+                    <Button 
+                      variant="outline" 
+                      onClick={handleCopyUrl}
+                      className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs font-mono flex items-center gap-1.5"
+                    >
+                      <Link2 className="w-3.5 h-3.5" />
+                      {copiedUrl ? 'Copied Link!' : 'Copy Link'}
+                    </Button>
+
+                    <Button 
+                      variant="outline" 
+                      onClick={() => window.open(generatedUrl || `/register-device?code=${generatedCode}`, '_blank')}
+                      className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/15 text-xs font-mono flex items-center gap-1.5"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open Portal
                     </Button>
 
                     <Button 
                       variant="outline" 
                       onClick={() => setShowQrModal(true)}
-                      className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs font-mono flex items-center gap-2"
+                      className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs font-mono flex items-center gap-1.5"
                     >
-                      <QrCode className="w-4 h-4" />
+                      <QrCode className="w-3.5 h-3.5" />
                       Show QR
                     </Button>
 
@@ -723,7 +775,7 @@ export default function DevicesPage() {
                       onClick={() => setGeneratedCode(null)}
                       className="text-red-400 hover:text-red-300 hover:bg-red-950/20 text-xs font-mono"
                     >
-                      Revoke Code
+                      Revoke
                     </Button>
                   </div>
                 </CardContent>

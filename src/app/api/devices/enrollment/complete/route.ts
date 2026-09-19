@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { SignJWT } from 'jose';
 import { deviceStore } from '@/lib/auth/deviceStore';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
+import { getJwtSecret } from '@/lib/auth/session';
 
 export async function POST(req: Request) {
   try {
@@ -84,7 +83,7 @@ export async function POST(req: Request) {
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('8h')
-      .sign(JWT_SECRET);
+      .sign(getJwtSecret());
 
     cookies().set('securemesh_session', sessionToken, {
       httpOnly: true,

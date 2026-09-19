@@ -53,7 +53,7 @@ export async function POST(req: Request) {
             role,
             position_id: positionId || 'pos_user',
             position: pos?.name || 'User',
-            kyc_status: 'VERIFIED' as const,
+            kyc_status: 'PENDING' as const,
             status: UserStatus.ACTIVE,
             did,
             created_at: new Date().toISOString(),
@@ -61,6 +61,7 @@ export async function POST(req: Request) {
 
           deviceStore.users.set(newUser.id, newUser);
           deviceStore.users.set(newUser.email, newUser);
+          deviceStore.saveToDisk();
           enrollForUserId = newUser.id;
 
           deviceStore.recordAuditEvent({
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
 
     if (targetUser.role === UserRole.ADMIN) {
       return NextResponse.json(
-        { error: 'Root administrator accounts cannot have secondary devices.' },
+        { error: 'Root administrator accounts are strictly single-device hardware-bound. To onboard a team member, choose "Onboard New User". To authorize a new admin terminal, initiate an Administrator Recovery Ceremony.' },
         { status: 403 }
       );
     }
