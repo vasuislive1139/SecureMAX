@@ -28,7 +28,8 @@ import {
   Radio,
   Lock,
   PauseCircle,
-  PlayCircle
+  PlayCircle,
+  UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,6 +124,8 @@ export default function DevicesPage() {
 
   // Enrollment Generator State
   const [selectedPersonnelId, setSelectedPersonnelId] = React.useState<string>('');
+  const [newUserName, setNewUserName] = React.useState<string>('');
+  const [newUserEmail, setNewUserEmail] = React.useState<string>('');
   const [selectedPositionId, setSelectedPositionId] = React.useState<string>('');
   const [targetDeviceType, setTargetDeviceType] = React.useState<'any' | 'laptop' | 'phone' | 'tablet' | 'terminal'>('any');
   const [durationMinutes, setDurationMinutes] = React.useState<number>(15);
@@ -189,8 +192,15 @@ export default function DevicesPage() {
   // Admin generates 15-minute enrollment code
   const handleGenerateEnrollmentCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPersonnelId) {
-      setEnrollmentError('Please select a recipient user');
+    const isNewUser = selectedPersonnelId === '__NEW_USER__';
+
+    if (isNewUser) {
+      if (!newUserName.trim() || !newUserEmail.trim()) {
+        setEnrollmentError('Please provide both Full Name and Email Address for the new user.');
+        return;
+      }
+    } else if (!selectedPersonnelId) {
+      setEnrollmentError('Please select a recipient user or choose "+ New User"');
       return;
     }
 
@@ -203,6 +213,9 @@ export default function DevicesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targetUserId: selectedPersonnelId,
+          isNewUser,
+          newUserName: isNewUser ? newUserName.trim() : undefined,
+          newUserEmail: isNewUser ? newUserEmail.trim() : undefined,
           positionId: selectedPositionId || undefined,
           durationMinutes,
           maxDevices,
@@ -218,6 +231,10 @@ export default function DevicesPage() {
       setGeneratedRecipient(`${data.enrollment.targetUserName} (${data.enrollment.targetUserEmail})`);
       setGeneratedPosition(data.enrollment.positionName);
       setGeneratedUrl(data.enrollment.enrollmentUrl);
+      if (isNewUser) {
+        setNewUserName('');
+        setNewUserEmail('');
+      }
       await fetchDevicesData();
     } catch (err: any) {
       setEnrollmentError(err.message || 'Failed to generate enrollment code');
@@ -531,13 +548,56 @@ export default function DevicesPage() {
                       onChange={(e) => setSelectedPersonnelId(e.target.value)}
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-cyan-400"
                     >
-                      {personnel.map(p => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.email})
-                        </option>
-                      ))}
+                      <option value="">-- Select Recipient or Onboard New User --</option>
+                      <option value="__NEW_USER__" className="text-cyan-300 font-bold bg-zinc-900">
+                        ➕ New User / Onboard New Identity
+                      </option>
+                      {personnel.length > 0 && (
+                        <optgroup label="Existing Registered Personnel">
+                          {personnel.map(p => (
+                            <option key={p.id} value={p.id}>
+                              {p.name} ({p.email})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
+
+                  {/* New User Specific Inputs */}
+                  {selectedPersonnelId === '__NEW_USER__' && (
+                    <div className="p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30 space-y-3 animate-in fade-in">
+                      <div className="text-[11px] font-mono text-cyan-300 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                        <UserPlus className="w-3.5 h-3.5 text-cyan-400" />
+                        New Identity Details
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-zinc-400 block font-mono uppercase">Full Name</label>
+                        <input
+                          type="text"
+                          value={newUserName}
+                          onChange={(e) => setNewUserName(e.target.value)}
+                          placeholder="e.g. Vikram Singh"
+                          required
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-zinc-400 block font-mono uppercase">Email Address</label>
+                        <input
+                          type="email"
+                          value={newUserEmail}
+                          onChange={(e) => setNewUserEmail(e.target.value)}
+                          placeholder="e.g. vikram@securemax.mil"
+                          required
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400"
+                        />
+                      </div>
+                      <p className="text-[10px] text-cyan-400/80 font-mono">
+                        ℹ The user will be created and bound to the selected position above upon enrollment.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Duration */}
                   <div className="space-y-1.5">

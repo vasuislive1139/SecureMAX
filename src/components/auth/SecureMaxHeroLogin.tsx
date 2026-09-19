@@ -96,6 +96,65 @@ export default function SecureMaxHeroLogin() {
   const [regRole, setRegRole] = useState<'USER' | 'MANAGER' | 'AUDITOR'>('USER');
   const [regDeviceName, setRegDeviceName] = useState('Primary Workstation');
 
+  // Verified Enrollment Capability State
+  const [verifiedCapability, setVerifiedCapability] = useState<{
+    id: string;
+    positionName: string;
+    expiresAt: string;
+    user?: { id: string; name: string; email: string; role: string; position: string } | null;
+  } | null>(null);
+  const [codeVerifying, setCodeVerifying] = useState(false);
+
+  const handleVerifyEnrollCode = async (inputCode: string) => {
+    const clean = inputCode.trim().toUpperCase();
+    if (clean.replace(/[^A-Z0-9]/g, '').length < 8) {
+      setVerifiedCapability(null);
+      return;
+    }
+
+    setCodeVerifying(true);
+    setErrorMessage('');
+
+    try {
+      const res = await fetch('/api/devices/enrollment/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: clean }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setVerifiedCapability(null);
+        setErrorMessage(data.error || 'Invalid or expired enrollment code');
+        return;
+      }
+
+      setVerifiedCapability({
+        id: data.enrollment.id,
+        positionName: data.enrollment.positionName,
+        expiresAt: data.enrollment.expiresAt,
+        user: data.user,
+      });
+
+      if (data.user?.name) setRegName(data.user.name);
+      if (data.user?.email) setRegEmail(data.user.email);
+
+      // Lock role to the position from the enrollment code
+      if (data.user?.role) {
+        setRegRole(data.user.role as any);
+      } else if (data.enrollment?.positionName) {
+        const pName = data.enrollment.positionName.toUpperCase();
+        if (pName.includes('MANAGER')) setRegRole('MANAGER');
+        else if (pName.includes('AUDITOR')) setRegRole('AUDITOR');
+        else setRegRole('USER');
+      }
+    } catch (e: any) {
+      setVerifiedCapability(null);
+      setErrorMessage(e.message || 'Failed to verify code');
+    } finally {
+      setCodeVerifying(false);
+    }
+  };
+
   // Auth Status
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -268,16 +327,22 @@ export default function SecureMaxHeroLogin() {
   };
 
   // ----------------------------------------------------
-  // SELF REGISTRATION: New User Creates Account
+  // ZERO-TRUST REGISTRATION: Register Device with Security Code
   // ----------------------------------------------------
   const handleRegisterUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
+    const cleanCode = enrollCode.trim().toUpperCase();
+    if (!cleanCode) {
+      setErrorMessage('Please enter the 15-minute Security Code issued by your Administrator.');
+      return;
+    }
+
     const targetEmail = regEmail.trim().toLowerCase();
     const targetName = regName.trim();
     if (!targetName || !targetEmail) {
-      setErrorMessage('Please enter both your name and email address.');
+      setErrorMessage('Please enter both your Full Name and Email Address.');
       return;
     }
 
@@ -288,27 +353,29 @@ export default function SecureMaxHeroLogin() {
       const dev = await generateAndSaveDeviceKey(regDeviceName || 'Primary Workstation', targetEmail);
       setDeviceInfo(dev);
 
-      setStatusMessage('Registering decentralized identity (DID) and device on-chain...');
-      const res = await fetch('/api/auth/register', {
+      setStatusMessage('Verifying enrollment code and establishing Device Passport...');
+      const res = await fetch('/api/devices/enrollment/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          enrollmentCode: cleanCode,
+          deviceName: regDeviceName.trim() || 'Primary Workstation',
+          publicKey: dev.publicKeySpki,
+          deviceId: dev.deviceId,
           name: targetName,
           email: targetEmail,
-          role: regRole,
-          deviceName: dev.deviceName,
-          publicKey: dev.publicKeySpki,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(data.error || 'Device registration and enrollment failed');
       }
 
-      setStatusMessage('Identity registered! Establishing secure session...');
-      if (data.user.role === 'ADMIN') router.push('/dashboard/admin');
-      else if (data.user.role === 'AUDITOR') router.push('/dashboard/auditor');
+      setStatusMessage('Identity & Device Passport verified! Redirecting to workspace...');
+      const userRole = data.user?.role || data.passport?.position?.toUpperCase();
+      if (userRole === 'ADMIN') router.push('/dashboard/admin');
+      else if (userRole === 'AUDITOR') router.push('/dashboard/auditor');
       else router.push('/assets');
 
     } catch (err: any) {
@@ -597,7 +664,7 @@ export default function SecureMaxHeroLogin() {
                     : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
                 }`}
               >
-                Enroll Device (Security Code)
+                Register New Identity
               </button>
             </div>
 
@@ -926,22 +993,28 @@ export default function SecureMaxHeroLogin() {
                 )}
               </>
             ) : (
-              /* Device Enrollment with Security Code Form */
-              <form onSubmit={handleCompleteEnrollment} className="space-y-4 relative z-10">
+              /* Register Identity with Security Code Form */
+              <form onSubmit={handleRegisterUser} className="space-y-4 relative z-10">
+                {/* Zero-Trust Notice */}
                 <div className="p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/30 text-xs text-zinc-300 space-y-1.5">
                   <div className="flex items-center gap-2 text-cyan-300 font-mono font-semibold text-[11px] uppercase tracking-wider">
                     <Shield className="w-3.5 h-3.5 text-cyan-400" />
-                    Zero-Trust Device Enrollment
+                    Zero-Trust Identity &amp; Device Registration
                   </div>
                   <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    In SecureMAX, users cannot self-assign administrative roles. Enter the 15-minute security code generated by your Administrator to cryptographically bind this device to your authorized organizational position.
+                    Enter the 15-minute security code generated by your Administrator. Your organizational position and permissions are bound to this code.
                   </p>
                 </div>
 
-                {/* Security Code Input */}
+                {/* 1. Security Code Input */}
                 <div>
-                  <label className="text-[10px] font-mono tracking-wider text-zinc-400 uppercase block mb-1.5">
-                    15-Minute Security Code
+                  <label className="text-[10px] font-mono tracking-wider text-zinc-400 uppercase block mb-1.5 flex items-center justify-between">
+                    <span>15-Minute Security Code</span>
+                    {codeVerifying && (
+                      <span className="text-cyan-400 flex items-center gap-1 text-[9px] font-mono normal-case">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Verifying...
+                      </span>
+                    )}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
@@ -950,7 +1023,15 @@ export default function SecureMaxHeroLogin() {
                     <input
                       type="text"
                       value={enrollCode}
-                      onChange={(e) => setEnrollCode(e.target.value.toUpperCase())}
+                      onChange={(e) => {
+                        const val = e.target.value.toUpperCase();
+                        setEnrollCode(val);
+                        if (val.replace(/[^A-Z0-9]/g, '').length >= 8) {
+                          handleVerifyEnrollCode(val);
+                        } else {
+                          setVerifiedCapability(null);
+                        }
+                      }}
                       placeholder="e.g. 7K4M-92QP"
                       required
                       className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 font-mono tracking-widest uppercase focus:outline-none focus:border-cyan-400 transition-colors"
@@ -958,39 +1039,119 @@ export default function SecureMaxHeroLogin() {
                   </div>
                 </div>
 
-                {/* Device Name Input */}
-                <div>
-                  <label className="text-[10px] font-mono tracking-wider text-zinc-400 uppercase block mb-1.5">
-                    Device Name / Hardware Label
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                      <Laptop className="w-4 h-4 text-cyan-400" />
+                {/* Verified Capability Status Banner */}
+                {verifiedCapability && (
+                  <div className="p-3 bg-emerald-950/30 border border-emerald-500/40 rounded-xl flex items-center justify-between text-xs font-mono animate-in fade-in">
+                    <div className="flex items-center gap-2 text-emerald-300">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <div>
+                        <div className="font-bold">Code Verified by Administrator</div>
+                        <div className="text-[10px] text-zinc-400">Position: <span className="text-emerald-300 font-semibold">{verifiedCapability.positionName}</span></div>
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      value={enrollDeviceName}
-                      onChange={(e) => setEnrollDeviceName(e.target.value)}
-                      placeholder="e.g. Vikram — Primary MacBook"
-                      required
-                      className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* Status Message */}
-                {enrollLoading && (
-                  <div className="p-3 bg-zinc-900/90 border border-cyan-500/30 rounded-xl flex items-center gap-2.5 text-xs font-mono text-cyan-300 animate-in fade-in">
-                    <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
-                    <span>Verifying code &amp; generating hardware P-256 key...</span>
+                    <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-900/50 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
+                      ROLE LOCKED
+                    </span>
                   </div>
                 )}
 
-                {/* Success Message */}
-                {enrollSuccess && (
-                  <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-emerald-400 text-xs font-mono">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Device enrolled successfully! Establishing session...</span>
+                {/* 2. Full Name Input */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={regName}
+                    onChange={(e) => setRegName(e.target.value)}
+                    placeholder="Full Name (e.g. Vikram Singh)"
+                    required
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                  />
+                </div>
+
+                {/* 3. Email Address Input */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="email"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="Email Address (e.g. vikram@securemax.mil)"
+                    required
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                  />
+                </div>
+
+                {/* 4. Role Selection (Locked to the Enrollment Code) */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[10px] font-mono tracking-wider text-zinc-400 uppercase mb-1">
+                    <span>Assigned Position</span>
+                    <span className="text-cyan-400/80 text-[9px]">
+                      {verifiedCapability ? 'Bound to Enrollment Code' : 'Enter code to unlock'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div
+                      className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all select-none ${
+                        regRole === 'USER'
+                          ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                          : 'opacity-40 border border-zinc-800 text-zinc-500 bg-zinc-950/40'
+                      }`}
+                    >
+                      <User className="w-3.5 h-3.5 text-cyan-400" />
+                      User
+                      {regRole === 'USER' && verifiedCapability && <CheckCircle2 className="w-3 h-3 text-emerald-400 ml-0.5" />}
+                    </div>
+
+                    <div
+                      className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all select-none ${
+                        regRole === 'MANAGER'
+                          ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                          : 'opacity-40 border border-zinc-800 text-zinc-500 bg-zinc-950/40'
+                      }`}
+                    >
+                      <Briefcase className="w-3.5 h-3.5 text-cyan-400" />
+                      Manager
+                      {regRole === 'MANAGER' && verifiedCapability && <CheckCircle2 className="w-3 h-3 text-emerald-400 ml-0.5" />}
+                    </div>
+
+                    <div
+                      className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all select-none ${
+                        regRole === 'AUDITOR'
+                          ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                          : 'opacity-40 border border-zinc-800 text-zinc-500 bg-zinc-950/40'
+                      }`}
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                      Auditor
+                      {regRole === 'AUDITOR' && verifiedCapability && <CheckCircle2 className="w-3 h-3 text-emerald-400 ml-0.5" />}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5. Device Name Input */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
+                    <Laptop className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={regDeviceName}
+                    onChange={(e) => setRegDeviceName(e.target.value)}
+                    placeholder="Primary Workstation"
+                    required
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                  />
+                </div>
+
+                {/* Loading Status */}
+                {loading && (
+                  <div className="p-3 bg-zinc-900/90 border border-cyan-500/30 rounded-xl flex items-center gap-2.5 text-xs font-mono text-cyan-300 animate-in fade-in">
+                    <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
+                    <span>{statusMessage}</span>
                   </div>
                 )}
 
@@ -1002,17 +1163,17 @@ export default function SecureMaxHeroLogin() {
                   </div>
                 )}
 
-                {/* SUBMIT BUTTON */}
+                {/* 6. SUBMIT BUTTON */}
                 <button
                   type="submit"
-                  disabled={enrollLoading || !enrollCode.trim()}
+                  disabled={loading || !enrollCode.trim()}
                   className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
                 >
                   <Key className="w-4 h-4" />
-                  <span>VERIFY CODE &amp; ENROLL DEVICE</span>
+                  <span>CREATE IDENTITY &amp; SIGN IN</span>
                 </button>
 
-                {/* Full Portal Link */}
+                {/* Sign In Link */}
                 <div className="pt-2 flex items-center justify-between text-[11px]">
                   <span className="text-zinc-400 font-light">
                     Already have an account?{' '}
@@ -1044,7 +1205,7 @@ export default function SecureMaxHeroLogin() {
       {/* ==================================================================== */}
       {/* RIGHT VERTICAL INDICATOR DOTS                                       */}
       {/* ==================================================================== */}
-      <div className="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 flex-col gap-6 z-20 text-[9px] font-mono tracking-widest text-cyan-400/80 select-none">
+      <div className="hidden 2xl:flex fixed right-6 top-1/2 -translate-y-1/2 flex-col gap-6 z-0 pointer-events-none text-[9px] font-mono tracking-widest text-cyan-400/80 select-none">
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4]"></div>
           <span>SECURE PEOPLE</span>

@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { SignJWT } from 'jose';
 import { deviceStore } from '@/lib/auth/deviceStore';
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
 
 export async function POST(req: Request) {
   try {
@@ -48,6 +52,11 @@ export async function POST(req: Request) {
 
     const { passport, user } = result;
 
+    // Optional: update name if user customized it during registration
+    if (body.name && typeof body.name === 'string' && body.name.trim() && user.name !== body.name.trim()) {
+      user.name = body.name.trim();
+    }
+
     // Create active session for the newly registered device
     const session = deviceStore.createSession({
       userId: user.id,
@@ -55,6 +64,34 @@ export async function POST(req: Request) {
       position: passport.position,
       authLevel: 'PASSKEY',
       durationHours: 8,
+    });
+
+    // Issue SecureMAX 8-Hour Session cookie
+    const sessionId = session.session_id;
+    const assuranceLevel = user.role === 'ADMIN' ? 'LEVEL_3' : 'LEVEL_2';
+
+    const sessionToken = await new SignJWT({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      did: user.did,
+      deviceId: passport.device_id,
+      deviceName: passport.device_name,
+      sessionId,
+      assuranceLevel,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('8h')
+      .sign(JWT_SECRET);
+
+    cookies().set('securemesh_session', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 8 * 60 * 60, // 8 hours
     });
 
     return NextResponse.json({
