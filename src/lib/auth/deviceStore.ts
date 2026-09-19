@@ -301,6 +301,9 @@ class SecureMaxStore {
   public challengeCache: Map<string, { challengeId: string; identifier: string; nonce: string; message: string; expiresAt: string }> = new Map();
   public challenges: Map<string, StoredChallenge> = new Map();
   public adminWallet: string = (process.env.ADMIN_WALLET || '0x7FfdbB7868C127152F2007a6025FF15A5723CE08').toLowerCase();
+  
+  // Track ongoing cloud sync promises so Vercel Serverless Functions can await them before exiting
+  public lastSyncPromise: Promise<any> | null = null;
 
   // Root Admin & System Bootstrap Settings
   public systemSettings: SystemSettings = {
@@ -608,7 +611,7 @@ class SecureMaxStore {
 
       // Asynchronously sync to Supabase Cloud Storage (non-blocking)
       if (syncToCloud && !isTest) {
-        syncLedgerToSupabase(payload).catch(() => {});
+        this.lastSyncPromise = syncLedgerToSupabase(payload).catch(() => {});
       }
     } catch (err) {
       console.error('[SecureMaxStore] Payload generation error:', err);

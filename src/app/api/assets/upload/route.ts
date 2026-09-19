@@ -85,12 +85,14 @@ export async function POST(req: Request) {
           .from('securemax-vault')
           .upload(`assets/${newAsset.id}`, encryptedBuffer, { upsert: true, contentType: 'application/octet-stream' });
         if (error) console.warn('[Storage] Failed to upload asset binary:', error.message);
-        
-        // Optionally, clear the large memory footprint to avoid bloated vault_ledger.json
-        // newAsset.encrypted_content = 'stored_in_supabase_cloud';
       }
     } catch (e) {
       console.warn('[Storage] Exception uploading to Supabase:', e);
+    }
+    
+    // Critical for Vercel: Wait for the ledger cloud sync to complete before Lambda freezes
+    if (deviceStore.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
 
     return NextResponse.json({
