@@ -63,25 +63,9 @@ export async function getVerifiedSession(): Promise<SessionPayload> {
 
   // Zero-Trust Live User Account Verification & Authoritative Role Freshness
   if (payload.userId) {
-    let user = deviceStore.getUserById(payload.userId);
+    const user = deviceStore.getUserById(payload.userId);
     if (!user) {
-      // VERCEL COLD-START MITIGATION: Rehydrate user from cryptographically valid JWT if in-memory store was wiped
-      const hydratedUser = {
-        id: payload.userId,
-        email: payload.email || 'user@securemax.mil',
-        name: payload.name || 'Rehydrated User',
-        role: payload.role || UserRole.USER,
-        status: UserStatus.ACTIVE,
-        registeredAt: Date.now(),
-        lastLoginAt: Date.now(),
-        mfa_enabled: false,
-        kyc_verified: true,
-        clearance_level: 'CONFIDENTIAL',
-        default_policy: 'PRIVATE' as const
-      };
-      deviceStore.users.set(hydratedUser.id, hydratedUser);
-      if (hydratedUser.email) deviceStore.users.set(hydratedUser.email, hydratedUser);
-      user = hydratedUser;
+      throw new Error('Unauthorized: User identity record not found in system database');
     }
     if (user.status !== UserStatus.ACTIVE) {
       throw new Error(`Unauthorized: User account is ${user.status}. Access denied.`);
