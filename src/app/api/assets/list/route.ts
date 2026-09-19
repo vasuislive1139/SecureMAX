@@ -65,9 +65,18 @@ export async function GET(req: Request) {
 
     const defaultAccessPolicy = deviceStore.getUserDefaultAccessPolicy(targetUserId);
 
+    // User access requests
+    const userRequests = deviceStore.getAccessRequests().filter(r => r.user_id === targetUserId);
+    const pendingAssetIds = userRequests.filter(r => r.status === 'PENDING' && r.asset_id).map(r => r.asset_id!);
+    const approvedAssetIds = userRequests.filter(r => r.status === 'APPROVED' && r.asset_id).map(r => r.asset_id!);
+    const rejectedAssetIds = userRequests.filter(r => r.status === 'REJECTED' && r.asset_id).map(r => r.asset_id!);
+
     return NextResponse.json({
       success: true,
       assets: safeList,
+      pendingAssetIds,
+      approvedAssetIds,
+      rejectedAssetIds,
       role: session.role,
       userId: targetUserId,
       userName: targetUser?.name || session.name || session.email || 'Authorized User',

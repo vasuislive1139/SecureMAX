@@ -61,69 +61,17 @@ export async function registerNewUserByAdmin(formData: {
       return { success: false, error: 'Please enter both a name and an email address.' };
     }
 
-    const existing = deviceStore.getUserByEmail(cleanEmail);
-    if (existing) {
-      return { success: false, error: `A team member with email ${cleanEmail} is already registered.` };
-    }
-
-    const userId = 'usr_' + crypto.randomUUID().slice(0, 8);
-    const did = `did:securemax:user:${userId.slice(-6)}`;
     const role = formData.role === 'AUDITOR' 
       ? UserRole.AUDITOR 
       : formData.role === 'MANAGER' 
       ? UserRole.MANAGER 
       : UserRole.USER;
-    const positionId = formData.role === 'AUDITOR' 
-      ? 'pos_auditor' 
-      : formData.role === 'MANAGER' 
-      ? 'pos_manager' 
-      : 'pos_user';
-    const positionName = formData.role === 'AUDITOR' 
-      ? 'Auditor' 
-      : formData.role === 'MANAGER' 
-      ? 'Manager' 
-      : 'User';
 
-    const newUser: StoredUser = {
-      id: userId,
+    const { user: newUser, enrollmentCode: code } = deviceStore.registerUser({
       name: cleanName,
       email: cleanEmail,
       role,
-      position: positionName,
-      position_id: positionId,
-      kyc_status: 'VERIFIED',
-      status: UserStatus.ACTIVE,
-      did,
-      created_at: new Date().toISOString(),
-    };
-
-    deviceStore.users.set(newUser.id, newUser);
-    deviceStore.users.set(newUser.email, newUser);
-
-    // Record in permanent cryptographic audit ledger
-    deviceStore.recordAuditEvent({
-      eventType: 'USER_IDENTITY_REGISTERED',
-      description: `Admin registered new identity: ${newUser.name} (${positionName}). DID: ${newUser.did}`,
-      targetId: newUser.id,
-      userEmail: newUser.email,
-      userName: newUser.name,
-      severity: 'INFO',
     });
-
-    // Generate a starter enrollment code for device pairing
-    const randomHex = crypto.randomBytes(4).toString('hex').toUpperCase();
-    const code = `SMX-${randomHex.slice(0, 4)}-${randomHex.slice(4)}`;
-    
-    deviceStore.enrollments.set(code, {
-      code,
-      user_id: newUser.id,
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date().toISOString(),
-    });
-
-    // Do not register a mock device with a random public key, as that prevents
-    // the user's browser P-256 key from binding on first login.
-    // The user's primary device will be automatically bound when they first sign in.
 
     return {
       success: true,

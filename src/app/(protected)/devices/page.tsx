@@ -37,6 +37,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StoredPosition } from '@/types';
+import { useRealtimeSync } from '@/lib/hooks/useRealtimeSync';
 
 interface EnrolledDevicePassport {
   id: string;
@@ -147,9 +148,9 @@ export default function DevicesPage() {
   const [copiedUrl, setCopiedUrl] = React.useState(false);
   const [countdown, setCountdown] = React.useState<string>('15:00');
 
-  const fetchDevicesData = React.useCallback(async () => {
+  const fetchDevicesData = React.useCallback(async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const res = await fetch('/api/devices');
       const data = await res.json();
       if (data.success) {
@@ -169,13 +170,16 @@ export default function DevicesPage() {
     } catch (err) {
       console.error('Failed to load devices data:', err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   }, [selectedPersonnelId]);
 
   React.useEffect(() => {
     fetchDevicesData();
   }, [fetchDevicesData]);
+
+  // Real-time SSE (<100ms) + 2.5s polling fallback
+  useRealtimeSync(() => fetchDevicesData(true), 2500);
 
   // Countdown timer for active code
   React.useEffect(() => {

@@ -78,7 +78,6 @@ export async function approveAccessRequestAction(params: { requestId: string; tt
 }
 
 export async function rejectAccessRequestAction(params: { requestId: string; reason?: string }) {
-  try {
     let adminUserId = 'usr_admin_001';
     try {
       const session = await getVerifiedSession();
@@ -131,9 +130,22 @@ export async function fetchLiveGrantsAction() {
 
 export async function fetchAllAccessRequestsAction() {
   try {
-    return { success: true, requests: deviceStore.getAccessRequests() };
+    let isAdmin = false;
+    let userId = '';
+    try {
+      const session = await getVerifiedSession();
+      if (session) {
+        isAdmin = session.role === UserRole.ADMIN;
+        userId = session.userId;
+      }
+    } catch {
+      // fallback
+    }
+    const allRequests = deviceStore.getAccessRequests();
+    const requests = (isAdmin || !userId) ? allRequests : allRequests.filter(r => r.user_id === userId);
+    return { success: true, requests, isAdmin };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Failed to fetch requests', requests: [] };
+    return { success: false, error: err.message || 'Failed to fetch requests', requests: [], isAdmin: false };
   }
 }
 

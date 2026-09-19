@@ -411,13 +411,7 @@ export default function SecureMaxHeroLogin() {
           </div>
         </div>
 
-        {/* Center Nav Links */}
-        <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-zinc-400">
-          <a href="#" className="text-zinc-100 hover:text-cyan-400 transition-colors">Home</a>
-          <a href="#features" className="hover:text-cyan-400 transition-colors">Features</a>
-          <a href="#security" className="hover:text-cyan-400 transition-colors">Security</a>
-          <a href="#support" className="hover:text-cyan-400 transition-colors">Support</a>
-        </nav>
+
 
         {/* Right Pill Badge & Cinematic Intro Trigger */}
         <div className="flex items-center gap-2.5">

@@ -22,7 +22,6 @@ export async function POST() {
         performedBy: session.name || session.email,
         severity: 'INFO',
       });
-
       try {
         await supabaseAdmin
           .from('access_sessions')

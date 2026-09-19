@@ -40,6 +40,7 @@ import { VaultUploadModal } from '@/components/vault/VaultUploadModal';
 import { VaultShareModal } from '@/components/vault/VaultShareModal';
 import { VaultAssetDetailsDrawer } from '@/components/vault/VaultAssetDetailsDrawer';
 import { VaultSecurePreviewModal } from '@/components/vault/VaultSecurePreviewModal';
+import { useRealtimeSync } from '@/lib/hooks/useRealtimeSync';
 
 export interface AssetRecord {
   id: string;
@@ -108,6 +109,8 @@ export default function AssetsPage() {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [viewMode, setViewMode] = React.useState<'table' | 'grid'>('table');
   const [requestedAssetIds, setRequestedAssetIds] = React.useState<string[]>([]);
+  const [serverPendingAssetIds, setServerPendingAssetIds] = React.useState<string[]>([]);
+  const [serverRejectedAssetIds, setServerRejectedAssetIds] = React.useState<string[]>([]);
   const [requestNotice, setRequestNotice] = React.useState<string | null>(null);
 
   // Modal / Drawer States
@@ -131,9 +134,9 @@ export default function AssetsPage() {
     canDownload: true,
   });
 
-  const fetchAssets = React.useCallback(async () => {
+  const fetchAssets = React.useCallback(async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const res = await fetch(`/api/assets/list?scope=${vaultScope}`);
       const data = await res.json();
       if (data.success) {
@@ -144,17 +147,22 @@ export default function AssetsPage() {
         if (data.storage) setStorage(data.storage);
         if (data.users) setUsers(data.users);
         if (data.defaultAccessPolicy) setDefaultAccessPolicy(data.defaultAccessPolicy);
+        if (Array.isArray(data.pendingAssetIds)) setServerPendingAssetIds(data.pendingAssetIds);
+        if (Array.isArray(data.rejectedAssetIds)) setServerRejectedAssetIds(data.rejectedAssetIds);
       }
     } catch (err) {
       console.error('Failed to load assets:', err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   }, [vaultScope]);
 
   React.useEffect(() => {
     fetchAssets();
   }, [fetchAssets]);
+
+  // Real-time SSE (<100ms) + 2.5s polling fallback
+  useRealtimeSync(() => fetchAssets(true), 2500);
 
   const handleToggleDefaultPolicy = async () => {
     const newPolicy = defaultAccessPolicy === 'PRIVATE' ? 'ORGANIZATION' : 'PRIVATE';
@@ -343,7 +351,7 @@ export default function AssetsPage() {
       }
 
       // 2. Status / Access filter
-      const isPending = requestedAssetIds.includes(asset.id) || asset.accessHistory?.some(h => h.status === 'PENDING');
+      const isPending = serverPendingAssetIds.includes(asset.id) || requestedAssetIds.includes(asset.id) || asset.accessHistory?.some(h => h.status === 'PENDING');
       if (activeFilter === 'AUTHORIZED' && !asset.canDecrypt) return false;
       if (activeFilter === 'PENDING' && !isPending) return false;
       if (activeFilter === 'RESTRICTED' && (asset.canDecrypt || isPending)) return false;
@@ -362,13 +370,13 @@ export default function AssetsPage() {
 
       return true;
     });
-  }, [assets, activeFolder, activeFilter, searchQuery, requestedAssetIds]);
+  }, [assets, activeFolder, activeFilter, searchQuery, requestedAssetIds, serverPendingAssetIds]);
 
   // Overview Counts
   const totalAssetsCount = assets.length;
   const authorizedCount = assets.filter(a => a.canDecrypt).length;
-  const pendingCount = assets.filter(a => requestedAssetIds.includes(a.id) || a.accessHistory?.some(h => h.status === 'PENDING')).length;
-  const restrictedCount = assets.filter(a => !a.canDecrypt && !requestedAssetIds.includes(a.id)).length;
+  const pendingCount = assets.filter(a => serverPendingAssetIds.includes(a.id) || requestedAssetIds.includes(a.id) || a.accessHistory?.some(h => h.status === 'PENDING')).length;
+  const restrictedCount = assets.filter(a => !a.canDecrypt && !serverPendingAssetIds.includes(a.id) && !requestedAssetIds.includes(a.id)).length;
 
   // Flattened Recent Activity
   const recentActivityList = React.useMemo(() => {
@@ -588,7 +596,7 @@ export default function AssetsPage() {
             </thead>
             <tbody className="divide-y divide-zinc-800/60 text-xs">
               {filteredAssets.map((asset) => {
-                const isPending = requestedAssetIds.includes(asset.id) || asset.accessHistory?.some(h => h.status === 'PENDING');
+                const isPending = serverPendingAssetIds.includes(asset.id) || requestedAssetIds.includes(asset.id) || asset.accessHistory?.some(h => h.status === 'PENDING');
                 const isExpired = asset.status === 'EXPIRED';
 
                 return (
@@ -787,7 +795,7 @@ export default function AssetsPage() {
         /* GRID VIEW */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAssets.map((asset) => {
-            const isPending = requestedAssetIds.includes(asset.id) || asset.accessHistory?.some(h => h.status === 'PENDING');
+            const isPending = serverPendingAssetIds.includes(asset.id) || requestedAssetIds.includes(asset.id) || asset.accessHistory?.some(h => h.status === 'PENDING');
             const isExpired = asset.status === 'EXPIRED';
 
             return (

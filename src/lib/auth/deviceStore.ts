@@ -2,6 +2,10 @@ import 'server-only';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { EventEmitter } from 'events';
+
+export const storeEvents = new EventEmitter();
+storeEvents.setMaxListeners(200);
 
 import { 
   UserRole, 
@@ -333,6 +337,7 @@ class SecureMaxStore {
       const tmpPath = `${filePath}.${Date.now()}.tmp`;
       fs.writeFileSync(tmpPath, JSON.stringify(payload, null, 2), 'utf8');
       fs.renameSync(tmpPath, filePath);
+      storeEvents.emit('change', { type: 'STATE_MUTATION', timestamp: Date.now() });
     } catch (err) {
       console.error('[SecureMaxStore] Disk save error:', err);
     }
