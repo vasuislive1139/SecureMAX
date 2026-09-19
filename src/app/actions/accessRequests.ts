@@ -168,10 +168,10 @@ export async function fetchCommandCenterStateAction() {
       auditEvents: auditEvents.slice(0, 15),
       notifications: notifications.slice(0, 10),
       stats: {
-        identitiesCount: deviceStore.users.size,
+        identitiesCount: new Set(Array.from(deviceStore.users.values()).map(u => u.id)).size,
         activeAssetsCount: deviceStore.assets.size,
         pendingCount: pending.length,
-        openIncidentsCount: 2,
+        openIncidentsCount: auditEvents.filter(a => a.severity === 'CRITICAL').length,
       }
     };
   } catch (err: any) {

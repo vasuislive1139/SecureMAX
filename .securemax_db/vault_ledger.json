@@ -30,17 +30,66 @@
       "credential_id": "cred_admin_hw_01",
       "credential_type": "WebAuthn",
       "registered_at": "2026-09-01T00:00:00.000Z",
-      "last_authenticated_at": "2026-09-19T17:38:08.784Z",
+      "last_authenticated_at": "2026-09-19T17:42:08.465Z",
       "last_active_at": "2026-09-19T17:00:21.533Z",
       "risk_state": "TRUSTED",
       "registration_region": "Punjab, India",
-      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGV3R8TC2NP3rW07QNfa4xcT69Jvu3F3uGZ7aAJeBtYH/h1/kG+CTaE/fABqRsswQKubX174Gs/XpK/oUL1glmA==",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAElIz4v3cWIrhPDdxXPJ8OSMR1MuBBjlbS+vDpd5VqnKMrrY23r2aXl3WijQXv6Xdkr9c7QkOJuDEhD977BUxBXg==",
       "algorithm": "ECDSA_P256",
       "status": "ACTIVE",
       "is_admin_device": true,
       "created_at": "2026-09-01T00:00:00.000Z",
-      "last_used_at": "2026-09-19T17:38:08.787Z",
+      "last_used_at": "2026-09-19T17:42:08.470Z",
       "timeline": [
+        {
+          "id": "tl_dcd8c193",
+          "timestamp": "2026-09-19T17:42:08.471Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_5746b363",
+          "timestamp": "2026-09-19T17:41:36.686Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_a47d879b",
+          "timestamp": "2026-09-19T17:41:27.771Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_e9346a4c",
+          "timestamp": "2026-09-19T17:41:10.452Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_d15af31f",
+          "timestamp": "2026-09-19T17:41:06.738Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_510ebdbc",
+          "timestamp": "2026-09-19T17:40:47.237Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_0ff35e22",
+          "timestamp": "2026-09-19T17:40:16.956Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
         {
           "id": "tl_f3fe403f",
           "timestamp": "2026-09-19T17:38:08.787Z",
@@ -99,6 +148,342 @@
   "accessRequests": [],
   "liveGrants": [],
   "auditEvents": [
+    {
+      "id": "aud_b7d0cd6c",
+      "event_type": "ADMIN_LOGIN_SUCCESS",
+      "description": "Root Admin login successful via WebAuthn device verification (Admin Workstation Terminal)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "before": null,
+      "after": {
+        "actor_id": "usr_admin_001",
+        "device_id": "dev_admin_primary",
+        "authentication": "WEBAUTHN",
+        "authentication_level": "HIGH",
+        "result": "ALLOWED",
+        "region": "Punjab, India"
+      },
+      "performed_by": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x17ea6633f2d32c6e08b957713bf70e550a10511492b80f1e1d5c4043a2a8aa1a",
+      "block_number": 6849381,
+      "created_at": "2026-09-19T17:42:08.471Z"
+    },
+    {
+      "id": "aud_c378ca56",
+      "event_type": "USER_LOGIN_SUCCESS",
+      "description": "Vasu (Administrator) (ADMIN) logged in via Admin Workstation Terminal [127.0.0.1]",
+      "target_id": "usr_admin_001",
+      "target": "usr_admin_001",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x385d5556393e9f1683132c1eec260f6d2cfea4f5b59c5dd6da29d8eed7cd440a",
+      "block_number": 6849691,
+      "created_at": "2026-09-19T17:42:08.470Z"
+    },
+    {
+      "id": "aud_e3e7ade7",
+      "event_type": "ADMIN_HARDWARE_TERMINAL_BOUND",
+      "description": "Admin hardware terminal anchored with P-256 passkey for Vasu (Administrator)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x8d39a00c27060bb2fcaccf70a4cd7055399328cb63a8dd2909af29293f23f230",
+      "block_number": 6849604,
+      "created_at": "2026-09-19T17:42:08.465Z"
+    },
+    {
+      "id": "aud_1958e2f1",
+      "event_type": "ADMIN_LOGIN_SUCCESS",
+      "description": "Root Admin login successful via WebAuthn device verification (Admin Workstation Terminal)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "before": null,
+      "after": {
+        "actor_id": "usr_admin_001",
+        "device_id": "dev_admin_primary",
+        "authentication": "WEBAUTHN",
+        "authentication_level": "HIGH",
+        "result": "ALLOWED",
+        "region": "Punjab, India"
+      },
+      "performed_by": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0xb58fdefb57ec847b67c4f6428b1b9e7aeb18b58906eb05ca8349322a893c2556",
+      "block_number": 6849518,
+      "created_at": "2026-09-19T17:41:36.686Z"
+    },
+    {
+      "id": "aud_38640a7d",
+      "event_type": "USER_LOGIN_SUCCESS",
+      "description": "Vasu (Administrator) (ADMIN) logged in via Admin Workstation Terminal [127.0.0.1]",
+      "target_id": "usr_admin_001",
+      "target": "usr_admin_001",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x30e7624ecf8dbc5aaa2a4e7a4961164fbf7d14c96ed0489af38c67172838f919",
+      "block_number": 6849200,
+      "created_at": "2026-09-19T17:41:36.685Z"
+    },
+    {
+      "id": "aud_509842be",
+      "event_type": "ADMIN_HARDWARE_TERMINAL_BOUND",
+      "description": "Admin hardware terminal anchored with P-256 passkey for Vasu (Administrator)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x255f0b76722bd164e863d08a83a69aa004e6dd606696517edad71a613b35b0cb",
+      "block_number": 6849612,
+      "created_at": "2026-09-19T17:41:36.684Z"
+    },
+    {
+      "id": "aud_b2d29a04",
+      "event_type": "ADMIN_LOGIN_SUCCESS",
+      "description": "Root Admin login successful via WebAuthn device verification (Admin Workstation Terminal)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "before": null,
+      "after": {
+        "actor_id": "usr_admin_001",
+        "device_id": "dev_admin_primary",
+        "authentication": "WEBAUTHN",
+        "authentication_level": "HIGH",
+        "result": "ALLOWED",
+        "region": "Punjab, India"
+      },
+      "performed_by": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x8c4b6c45bc3fa7de05d9d574dd92b373f3c54a45d06d485ce31ff774534764d1",
+      "block_number": 6849297,
+      "created_at": "2026-09-19T17:41:27.771Z"
+    },
+    {
+      "id": "aud_59b58bb6",
+      "event_type": "USER_LOGIN_SUCCESS",
+      "description": "Vasu (Administrator) (ADMIN) logged in via Admin Workstation Terminal [127.0.0.1]",
+      "target_id": "usr_admin_001",
+      "target": "usr_admin_001",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x6d03dd1eca09fa3716cd740541647374207af30481870268f2ac51ebd9d1681d",
+      "block_number": 6849410,
+      "created_at": "2026-09-19T17:41:27.767Z"
+    },
+    {
+      "id": "aud_6b13e18a",
+      "event_type": "ADMIN_HARDWARE_TERMINAL_BOUND",
+      "description": "Admin hardware terminal anchored with P-256 passkey for Vasu (Administrator)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x1cdcede2d84d2be160d5fdd728f02857dd53b8d2c2479118fed2431e009ad79a",
+      "block_number": 6849286,
+      "created_at": "2026-09-19T17:41:27.756Z"
+    },
+    {
+      "id": "aud_426b6a9c",
+      "event_type": "ADMIN_LOGIN_SUCCESS",
+      "description": "Root Admin login successful via WebAuthn device verification (Admin Workstation Terminal)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "before": null,
+      "after": {
+        "actor_id": "usr_admin_001",
+        "device_id": "dev_admin_primary",
+        "authentication": "WEBAUTHN",
+        "authentication_level": "HIGH",
+        "result": "ALLOWED",
+        "region": "Punjab, India"
+      },
+      "performed_by": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0xadc8c9bd9e94f56b56be055ed12cd038df701b539d215be001f593f3fb3ff041",
+      "block_number": 6849351,
+      "created_at": "2026-09-19T17:41:10.452Z"
+    },
+    {
+      "id": "aud_30a2614b",
+      "event_type": "USER_LOGIN_SUCCESS",
+      "description": "Vasu (Administrator) (ADMIN) logged in via Admin Workstation Terminal [127.0.0.1]",
+      "target_id": "usr_admin_001",
+      "target": "usr_admin_001",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x92747c06a0769650ec4d23d5e08acfcedca18e959fdffccefac3ff0f662f3489",
+      "block_number": 6849434,
+      "created_at": "2026-09-19T17:41:10.452Z"
+    },
+    {
+      "id": "aud_c492950a",
+      "event_type": "ADMIN_HARDWARE_TERMINAL_BOUND",
+      "description": "Admin hardware terminal anchored with P-256 passkey for Vasu (Administrator)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x3da925124e77f27e539995517ab6898f8a85552c41bd0dc7197ce0beb5549929",
+      "block_number": 6849549,
+      "created_at": "2026-09-19T17:41:10.450Z"
+    },
+    {
+      "id": "aud_d07b20d0",
+      "event_type": "ADMIN_LOGIN_SUCCESS",
+      "description": "Root Admin login successful via WebAuthn device verification (Admin Workstation Terminal)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "before": null,
+      "after": {
+        "actor_id": "usr_admin_001",
+        "device_id": "dev_admin_primary",
+        "authentication": "WEBAUTHN",
+        "authentication_level": "HIGH",
+        "result": "ALLOWED",
+        "region": "Punjab, India"
+      },
+      "performed_by": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x1c4986d66693c48f1cb7b787cb4980f8596c464ee86f9d94dec0054065beb80a",
+      "block_number": 6849576,
+      "created_at": "2026-09-19T17:41:06.738Z"
+    },
+    {
+      "id": "aud_80b1fb96",
+      "event_type": "USER_LOGIN_SUCCESS",
+      "description": "Vasu (Administrator) (ADMIN) logged in via Admin Workstation Terminal [127.0.0.1]",
+      "target_id": "usr_admin_001",
+      "target": "usr_admin_001",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0xe664d12e232065b73ef961cbf3e16510165d454f661fcde44e6077818fc0d6ed",
+      "block_number": 6849259,
+      "created_at": "2026-09-19T17:41:06.737Z"
+    },
+    {
+      "id": "aud_2abb4ba8",
+      "event_type": "ADMIN_HARDWARE_TERMINAL_BOUND",
+      "description": "Admin hardware terminal anchored with P-256 passkey for Vasu (Administrator)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x7503b5fb39382cd0754dc886e70d8087f2c7ac08ee00656f02c52bee403ad6ca",
+      "block_number": 6849252,
+      "created_at": "2026-09-19T17:41:06.735Z"
+    },
+    {
+      "id": "aud_3e5fcf19",
+      "event_type": "ADMIN_LOGIN_SUCCESS",
+      "description": "Root Admin login successful via WebAuthn device verification (Admin Workstation Terminal)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "before": null,
+      "after": {
+        "actor_id": "usr_admin_001",
+        "device_id": "dev_admin_primary",
+        "authentication": "WEBAUTHN",
+        "authentication_level": "HIGH",
+        "result": "ALLOWED",
+        "region": "Punjab, India"
+      },
+      "performed_by": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x9ab135a5a5fdaa3b75c2f8f5d77ea5fed2905b85c2b60f1ea6af8ea6dacd9953",
+      "block_number": 6849430,
+      "created_at": "2026-09-19T17:40:47.237Z"
+    },
+    {
+      "id": "aud_b3f54700",
+      "event_type": "USER_LOGIN_SUCCESS",
+      "description": "Vasu (Administrator) (ADMIN) logged in via Admin Workstation Terminal [127.0.0.1]",
+      "target_id": "usr_admin_001",
+      "target": "usr_admin_001",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0xdf56100c8abec01db0767ecd6146c29ec1cd4024d6509388fcdf27a80bbe9203",
+      "block_number": 6849619,
+      "created_at": "2026-09-19T17:40:47.237Z"
+    },
+    {
+      "id": "aud_3577a718",
+      "event_type": "ADMIN_HARDWARE_TERMINAL_BOUND",
+      "description": "Admin hardware terminal anchored with P-256 passkey for Vasu (Administrator)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0xc1891df309508ebd6718a5c298099fbfa9d5cdee2b1b374b15b67193d254f9a0",
+      "block_number": 6849478,
+      "created_at": "2026-09-19T17:40:47.235Z"
+    },
+    {
+      "id": "aud_372bf2ad",
+      "event_type": "ADMIN_LOGIN_SUCCESS",
+      "description": "Root Admin login successful via WebAuthn device verification (Admin Workstation Terminal)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "before": null,
+      "after": {
+        "actor_id": "usr_admin_001",
+        "device_id": "dev_admin_primary",
+        "authentication": "WEBAUTHN",
+        "authentication_level": "HIGH",
+        "result": "ALLOWED",
+        "region": "Punjab, India"
+      },
+      "performed_by": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x2e1a9862f159fb2748dfbe34e09514cb75fb9994ced90d2718997ecbd0acafb5",
+      "block_number": 6849649,
+      "created_at": "2026-09-19T17:40:16.956Z"
+    },
+    {
+      "id": "aud_4ba32d36",
+      "event_type": "USER_LOGIN_SUCCESS",
+      "description": "Vasu (Administrator) (ADMIN) logged in via Admin Workstation Terminal [127.0.0.1]",
+      "target_id": "usr_admin_001",
+      "target": "usr_admin_001",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x6c7e79d5f9aa7dde55dac17ef9a85c9c6e42e3a0e1bb0afe922016c1caf6c015",
+      "block_number": 6849513,
+      "created_at": "2026-09-19T17:40:16.956Z"
+    },
+    {
+      "id": "aud_33fb165e",
+      "event_type": "ADMIN_HARDWARE_TERMINAL_BOUND",
+      "description": "Admin hardware terminal anchored with P-256 passkey for Vasu (Administrator)",
+      "target_id": "dev_admin_primary",
+      "target": "dev_admin_primary",
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x53dec32110e6927ad25b269e8c5ea8c5110b5a77377d1d6f55add8f70c7398eb",
+      "block_number": 6849296,
+      "created_at": "2026-09-19T17:40:16.954Z"
+    },
     {
       "id": "aud_ef4e0cb7",
       "event_type": "ADMIN_LOGIN_SUCCESS",
@@ -244,44 +629,6 @@
       "created_at": "2026-09-19T17:37:45.843Z"
     },
     {
-      "id": "aud_338b1cae",
-      "event_type": "ADMIN_LOGIN_FAILURE",
-      "description": "ACCESS DENIED: Failed root admin login attempt: SIGNATURE_VERIFICATION_FAILED",
-      "target_id": "dev_admin_primary",
-      "target": "dev_admin_primary",
-      "before": null,
-      "after": {
-        "actor_id": "usr_admin_001",
-        "device_id": "dev_admin_primary",
-        "reason_code": "SIGNATURE_VERIFICATION_FAILED",
-        "result": "DENIED"
-      },
-      "performed_by": "usr_admin_001",
-      "severity": "CRITICAL",
-      "event_hash": "0xc181120a3f04feb699dd051d051213fba3ad723e5b8ef3242f4868c3fb18b0f1",
-      "block_number": 6849377,
-      "created_at": "2026-09-19T17:37:29.471Z"
-    },
-    {
-      "id": "aud_fdbd5db6",
-      "event_type": "ADMIN_LOGIN_FAILURE",
-      "description": "ACCESS DENIED: Failed root admin login attempt: SIGNATURE_VERIFICATION_FAILED",
-      "target_id": "dev_admin_primary",
-      "target": "dev_admin_primary",
-      "before": null,
-      "after": {
-        "actor_id": "usr_admin_001",
-        "device_id": "dev_admin_primary",
-        "reason_code": "SIGNATURE_VERIFICATION_FAILED",
-        "result": "DENIED"
-      },
-      "performed_by": "usr_admin_001",
-      "severity": "CRITICAL",
-      "event_hash": "0x55055eaa1eb298e2925ed10c1e8300072a5c8d67f17e6f7f417ace2897d45898",
-      "block_number": 6849646,
-      "created_at": "2026-09-19T17:37:24.857Z"
-    },
-    {
       "id": "aud_root_init",
       "timestamp": "2026-09-01T00:00:00.000Z",
       "eventType": "ROOT_ADMIN_CREATED",
@@ -306,6 +653,83 @@
   ],
   "notifications": [],
   "loginHistory": [
+    {
+      "id": "log_4d985f25",
+      "userId": "usr_admin_001",
+      "userName": "Vasu (Administrator)",
+      "userEmail": "admin@securemax.mil",
+      "role": "ADMIN",
+      "deviceName": "Admin Workstation Terminal",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T17:42:08.470Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_09248152",
+      "userId": "usr_admin_001",
+      "userName": "Vasu (Administrator)",
+      "userEmail": "admin@securemax.mil",
+      "role": "ADMIN",
+      "deviceName": "Admin Workstation Terminal",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T17:41:36.685Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_b9cec6f4",
+      "userId": "usr_admin_001",
+      "userName": "Vasu (Administrator)",
+      "userEmail": "admin@securemax.mil",
+      "role": "ADMIN",
+      "deviceName": "Admin Workstation Terminal",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T17:41:27.766Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_6a0a8ea0",
+      "userId": "usr_admin_001",
+      "userName": "Vasu (Administrator)",
+      "userEmail": "admin@securemax.mil",
+      "role": "ADMIN",
+      "deviceName": "Admin Workstation Terminal",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T17:41:10.452Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_aeecb306",
+      "userId": "usr_admin_001",
+      "userName": "Vasu (Administrator)",
+      "userEmail": "admin@securemax.mil",
+      "role": "ADMIN",
+      "deviceName": "Admin Workstation Terminal",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T17:41:06.737Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_5031d212",
+      "userId": "usr_admin_001",
+      "userName": "Vasu (Administrator)",
+      "userEmail": "admin@securemax.mil",
+      "role": "ADMIN",
+      "deviceName": "Admin Workstation Terminal",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T17:40:47.237Z",
+      "status": "SUCCESS"
+    },
+    {
+      "id": "log_372f5fd2",
+      "userId": "usr_admin_001",
+      "userName": "Vasu (Administrator)",
+      "userEmail": "admin@securemax.mil",
+      "role": "ADMIN",
+      "deviceName": "Admin Workstation Terminal",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-09-19T17:40:16.956Z",
+      "status": "SUCCESS"
+    },
     {
       "id": "log_26fd8651",
       "userId": "usr_admin_001",
@@ -553,17 +977,66 @@
       "credential_id": "cred_admin_hw_01",
       "credential_type": "WebAuthn",
       "registered_at": "2026-09-01T00:00:00.000Z",
-      "last_authenticated_at": "2026-09-19T17:38:08.787Z",
-      "last_active_at": "2026-09-19T17:38:08.787Z",
+      "last_authenticated_at": "2026-09-19T17:42:08.471Z",
+      "last_active_at": "2026-09-19T17:42:08.471Z",
       "risk_state": "TRUSTED",
       "registration_region": "Punjab, India",
-      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGV3R8TC2NP3rW07QNfa4xcT69Jvu3F3uGZ7aAJeBtYH/h1/kG+CTaE/fABqRsswQKubX174Gs/XpK/oUL1glmA==",
+      "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAElIz4v3cWIrhPDdxXPJ8OSMR1MuBBjlbS+vDpd5VqnKMrrY23r2aXl3WijQXv6Xdkr9c7QkOJuDEhD977BUxBXg==",
       "algorithm": "ECDSA_P256",
       "status": "ACTIVE",
       "is_admin_device": true,
       "created_at": "2026-09-01T00:00:00.000Z",
       "last_used_at": "2026-09-19T17:37:45.844Z",
       "timeline": [
+        {
+          "id": "tl_dcd8c193",
+          "timestamp": "2026-09-19T17:42:08.471Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_5746b363",
+          "timestamp": "2026-09-19T17:41:36.686Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_a47d879b",
+          "timestamp": "2026-09-19T17:41:27.771Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_e9346a4c",
+          "timestamp": "2026-09-19T17:41:10.452Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_d15af31f",
+          "timestamp": "2026-09-19T17:41:06.738Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_510ebdbc",
+          "timestamp": "2026-09-19T17:40:47.237Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
+        {
+          "id": "tl_0ff35e22",
+          "timestamp": "2026-09-19T17:40:16.956Z",
+          "event": "ADMIN_LOGIN",
+          "details": "Admin logged in successfully via WebAuthn (Registered Region)",
+          "severity": "INFO"
+        },
         {
           "id": "tl_f3fe403f",
           "timestamp": "2026-09-19T17:38:08.787Z",
@@ -632,7 +1105,7 @@
     "admin_locked": false,
     "failed_admin_logins": 0,
     "last_admin_login": {
-      "timestamp": "2026-09-19T17:38:08.787Z",
+      "timestamp": "2026-09-19T17:42:08.471Z",
       "region": "Punjab, India",
       "device_name": "Admin Workstation Terminal",
       "auth_method": "WEBAUTHN"
@@ -645,5 +1118,5 @@
     "createdAt": "2026-09-01T00:00:00.000Z",
     "used": false
   },
-  "updatedAt": "2026-09-19T17:38:08.787Z"
+  "updatedAt": "2026-09-19T17:42:08.471Z"
 }
