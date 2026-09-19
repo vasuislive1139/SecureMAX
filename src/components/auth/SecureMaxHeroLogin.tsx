@@ -22,7 +22,9 @@ import {
   Laptop,
   Sparkles,
   ShieldCheck,
-  UserPlus
+  UserPlus,
+  Briefcase,
+  Settings
 } from 'lucide-react';
 import { 
   getOrCreateLocalDeviceKey, 
@@ -31,11 +33,21 @@ import {
   ClientDeviceInfo 
 } from '@/lib/crypto/clientP256';
 import SecureMaxChainIntro from '@/components/ui/SecureMaxChainIntro';
+import AdminBootstrapWizard from '@/components/auth/AdminBootstrapWizard';
+import EmergencyRecoveryModal from '@/components/auth/EmergencyRecoveryModal';
 
-type LoginRole = 'USER' | 'ADMIN' | 'AUDITOR';
+type LoginRole = 'USER' | 'MANAGER' | 'AUDITOR' | 'ADMIN';
 
 export default function SecureMaxHeroLogin() {
   const router = useRouter();
+
+  // State-Aware System State (Admin Count = 0 vs 1)
+  const [systemInitialized, setSystemInitialized] = useState<boolean>(false);
+  const [adminCount, setAdminCount] = useState<number>(0);
+  const [showBootstrapWizard, setShowBootstrapWizard] = useState<boolean>(false);
+  const [showRecoveryModal, setShowRecoveryModal] = useState<boolean>(false);
+  const [accountType, setAccountType] = useState<'STAFF' | 'ADMIN'>('STAFF');
+  const [adminIdInput, setAdminIdInput] = useState<string>('ADM-0001');
 
   // Cinematic Intro State
   const [showIntro, setShowIntro] = useState(false);
@@ -51,6 +63,24 @@ export default function SecureMaxHeroLogin() {
     }
   }, []);
 
+  // Check initialization status on mount
+  const checkBootstrapState = async () => {
+    try {
+      const res = await fetch('/api/admin/bootstrap');
+      if (res.ok) {
+        const d = await res.json();
+        setSystemInitialized(Boolean(d.initialized));
+        setAdminCount(d.adminCount || 0);
+      }
+    } catch (e) {
+      console.error('Failed to check bootstrap status', e);
+    }
+  };
+
+  useEffect(() => {
+    checkBootstrapState();
+  }, []);
+
   // Auth Mode: Sign In vs Register
   const [authMode, setAuthMode] = useState<'SIGN_IN' | 'REGISTER'>('SIGN_IN');
 
@@ -63,7 +93,7 @@ export default function SecureMaxHeroLogin() {
   // Self-Registration State
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
-  const [regRole, setRegRole] = useState<'USER' | 'ADMIN' | 'AUDITOR'>('USER');
+  const [regRole, setRegRole] = useState<'USER' | 'MANAGER' | 'AUDITOR'>('USER');
   const [regDeviceName, setRegDeviceName] = useState('Primary Workstation');
 
   // Auth Status
@@ -95,6 +125,71 @@ export default function SecureMaxHeroLogin() {
   }, [email]);
 
   // ----------------------------------------------------
+  // ADMIN ROOT AUTHENTICATION (WebAuthn / Device Security)
+  // ----------------------------------------------------
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    const targetAdminId = adminIdInput.trim() || 'ADM-0001';
+
+    setLoading(true);
+    setStatusMessage('Initiating root administrator cryptographic verification...');
+
+    try {
+      // 1. Get or create local device key
+      const dev = deviceInfo || await getOrCreateLocalDeviceKey('SecureMAX Admin Laptop', targetAdminId);
+      setDeviceInfo(dev);
+
+      // 2. Request high-entropy challenge
+      setStatusMessage(`Requesting cryptographic challenge for ${targetAdminId}...`);
+      const challengeRes = await fetch('/api/auth/challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: targetAdminId }),
+      });
+
+      if (!challengeRes.ok) {
+        const chalData = await challengeRes.json().catch(() => ({}));
+        throw new Error(chalData.error || 'Failed to request challenge from server');
+      }
+
+      const challenge = await challengeRes.json();
+
+      // 3. Sign challenge with local hardware key (Face ID / Touch ID / PIN)
+      setStatusMessage('Authenticating with device security (Face ID / Fingerprint / PIN)...');
+      const signature = await signChallengeWithLocalKey(challenge.message);
+
+      // 4. Verify on server
+      setStatusMessage('Verifying root credential & singleton device binding...');
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminId: targetAdminId,
+          deviceId: dev.deviceId,
+          deviceName: dev.deviceName,
+          publicKey: dev.publicKeySpki,
+          challengeId: challenge.challengeId,
+          signature,
+        }),
+      });
+
+      const result = await loginRes.json();
+      if (!loginRes.ok) {
+        setLoading(false);
+        setErrorMessage(result.error || 'Authentication failed');
+        return;
+      }
+
+      setStatusMessage('Admin verified! Entering Command Center...');
+      router.push('/dashboard/admin');
+    } catch (err: any) {
+      setLoading(false);
+      setErrorMessage(err.message || 'Administrator authentication error');
+    }
+  };
+
+  // ----------------------------------------------------
   // PRIMARY LOGIN (Connect button: "Login ->")
   // ----------------------------------------------------
   const handlePrimaryLogin = async (e?: React.FormEvent, overrideEmail?: string, overrideDevice?: ClientDeviceInfo) => {
@@ -108,8 +203,8 @@ export default function SecureMaxHeroLogin() {
     }
 
     const determinedRole: LoginRole = selectedRole || (
-      targetEmail.includes('admin') ? 'ADMIN' :
-      targetEmail.includes('auditor') ? 'AUDITOR' : 'USER'
+      targetEmail.includes('auditor') ? 'AUDITOR' :
+      targetEmail.includes('manager') ? 'MANAGER' : 'USER'
     );
 
     setLoading(true);
@@ -738,15 +833,15 @@ export default function SecureMaxHeroLogin() {
 
                   <button
                     type="button"
-                    onClick={() => setRegRole('ADMIN')}
+                    onClick={() => setRegRole('MANAGER')}
                     className={`py-2 px-2 rounded-xl text-xs font-semibold tracking-wide border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                      regRole === 'ADMIN'
+                      regRole === 'MANAGER'
                         ? 'bg-cyan-950/80 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
                         : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
-                    <Shield className="w-3.5 h-3.5 text-cyan-400" />
-                    Admin
+                    <Briefcase className="w-3.5 h-3.5 text-cyan-400" />
+                    Manager
                   </button>
 
                   <button

@@ -16,7 +16,7 @@ interface Member {
 export function QuickUserRegistrationCard() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'USER' | 'AUDITOR'>('USER');
+  const [role, setRole] = useState<'USER' | 'MANAGER' | 'AUDITOR'>('USER');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successInfo, setSuccessInfo] = useState<{
@@ -142,10 +142,11 @@ export function QuickUserRegistrationCard() {
           </label>
           <select
             value={role}
-            onChange={(e) => setRole(e.target.value as 'USER' | 'AUDITOR')}
+            onChange={(e) => setRole(e.target.value as 'USER' | 'MANAGER' | 'AUDITOR')}
             className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-zinc-100 focus:outline-none focus:border-cyan-400 transition-colors"
           >
-            <option value="USER">Field Member</option>
+            <option value="USER">Field Member (User)</option>
+            <option value="MANAGER">Manager</option>
             <option value="AUDITOR">Auditor</option>
           </select>
         </div>
@@ -232,9 +233,11 @@ export function QuickUserRegistrationCard() {
                         ? 'bg-purple-950/60 text-purple-300 border border-purple-500/30' 
                         : member.role === 'AUDITOR'
                         ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30'
+                        : member.role === 'MANAGER'
+                        ? 'bg-blue-950/60 text-blue-300 border border-blue-500/30'
                         : 'bg-cyan-950/60 text-cyan-300 border border-cyan-500/30'
                     }`}>
-                      {member.role === 'ADMIN' ? 'Administrator' : member.role === 'AUDITOR' ? 'Auditor' : 'Team Member'}
+                      {member.role === 'ADMIN' ? 'Administrator' : member.role === 'AUDITOR' ? 'Auditor' : member.role === 'MANAGER' ? 'Manager' : 'Team Member'}
                     </span>
                   </td>
                   <td className="py-2.5 text-zinc-400 font-mono text-[11px] max-w-[180px] truncate pr-3" title={member.did}>

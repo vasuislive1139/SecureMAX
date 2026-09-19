@@ -99,6 +99,61 @@ export interface PositionPermissions {
   };
 }
 
+export type AssuranceLevel = 'LEVEL_1' | 'LEVEL_2' | 'LEVEL_3' | 'LEVEL_4';
+
+export interface RootAdminBootstrapParams {
+  orgName: string;
+  orgId?: string;
+  orgType?: string;
+  country?: string;
+  timezone?: string;
+  adminName: string;
+  adminId?: string;
+  email: string;
+  phone?: string;
+  department?: string;
+  designation?: string;
+  deviceName: string;
+  deviceType?: string;
+  os?: string;
+  browser?: string;
+  publicKey: string;
+  credentialId?: string;
+  bootstrapSecret?: string;
+}
+
+export interface AdminRecoveryVault {
+  recoveryId: string;
+  recoveryCodeHash: string;
+  createdAt: string;
+  used: boolean;
+  usedAt?: string;
+}
+
+export interface SystemSettings {
+  admin_initialized: boolean;
+  bootstrap_enabled: boolean;
+  system_state: 'UNINITIALIZED' | 'BOOTSTRAP_OPEN' | 'ADMIN_CREATED' | 'SYSTEM_LOCKED';
+  organization?: {
+    name: string;
+    org_id: string;
+    org_type: string;
+    country: string;
+    timezone: string;
+    created_at: string;
+  };
+  root_admin_id?: string;
+  admin_locked: boolean;
+  failed_admin_logins: number;
+  last_admin_login?: {
+    timestamp: string;
+    region: string;
+    device_name: string;
+    auth_method: string;
+  };
+  last_security_change?: string;
+}
+
 export interface StoredPosition {
   id: string;
   name: string;
@@ -147,7 +202,7 @@ export interface StoredDeviceSession {
   created_at: string;
   last_activity_at: string;
   expires_at: string;
-  authentication_level: 'PASSKEY' | 'WEBAUTHN' | 'P256';
+  authentication_level: 'PASSKEY' | 'WEBAUTHN' | 'P256' | AssuranceLevel;
   status: 'ACTIVE' | 'REVOKED' | 'EXPIRED';
 }
 

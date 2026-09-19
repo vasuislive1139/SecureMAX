@@ -11,16 +11,15 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { email, deviceId, challengeId, signature, publicKey, deviceName } = body;
+    const { email, adminId, deviceId, challengeId, signature, publicKey, deviceName, region } = body;
+    const identifier = String(email || adminId || body.userId || '').trim();
 
-    if (!email || !challengeId || !signature) {
+    if (!identifier || !challengeId || !signature) {
       return NextResponse.json(
-        { error: 'Missing required credentials (email, challengeId, and cryptographic signature required)' },
+        { error: 'Missing required credentials (email/adminId, challengeId, and cryptographic signature required)' },
         { status: 400 }
       );
     }
-
-    const cleanEmail = String(email).toLowerCase().trim();
 
     // 1. Retrieve and validate the challenge
     const cachedChallenge = deviceStore.challengeCache.get(challengeId);
@@ -38,8 +37,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Challenge expired. Please try again.' }, { status: 400 });
     }
 
-    // 2. Resolve User
-    const user = deviceStore.getUserByEmail(cleanEmail);
+    // 2. Resolve User (by email, admin ID, or DID)
+    const user = deviceStore.getUserByEmailOrId(identifier);
     if (!user) {
       return NextResponse.json({ error: 'User not registered in SecureMAX system' }, { status: 404 });
     }
@@ -48,31 +47,53 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `User account is ${user.status}. Access prohibited.` }, { status: 403 });
     }
 
+    // Check if Administrator is locked (Panic mechanism)
+    if (user.role === UserRole.ADMIN && deviceStore.systemSettings.admin_locked) {
+      deviceStore.recordAdminLogin({
+        adminId: user.id,
+        deviceId: deviceId || 'unknown',
+        success: false,
+        reason: 'ADMIN_ACCOUNT_LOCKED',
+      });
+      return NextResponse.json(
+        { error: 'ACCESS DENIED: Administrator account is locked. Emergency recovery ceremony required to restore access.' },
+        { status: 403 }
+      );
+    }
+
     // 3. Resolve Device & Enforce Device Credential Binding
+    const userDevices = deviceStore.getDevicesForUser(user.id);
     let device = deviceId ? deviceStore.getDeviceById(deviceId) : null;
 
     if (!device) {
-      // Find devices registered to this user
-      const userDevices = deviceStore.getDevicesForUser(user.id);
-      
-      // If client provided a public key, see if it matches any registered device
       if (publicKey) {
         device = userDevices.find(d => d.public_key === publicKey) || null;
       }
 
-      // If user is ADMIN: STRICT HARDWARE-BOUND RULE
+      // If user is ADMIN: STRICT HARDWARE-BOUND SINGLETON RULE
       // Admin CANNOT log in from an unknown device. Must be pre-registered admin device.
       if (user.role === UserRole.ADMIN) {
         if (!device || !device.is_admin_device) {
-          console.warn(`[Security Alert] Unauthorized device attempted admin login: ${cleanEmail}`);
-          return NextResponse.json(
-            { error: 'ACCESS DENIED: Administrator account is strictly bound to the verified Admin hardware terminal. Unenrolled device prohibited.' },
-            { status: 403 }
-          );
+          // Check if there is an active admin device for this user
+          const adminDev = userDevices.find(d => d.is_admin_device && d.status === 'ACTIVE');
+          if (adminDev && (!publicKey || adminDev.public_key === publicKey)) {
+            device = adminDev;
+          } else {
+            deviceStore.recordAdminLogin({
+              adminId: user.id,
+              deviceId: deviceId || 'unknown',
+              success: false,
+              reason: 'UNAUTHORIZED_ADMIN_DEVICE',
+            });
+            return NextResponse.json(
+              { error: 'ACCESS DENIED: Administrator account is strictly bound to the verified Admin hardware terminal. Unenrolled device prohibited.' },
+              { status: 403 }
+            );
+          }
         }
       }
 
-      // For standard users / auditors on first login or replacing mock placeholders:
+      // For standard users / auditors on first login:
       const hasRealBoundDevice = userDevices.some(
         d => d.status === 'ACTIVE' && !d.public_key.startsWith('MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE')
       );
@@ -97,13 +118,19 @@ export async function POST(req: Request) {
 
     if (device.status !== 'ACTIVE') {
       return NextResponse.json(
-        { error: 'This device credential has been REVOKED. Please re-enroll this device.' },
+        { error: 'This device credential has been REVOKED or SUSPENDED. Please contact administrator.' },
         { status: 403 }
       );
     }
 
     // Check admin device integrity
     if (user.role === UserRole.ADMIN && !device.is_admin_device) {
+      deviceStore.recordAdminLogin({
+        adminId: user.id,
+        deviceId: device.id,
+        success: false,
+        reason: 'NON_ADMIN_DEVICE_ATTEMPT',
+      });
       return NextResponse.json(
         { error: 'ACCESS DENIED: Non-admin device attempted administrative login.' },
         { status: 403 }
@@ -118,17 +145,36 @@ export async function POST(req: Request) {
     );
 
     if (!isValidSignature) {
+      if (user.role === UserRole.ADMIN) {
+        deviceStore.recordAdminLogin({
+          adminId: user.id,
+          deviceId: device.id,
+          success: false,
+          reason: 'SIGNATURE_VERIFICATION_FAILED',
+        });
+      }
       return NextResponse.json(
         { error: 'Cryptographic signature verification failed. Private key mismatch.' },
         { status: 401 }
       );
     }
 
-    // 5. Update device last used timestamp
+    // 5. Update device last used timestamp and record success
     deviceStore.updateDeviceLastUsed(device.id);
 
-    // 6. Issue SecureMAX 8-Hour Session
+    if (user.role === UserRole.ADMIN) {
+      deviceStore.recordAdminLogin({
+        adminId: user.id,
+        deviceId: device.id,
+        success: true,
+        region,
+      });
+    }
+
+    // 6. Issue SecureMAX 8-Hour Session with Assurance Level
     const sessionId = crypto.randomUUID();
+    const assuranceLevel = user.role === UserRole.ADMIN ? 'LEVEL_3' : 'LEVEL_2';
+
     const sessionToken = await new SignJWT({
       userId: user.id,
       email: user.email,
@@ -138,6 +184,7 @@ export async function POST(req: Request) {
       deviceId: device.id,
       deviceName: device.device_name,
       sessionId,
+      assuranceLevel,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
@@ -154,6 +201,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
+      assuranceLevel,
       user: {
         id: user.id,
         name: user.name,

@@ -6,6 +6,7 @@ import { TechnicalBriefingButton } from '@/components/dashboard/TechnicalBriefin
 import { ClientIncidentsCard } from '@/components/dashboard/ClientIncidentsCard';
 import { QuickUserRegistrationCard } from '@/components/admin/QuickUserRegistrationCard';
 import { AdminAccessApprovalsCard } from '@/components/admin/AdminAccessApprovalsCard';
+import { AdminSecurityCenter } from '@/components/admin/AdminSecurityCenter';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,6 +43,9 @@ export default async function AdminDashboard() {
           </Badge>
         </div>
       </div>
+
+      {/* ADMIN SECURITY CENTER */}
+      <AdminSecurityCenter />
 
       {/* TEAM MEMBER ONBOARDING */}
       <QuickUserRegistrationCard />

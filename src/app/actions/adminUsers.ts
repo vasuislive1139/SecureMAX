@@ -50,7 +50,7 @@ export async function getRegisteredPersonnel() {
 export async function registerNewUserByAdmin(formData: {
   name: string;
   email: string;
-  role: 'USER' | 'AUDITOR';
+  role: 'USER' | 'MANAGER' | 'AUDITOR';
   deviceName?: string;
 }): Promise<AdminCreateUserResult> {
   try {
@@ -68,13 +68,29 @@ export async function registerNewUserByAdmin(formData: {
 
     const userId = 'usr_' + crypto.randomUUID().slice(0, 8);
     const did = `did:securemax:user:${userId.slice(-6)}`;
-    const role = formData.role === 'AUDITOR' ? UserRole.AUDITOR : UserRole.USER;
+    const role = formData.role === 'AUDITOR' 
+      ? UserRole.AUDITOR 
+      : formData.role === 'MANAGER' 
+      ? UserRole.MANAGER 
+      : UserRole.USER;
+    const positionId = formData.role === 'AUDITOR' 
+      ? 'pos_auditor' 
+      : formData.role === 'MANAGER' 
+      ? 'pos_manager' 
+      : 'pos_user';
+    const positionName = formData.role === 'AUDITOR' 
+      ? 'Auditor' 
+      : formData.role === 'MANAGER' 
+      ? 'Manager' 
+      : 'User';
 
     const newUser: StoredUser = {
       id: userId,
       name: cleanName,
       email: cleanEmail,
       role,
+      position: positionName,
+      position_id: positionId,
       kyc_status: 'VERIFIED',
       status: UserStatus.ACTIVE,
       did,
@@ -87,7 +103,7 @@ export async function registerNewUserByAdmin(formData: {
     // Record in permanent cryptographic audit ledger
     deviceStore.recordAuditEvent({
       eventType: 'USER_IDENTITY_REGISTERED',
-      description: `Admin registered new identity: ${newUser.name} (${newUser.role === UserRole.AUDITOR ? 'Auditor' : 'Team Member'}). DID: ${newUser.did}`,
+      description: `Admin registered new identity: ${newUser.name} (${positionName}). DID: ${newUser.did}`,
       targetId: newUser.id,
       userEmail: newUser.email,
       userName: newUser.name,

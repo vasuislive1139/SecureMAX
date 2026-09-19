@@ -10,7 +10,11 @@ import {
   PositionPermissions,
   StoredPosition,
   StoredEnrollmentCapability,
-  StoredDeviceSession
+  StoredDeviceSession,
+  RootAdminBootstrapParams,
+  AdminRecoveryVault,
+  SystemSettings,
+  AssuranceLevel
 } from '@/types';
 import { deriveKEK, generateDEK, encryptData } from '../crypto';
 
@@ -125,6 +129,22 @@ export interface StoredAuditEvent {
 
 export const PREDEFINED_POSITIONS: StoredPosition[] = [
   {
+    id: 'pos_root_admin',
+    name: 'Root Administrator',
+    description: 'Protected root organizational security identity',
+    privilege_level: 'ADMINISTRATIVE',
+    is_predefined: true,
+    created_at: '2026-09-01T00:00:00.000Z',
+    permissions: {
+      identity: { register: true, suspend: true, revoke: true },
+      users: { create: true, suspend: true },
+      assets: { view: true, allocate: true, transfer: true, delete: true },
+      access: { approve: true, revoke: true },
+      audit: { view: true, export: true },
+      security: { view_alerts: true, manage_devices: true },
+    },
+  },
+  {
     id: 'pos_admin',
     name: 'Administrator',
     description: 'Complete organizational administration',
@@ -206,9 +226,59 @@ class SecureMaxStore {
   public wrappedDEKs: Map<string, { cipher: string; iv: string; authTag: string }> = new Map();
   public challengeCache: Map<string, { challengeId: string; identifier: string; nonce: string; message: string; expiresAt: string }> = new Map();
 
+  // Root Admin & System Bootstrap Settings
+  public systemSettings: SystemSettings = {
+    admin_initialized: false,
+    bootstrap_enabled: true,
+    system_state: 'UNINITIALIZED',
+    admin_locked: false,
+    failed_admin_logins: 0,
+  };
+  public recoveryVault: AdminRecoveryVault | null = null;
+
   constructor() {
     // Zero demo data: all users, devices, assets, and audit logs are entered manually at runtime.
     // For automated test suites, use seedTestDataForTesting().
+  }
+
+  public resetForTesting(): void {
+    this.users.clear();
+    this.positions.clear();
+    this.devices.clear();
+    this.enrollments.clear();
+    this.sessions.clear();
+    this.devicePassports.clear();
+    this.assets.clear();
+    this.assignments = [];
+    this.accessRequests = [];
+    this.auditEvents = [];
+    this.wrappedDEKs.clear();
+    this.challengeCache.clear();
+    this.systemSettings = {
+      admin_initialized: false,
+      bootstrap_enabled: true,
+      system_state: 'UNINITIALIZED',
+      admin_locked: false,
+      failed_admin_logins: 0,
+    };
+    this.recoveryVault = null;
+  }
+
+  public isSystemInitialized(): boolean {
+    return this.systemSettings.admin_initialized && this.getAdminCount() > 0;
+  }
+
+  public getAdminCount(): number {
+    const uniqueAdmins = new Set(
+      Array.from(this.users.values())
+        .filter(u => u.role === UserRole.ADMIN && u.status === UserStatus.ACTIVE)
+        .map(u => u.id)
+    );
+    return uniqueAdmins.size;
+  }
+
+  public getSystemSettings(): SystemSettings {
+    return { ...this.systemSettings };
   }
 
   public getWrappedDEK(assetId: string) {
@@ -247,8 +317,8 @@ class SecureMaxStore {
       name: 'Vasu (Administrator)',
       email: 'admin@securemax.mil',
       role: UserRole.ADMIN,
-      position: 'Administrator',
-      position_id: 'pos_admin',
+      position: 'Root Administrator',
+      position_id: 'pos_root_admin',
       kyc_status: 'VERIFIED',
       status: UserStatus.ACTIVE,
       did: 'did:securemax:admin:001',
@@ -256,6 +326,40 @@ class SecureMaxStore {
     };
     this.users.set(adminUser.id, adminUser);
     this.users.set(adminUser.email, adminUser);
+
+    // Mark system as initialized for testing
+    this.systemSettings = {
+      admin_initialized: true,
+      bootstrap_enabled: false,
+      system_state: 'SYSTEM_LOCKED',
+      organization: {
+        name: 'SecureMAX Defense Vault Command',
+        org_id: 'ORG-SMX-001',
+        org_type: 'Defense / Enterprise',
+        country: 'India',
+        timezone: 'Asia/Kolkata',
+        created_at: '2026-09-01T00:00:00.000Z',
+      },
+      root_admin_id: adminUser.id,
+      admin_locked: false,
+      failed_admin_logins: 0,
+      last_admin_login: {
+        timestamp: new Date().toISOString(),
+        region: 'Punjab, India',
+        device_name: 'Admin Laptop (Hardware-Bound)',
+        auth_method: 'WEBAUTHN',
+      },
+      last_security_change: '2026-09-19T19:42:00.000Z',
+    };
+
+    const seedRecoveryCode = 'REC-8A92-491F-C841';
+    const seedRecoveryHash = crypto.createHash('sha256').update(seedRecoveryCode).digest('hex');
+    this.recoveryVault = {
+      recoveryId: 'REC-8A92-491F',
+      recoveryCodeHash: seedRecoveryHash,
+      createdAt: '2026-09-01T00:00:00.000Z',
+      used: false,
+    };
 
     // Admin's single bound device
     const adminDevice: DevicePassport = {
@@ -1032,6 +1136,462 @@ class SecureMaxStore {
     return this.users.get(userId) || null;
   }
 
+  public getUserByEmailOrId(identifier: string): StoredUser | null {
+    const clean = identifier.trim();
+    const cleanLower = clean.toLowerCase();
+    for (const u of this.users.values()) {
+      if (
+        u.email.toLowerCase() === cleanLower ||
+        u.id.toLowerCase() === cleanLower ||
+        u.did.toLowerCase() === cleanLower ||
+        u.id === clean
+      ) {
+        return u;
+      }
+    }
+    return null;
+  }
+
+  // --- ROOT ADMIN BOOTSTRAP, RECOVERY & PANIC ---
+  public bootstrapRootAdmin(params: RootAdminBootstrapParams): {
+    rootAdmin: StoredUser;
+    adminDevice: DevicePassport;
+    recoveryPackage: {
+      recoveryId: string;
+      recoveryCode: string;
+      generatedAt: string;
+    };
+  } {
+    // 1. Rejection rule: if admin already exists or system is initialized or bootstrap disabled
+    if (this.systemSettings.admin_initialized || this.getAdminCount() > 0 || !this.systemSettings.bootstrap_enabled) {
+      throw new Error('System already initialized. Additional root admin creation is prohibited.');
+    }
+
+    // 2. Bootstrap secret verification if configured
+    const envSecret = process.env.ADMIN_BOOTSTRAP_SECRET;
+    if (envSecret && params.bootstrapSecret !== envSecret) {
+      throw new Error('Invalid deployment bootstrap secret.');
+    }
+
+    // 3. Generate one-time recovery package (Factor A)
+    const recoveryId = 'REC-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const recoveryCode = [
+      crypto.randomBytes(2).toString('hex').toUpperCase(),
+      crypto.randomBytes(2).toString('hex').toUpperCase(),
+      crypto.randomBytes(2).toString('hex').toUpperCase(),
+      crypto.randomBytes(2).toString('hex').toUpperCase(),
+    ].join('-');
+    const recoveryCodeHash = crypto.createHash('sha256').update(recoveryCode).digest('hex');
+
+    this.recoveryVault = {
+      recoveryId,
+      recoveryCodeHash,
+      createdAt: new Date().toISOString(),
+      used: false,
+    };
+
+    // 4. Ensure predefined positions exist
+    if (!this.positions.has('pos_root_admin')) {
+      for (const p of PREDEFINED_POSITIONS) {
+        this.positions.set(p.id, { ...p });
+      }
+    }
+
+    // 5. Create Root Admin Identity
+    const adminId = params.adminId?.trim() || 'ADM-0001';
+    const orgId = params.orgId?.trim() || 'ORG-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+
+    const adminUser: StoredUser = {
+      id: adminId,
+      name: params.adminName.trim(),
+      email: params.email.trim().toLowerCase(),
+      role: UserRole.ADMIN,
+      position: 'Root Administrator',
+      position_id: 'pos_root_admin',
+      kyc_status: 'VERIFIED',
+      status: UserStatus.ACTIVE,
+      did: `did:securemax:admin:${adminId.toLowerCase()}`,
+      created_at: new Date().toISOString(),
+    };
+    this.users.set(adminUser.id, adminUser);
+    this.users.set(adminUser.email, adminUser);
+
+    // 6. Create Singleton Admin Device
+    const deviceId = 'DEV-ADMIN-001';
+    const adminDevice: DevicePassport = {
+      id: deviceId,
+      device_id: deviceId,
+      user_id: adminUser.id,
+      user_name: adminUser.name,
+      user_email: adminUser.email,
+      position: 'Root Administrator',
+      device_name: params.deviceName || 'SecureMAX Admin Laptop',
+      device_type: params.deviceType || 'laptop',
+      os: params.os || 'macOS',
+      browser: params.browser || 'Chrome',
+      browser_version: '128.0',
+      model: 'SecureMAX Hardware-Bound Terminal',
+      credential_id: params.credentialId || 'cred_admin_' + crypto.randomBytes(4).toString('hex'),
+      credential_type: 'WebAuthn',
+      registered_at: new Date().toISOString(),
+      last_authenticated_at: new Date().toISOString(),
+      last_active_at: new Date().toISOString(),
+      risk_state: 'TRUSTED',
+      registration_region: params.country || 'Punjab, India',
+      public_key: params.publicKey,
+      algorithm: 'ECDSA_P256',
+      status: 'ACTIVE',
+      is_admin_device: true,
+      created_at: new Date().toISOString(),
+      last_used_at: new Date().toISOString(),
+      timeline: [
+        { id: 'tl_boot_1', timestamp: new Date(Date.now() - 5000).toISOString(), event: 'SYSTEM_INITIALIZATION_STARTED', details: 'One-time deployment bootstrap initiated', severity: 'INFO' },
+        { id: 'tl_boot_2', timestamp: new Date(Date.now() - 4000).toISOString(), event: 'ROOT_ADMIN_CREATED', details: `Root administrator created: ${adminUser.name} (${adminUser.id})`, severity: 'INFO' },
+        { id: 'tl_boot_3', timestamp: new Date(Date.now() - 3000).toISOString(), event: 'ADMIN_DEVICE_REGISTERED', details: `Singleton trusted device registered: ${params.deviceName || 'SecureMAX Admin Laptop'}`, severity: 'INFO' },
+        { id: 'tl_boot_4', timestamp: new Date(Date.now() - 2000).toISOString(), event: 'ADMIN_CREDENTIAL_REGISTERED', details: 'WebAuthn / Passkey cryptographic credential anchored', severity: 'INFO' },
+        { id: 'tl_boot_5', timestamp: new Date(Date.now() - 1000).toISOString(), event: 'SYSTEM_INITIALIZATION_COMPLETED', details: 'System initialization completed successfully', severity: 'INFO' },
+        { id: 'tl_boot_6', timestamp: new Date().toISOString(), event: 'ADMIN_BOOTSTRAP_DISABLED', details: 'Bootstrap mode permanently locked down', severity: 'INFO' },
+      ],
+    };
+
+    this.devices.set(adminDevice.id, adminDevice);
+    this.devicePassports.set(adminDevice.id, adminDevice);
+
+    // 7. Update System Settings to SYSTEM_LOCKED
+    this.systemSettings = {
+      admin_initialized: true,
+      bootstrap_enabled: false,
+      system_state: 'SYSTEM_LOCKED',
+      organization: {
+        name: params.orgName.trim(),
+        org_id: orgId,
+        org_type: params.orgType || 'Company',
+        country: params.country || 'India',
+        timezone: params.timezone || 'Asia/Kolkata',
+        created_at: new Date().toISOString(),
+      },
+      root_admin_id: adminUser.id,
+      admin_locked: false,
+      failed_admin_logins: 0,
+      last_admin_login: {
+        timestamp: new Date().toISOString(),
+        region: params.country || 'Punjab, India',
+        device_name: adminDevice.device_name,
+        auth_method: 'WEBAUTHN',
+      },
+      last_security_change: new Date().toISOString(),
+    };
+
+    // 8. Record the full 6-event bootstrap audit chain
+    this.recordAuditEvent({
+      eventType: 'SYSTEM_INITIALIZATION_STARTED',
+      description: `SecureMAX bootstrap started for organization: ${params.orgName} (ID: ${orgId})`,
+      performedBy: 'DEPLOYMENT_BOOTSTRAP',
+      severity: 'INFO',
+    });
+    this.recordAuditEvent({
+      eventType: 'ROOT_ADMIN_CREATED',
+      description: `Root administrator created: ${adminUser.name} (${adminUser.id})`,
+      performedBy: adminUser.name,
+      targetId: adminUser.id,
+      severity: 'INFO',
+    });
+    this.recordAuditEvent({
+      eventType: 'ADMIN_DEVICE_REGISTERED',
+      description: `Singleton Admin device bound: ${adminDevice.device_name} (ID: ${adminDevice.id})`,
+      performedBy: adminUser.name,
+      targetId: adminDevice.id,
+      severity: 'INFO',
+    });
+    this.recordAuditEvent({
+      eventType: 'ADMIN_CREDENTIAL_REGISTERED',
+      description: `WebAuthn / Passkey credential registered for ${adminUser.name}`,
+      performedBy: adminUser.name,
+      targetId: adminDevice.credential_id,
+      severity: 'INFO',
+    });
+    this.recordAuditEvent({
+      eventType: 'SYSTEM_INITIALIZATION_COMPLETED',
+      description: `SecureMAX system fully initialized and locked`,
+      performedBy: adminUser.name,
+      severity: 'INFO',
+    });
+    this.recordAuditEvent({
+      eventType: 'ADMIN_BOOTSTRAP_DISABLED',
+      description: `Admin bootstrap permanently disabled. System state: SYSTEM_LOCKED`,
+      performedBy: 'SYSTEM_SECURITY_POLICY',
+      severity: 'WARNING',
+    });
+
+    return {
+      rootAdmin: adminUser,
+      adminDevice,
+      recoveryPackage: {
+        recoveryId,
+        recoveryCode,
+        generatedAt: new Date().toISOString(),
+      },
+    };
+  }
+
+  public emergencyRecovery(params: {
+    adminId: string;
+    recoveryCode: string;
+    bootstrapSecret?: string;
+    newDeviceName: string;
+    newPublicKey: string;
+    newDeviceType?: string;
+    os?: string;
+    browser?: string;
+  }): {
+    success: boolean;
+    newDevice: DevicePassport;
+    newRecoveryPackage: {
+      recoveryId: string;
+      recoveryCode: string;
+      generatedAt: string;
+    };
+  } {
+    if (!this.recoveryVault) {
+      throw new Error('Recovery vault is not configured.');
+    }
+
+    // 1. Verify Recovery Code Hash (Factor A)
+    const cleanCode = params.recoveryCode.trim();
+    const providedHash = crypto.createHash('sha256').update(cleanCode).digest('hex');
+    if (providedHash !== this.recoveryVault.recoveryCodeHash) {
+      throw new Error('Invalid emergency recovery code. Verification failed.');
+    }
+
+    // 2. Verify Deployment Secret (Factor B) if configured
+    const envSecret = process.env.ADMIN_BOOTSTRAP_SECRET;
+    if (envSecret && params.bootstrapSecret !== envSecret) {
+      throw new Error('Invalid deployment recovery secret (Factor B failed).');
+    }
+
+    // 3. Resolve Admin
+    const admin = this.getUserByEmailOrId(params.adminId);
+    if (!admin || admin.role !== UserRole.ADMIN) {
+      throw new Error('Administrator identity not found for recovery.');
+    }
+
+    // 4. Revoke previous admin devices & terminate all sessions
+    const oldDevices = this.getDevicesForUser(admin.id);
+    for (const oldDev of oldDevices) {
+      oldDev.status = 'REVOKED';
+      oldDev.revoked_at = new Date().toISOString();
+      const passport = this.devicePassports.get(oldDev.id);
+      if (passport) {
+        passport.status = 'REVOKED';
+        passport.risk_state = 'REVOKED';
+        passport.revoked_at = oldDev.revoked_at;
+        this.recordDeviceTimelineEvent(
+          oldDev.id,
+          'DEVICE_REVOKED_RECOVERY',
+          'Device revoked during emergency administrator recovery ceremony',
+          'CRITICAL'
+        );
+      }
+    }
+    this.revokeAllSessionsForUser(admin.id, 'EMERGENCY_RECOVERY');
+
+    // 5. Unlock Admin
+    this.systemSettings.admin_locked = false;
+    this.systemSettings.failed_admin_logins = 0;
+    this.systemSettings.last_security_change = new Date().toISOString();
+
+    // 6. Bind New Singleton Admin Device
+    const newDeviceId = 'DEV-ADMIN-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+    const newDevice: DevicePassport = {
+      id: newDeviceId,
+      device_id: newDeviceId,
+      user_id: admin.id,
+      user_name: admin.name,
+      user_email: admin.email,
+      position: 'Root Administrator',
+      device_name: params.newDeviceName || 'SecureMAX Replacement Admin Laptop',
+      device_type: params.newDeviceType || 'laptop',
+      os: params.os || 'macOS',
+      browser: params.browser || 'Chrome',
+      browser_version: '128.0',
+      model: 'SecureMAX Replacement Terminal',
+      credential_id: 'cred_admin_' + crypto.randomBytes(4).toString('hex'),
+      credential_type: 'WebAuthn',
+      registered_at: new Date().toISOString(),
+      last_authenticated_at: new Date().toISOString(),
+      last_active_at: new Date().toISOString(),
+      risk_state: 'TRUSTED',
+      registration_region: 'Punjab, India',
+      public_key: params.newPublicKey,
+      algorithm: 'ECDSA_P256',
+      status: 'ACTIVE',
+      is_admin_device: true,
+      created_at: new Date().toISOString(),
+      last_used_at: new Date().toISOString(),
+      timeline: [
+        { id: 'tl_rec_1', timestamp: new Date().toISOString(), event: 'EMERGENCY_RECOVERY_CEREMONY', details: 'Admin recovered account via 2-factor offline recovery package', severity: 'CRITICAL' },
+        { id: 'tl_rec_2', timestamp: new Date().toISOString(), event: 'ADMIN_DEVICE_REGISTERED', details: `New replacement singleton device enrolled: ${params.newDeviceName}`, severity: 'INFO' },
+        { id: 'tl_rec_3', timestamp: new Date().toISOString(), event: 'PASSKEY_ENROLLED', details: 'New WebAuthn / Passkey credential anchored', severity: 'INFO' },
+      ],
+    };
+
+    this.devices.set(newDevice.id, newDevice);
+    this.devicePassports.set(newDevice.id, newDevice);
+
+    // 7. Generate fresh one-time recovery package
+    const newRecoveryId = 'REC-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const newRecoveryCode = [
+      crypto.randomBytes(2).toString('hex').toUpperCase(),
+      crypto.randomBytes(2).toString('hex').toUpperCase(),
+      crypto.randomBytes(2).toString('hex').toUpperCase(),
+      crypto.randomBytes(2).toString('hex').toUpperCase(),
+    ].join('-');
+    const newRecoveryCodeHash = crypto.createHash('sha256').update(newRecoveryCode).digest('hex');
+
+    this.recoveryVault = {
+      recoveryId: newRecoveryId,
+      recoveryCodeHash: newRecoveryCodeHash,
+      createdAt: new Date().toISOString(),
+      used: false,
+    };
+
+    // 8. Record audit event
+    this.recordAuditEvent({
+      eventType: 'ADMIN_EMERGENCY_RECOVERY_EXECUTED',
+      description: `CRITICAL: Administrator emergency recovery ceremony executed for ${admin.name}. Previous device revoked, new device ${newDevice.device_name} bound.`,
+      targetId: newDeviceId,
+      performedBy: admin.name,
+      severity: 'CRITICAL',
+      before: { status: 'LOCKED' },
+      after: { status: 'RECOVERED', device_id: newDeviceId },
+    });
+
+    return {
+      success: true,
+      newDevice,
+      newRecoveryPackage: {
+        recoveryId: newRecoveryId,
+        recoveryCode: newRecoveryCode,
+        generatedAt: new Date().toISOString(),
+      },
+    };
+  }
+
+  public lockAdministrator(adminId: string, callerUserId?: string): void {
+    const admin = this.getUserById(adminId) || this.getUserByEmail(adminId);
+    if (!admin || admin.role !== UserRole.ADMIN) {
+      throw new Error('Administrator account not found');
+    }
+    this.systemSettings.admin_locked = true;
+    this.systemSettings.last_security_change = new Date().toISOString();
+
+    // Revoke all sessions for admin
+    this.revokeAllSessionsForUser(admin.id, callerUserId || 'PANIC_LOCK');
+
+    // Suspend admin device(s)
+    const adminDevices = this.getDevicesForUser(admin.id);
+    for (const dev of adminDevices) {
+      dev.status = 'SUSPENDED';
+      const passport = this.devicePassports.get(dev.id);
+      if (passport) {
+        passport.status = 'SUSPENDED';
+        passport.risk_state = 'RESTRICTED';
+      }
+      this.recordDeviceTimelineEvent(
+        dev.id,
+        'DEVICE_LOCKED_PANIC',
+        'Administrator triggered panic lock. Device suspended.',
+        'CRITICAL'
+      );
+    }
+
+    this.recordAuditEvent({
+      eventType: 'ADMIN_PANIC_LOCK_ACTIVATED',
+      description: `CRITICAL: Administrator account ${admin.name} (${admin.id}) has been panic locked. All sessions revoked and device suspended. Emergency recovery ceremony required.`,
+      targetId: admin.id,
+      performedBy: callerUserId || admin.name,
+      severity: 'CRITICAL',
+    });
+  }
+
+  public recordAdminLogin(params: {
+    adminId: string;
+    deviceId: string;
+    success: boolean;
+    reason?: string;
+    region?: string;
+  }): void {
+    const timestamp = new Date().toISOString();
+    const admin = this.getUserById(params.adminId) || this.getUserByEmail(params.adminId);
+    const actorId = admin ? admin.id : params.adminId;
+    const dev = this.getDeviceById(params.deviceId);
+
+    if (params.success) {
+      this.systemSettings.failed_admin_logins = 0;
+      this.systemSettings.last_admin_login = {
+        timestamp,
+        region: params.region || 'Punjab, India',
+        device_name: dev?.device_name || 'SecureMAX Admin Laptop',
+        auth_method: 'WEBAUTHN',
+      };
+
+      const passport = this.devicePassports.get(params.deviceId);
+      if (params.region && passport && passport.registration_region && params.region !== passport.registration_region) {
+        this.recordAuditEvent({
+          eventType: 'SECURITY_ALERT_UNEXPECTED_LOCATION',
+          description: `WARNING: Admin login from unexpected location: ${params.region} (Registered in: ${passport.registration_region})`,
+          targetId: params.deviceId,
+          performedBy: admin?.name || actorId,
+          severity: 'WARNING',
+        });
+      }
+
+      if (passport) {
+        passport.last_authenticated_at = timestamp;
+        passport.last_active_at = timestamp;
+        this.recordDeviceTimelineEvent(
+          params.deviceId,
+          'ADMIN_LOGIN',
+          `Admin logged in successfully via WebAuthn (${params.region || 'Registered Region'})`,
+          'INFO'
+        );
+      }
+
+      this.recordAuditEvent({
+        eventType: 'ADMIN_LOGIN_SUCCESS',
+        description: `Root Admin login successful via WebAuthn device verification (${dev?.device_name || params.deviceId})`,
+        targetId: params.deviceId,
+        performedBy: admin?.name || actorId,
+        severity: 'INFO',
+        before: null,
+        after: {
+          actor_id: actorId,
+          device_id: params.deviceId,
+          authentication: 'WEBAUTHN',
+          authentication_level: 'HIGH',
+          result: 'ALLOWED',
+          region: params.region || 'Punjab, India',
+        },
+      });
+    } else {
+      this.systemSettings.failed_admin_logins += 1;
+      this.recordAuditEvent({
+        eventType: 'ADMIN_LOGIN_FAILURE',
+        description: `ACCESS DENIED: Failed root admin login attempt: ${params.reason || 'Invalid credential'}`,
+        targetId: params.deviceId || actorId,
+        performedBy: actorId,
+        severity: 'CRITICAL',
+        before: null,
+        after: {
+          actor_id: actorId,
+          device_id: params.deviceId,
+          reason_code: params.reason || 'INVALID_DEVICE_CREDENTIAL',
+          result: 'DENIED',
+        },
+      });
+    }
+  }
+
   // --- DEVICE MANAGEMENT ---
   public getDevicesForUser(userId: string): UserDevice[] {
     const list: UserDevice[] = [];
@@ -1055,12 +1615,11 @@ class SecureMaxStore {
     const user = this.getUserById(params.userId);
     if (!user) throw new Error('User not found');
 
-    // Admin device restriction rule
-    if (user.role === UserRole.ADMIN && !params.isAdminDevice) {
-      // Check if admin already has a device
-      const existing = this.getDevicesForUser(user.id);
-      if (existing.length > 0) {
-        throw new Error('Admin account is strictly device-bound to the authorized terminal. Additional devices cannot be enrolled.');
+    // Admin device restriction: maximum 1 ACTIVE admin device singleton
+    if (user.role === UserRole.ADMIN) {
+      const activeAdminDevices = this.getDevicesForUser(user.id).filter(d => d.status === 'ACTIVE');
+      if (activeAdminDevices.length > 0) {
+        throw new Error('Administrator accounts are restricted to one active trusted device.');
       }
     }
 
@@ -1078,6 +1637,31 @@ class SecureMaxStore {
     };
 
     this.devices.set(device.id, device);
+
+    // Keep device passport in sync
+    const passport: DevicePassport = {
+      ...device,
+      device_id: deviceId,
+      device_type: user.role === UserRole.ADMIN ? 'laptop' : 'workstation',
+      os: 'macOS',
+      browser: 'Chrome',
+      credential_id: 'cred_' + crypto.randomBytes(4).toString('hex'),
+      credential_type: 'WebAuthn',
+      registered_at: device.created_at,
+      last_authenticated_at: device.last_used_at,
+      risk_state: 'TRUSTED',
+      registration_region: 'Punjab, India',
+      timeline: [
+        {
+          id: 'tl_' + crypto.randomUUID().slice(0, 8),
+          timestamp: new Date().toISOString(),
+          event: 'DEVICE_REGISTERED',
+          details: `Device registered: ${params.deviceName}`,
+          severity: 'INFO',
+        },
+      ],
+    };
+    this.devicePassports.set(deviceId, passport);
 
     this.recordAuditEvent({
       eventType: 'HARDWARE_DEVICE_ENROLLED',
@@ -1223,6 +1807,29 @@ class SecureMaxStore {
     });
 
     return position;
+  }
+
+  public updatePosition(id: string, updates: Partial<StoredPosition>, callerUserId?: string): StoredPosition {
+    if (id === 'pos_root_admin' || id === 'pos_admin') {
+      throw new Error('ROOT_ADMIN is a protected system role and is immutable. Administrator permissions cannot be modified or removed.');
+    }
+    const pos = this.positions.get(id);
+    if (!pos) throw new Error('Position not found');
+    const updated = { ...pos, ...updates, id };
+    this.positions.set(id, updated);
+    return updated;
+  }
+
+  public deletePosition(id: string, callerUserId?: string): void {
+    if (id === 'pos_root_admin' || id === 'pos_admin') {
+      throw new Error('ROOT_ADMIN is a protected system role and cannot be deleted.');
+    }
+    const pos = this.positions.get(id);
+    if (!pos) throw new Error('Position not found');
+    if (pos.is_predefined) {
+      throw new Error('Predefined system positions cannot be deleted.');
+    }
+    this.positions.delete(id);
   }
 
   // --- DEVICE ENROLLMENT (15-MINUTE CAPABILITIES & SHA-256 CODES) ---
