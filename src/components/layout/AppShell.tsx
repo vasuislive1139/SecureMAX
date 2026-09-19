@@ -25,7 +25,7 @@ const navItems: TopNavItem[] = [
   
   // Shared / User / Auditor tabs
   { name: 'MY DATA', href: '/assets', roles: [UserRole.ADMIN, UserRole.USER, UserRole.MANAGER, UserRole.ENGINEER] },
-  { name: 'DEVICES', href: '/devices', roles: [UserRole.ADMIN, UserRole.USER] },
+  { name: 'DEVICES', href: '/devices', roles: [UserRole.ADMIN] },
   { name: 'AUDIT', href: '/audit', roles: [UserRole.ADMIN, UserRole.AUDITOR] },
 ];
 

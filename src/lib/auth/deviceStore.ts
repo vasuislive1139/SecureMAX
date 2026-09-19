@@ -203,7 +203,7 @@ class SecureMaxStore {
     });
 
     // 5. ASSET ASSIGNMENTS
-    // Vasu has READ + DECRYPT on Project Alpha
+    // Vasu has READ + DECRYPT on Project Alpha and Financial Report
     this.assignments.push({
       asset_id: 'ast_alpha',
       user_id: standardUser.id,
@@ -213,12 +213,21 @@ class SecureMaxStore {
       assigned_at: new Date().toISOString(),
     });
 
-    // Vasu has READ-ONLY (no decrypt) on Financial Report
     this.assignments.push({
       asset_id: 'ast_finance',
       user_id: standardUser.id,
       can_read: true,
-      can_decrypt: false, // Disallowed decrypt
+      can_decrypt: true,
+      status: 'ACTIVE',
+      assigned_at: new Date().toISOString(),
+    });
+
+    // Vasu has READ-ONLY on Avionics Radar (demonstrates Admin NFT Permit workflow to judges)
+    this.assignments.push({
+      asset_id: 'ast_avionics',
+      user_id: standardUser.id,
+      can_read: true,
+      can_decrypt: false,
       status: 'ACTIVE',
       assigned_at: new Date().toISOString(),
     });
