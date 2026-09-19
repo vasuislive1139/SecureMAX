@@ -467,7 +467,9 @@ class SecureMaxStore {
         this.recoveryVault = parsed.recoveryVault;
       }
 
-      if (parsed.adminWallet) {
+      if (process.env.ADMIN_WALLET) {
+        this.adminWallet = process.env.ADMIN_WALLET.toLowerCase();
+      } else if (parsed.adminWallet) {
         this.adminWallet = parsed.adminWallet.toLowerCase();
       }
 
@@ -2390,6 +2392,7 @@ class SecureMaxStore {
   }
 
   public getAdminWallet(): string {
+    if (process.env.ADMIN_WALLET) return process.env.ADMIN_WALLET.toLowerCase();
     if (this.systemSettings.admin_wallet) return this.systemSettings.admin_wallet.toLowerCase();
     const adminUser = this.getUserById(this.systemSettings.root_admin_id || 'usr_admin_001') || this.getUserByEmail('admin@securemax.mil');
     if (adminUser && adminUser.admin_wallet) return adminUser.admin_wallet.toLowerCase();
