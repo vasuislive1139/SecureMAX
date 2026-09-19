@@ -7,6 +7,7 @@ import { LogOut, Hexagon, Smartphone } from 'lucide-react';
 import { UserRole } from '@/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useDisconnect } from 'wagmi';
 
 interface TopNavItem {
   name: string;
@@ -56,8 +57,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const activeRole = role || UserRole.USER;
   const filteredNav = navItems.filter((item) => item.roles.includes(activeRole));
 
+  const { disconnect } = useDisconnect();
+
   const handleDisconnect = async () => {
     try {
+      disconnect();
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {}
     window.location.href = '/login';
