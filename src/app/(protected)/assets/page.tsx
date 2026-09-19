@@ -38,6 +38,7 @@ interface AssetRecord {
 export default function AssetsPage() {
   const [assets, setAssets] = React.useState<AssetRecord[]>([]);
   const [userRole, setUserRole] = React.useState<string>('USER');
+  const [userName, setUserName] = React.useState<string>('USER');
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [requestedAssetIds, setRequestedAssetIds] = React.useState<string[]>(['ast_avionics']);
@@ -57,6 +58,7 @@ export default function AssetsPage() {
       if (data.success) {
         setAssets(data.assets || []);
         setUserRole(data.role || 'USER');
+        if (data.userName) setUserName(data.userName);
       }
     } catch (err) {
       console.error('Failed to load assets:', err);
@@ -74,10 +76,6 @@ export default function AssetsPage() {
     setDecryptLoading(true);
     setDecryptResult(null);
     setDecryptError(null);
-
-    setTimeout(() => {
-      document.getElementById('decryption-inspector')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 60);
 
     try {
       const res = await fetch('/api/assets/decrypt', {
@@ -166,8 +164,8 @@ export default function AssetsPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 font-mono text-xs px-3 py-1">
-            {isAdmin ? 'ADMINISTRATIVE OVERVIEW' : 'USER COMPARTMENT: VASU'}
+          <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 font-mono text-xs px-3 py-1 uppercase">
+            {isAdmin ? 'ADMINISTRATIVE OVERVIEW' : `USER COMPARTMENT: ${userName}`}
           </Badge>
         </div>
       </div>
@@ -328,7 +326,7 @@ export default function AssetsPage() {
       {/* DECRYPTION INSPECTOR & KMS DECRYPT MODAL / RESULT     */}
       {/* ---------------------------------------------------- */}
       {decryptingAssetId && (
-        <Card id="decryption-inspector" className="border-cyan-500/40 bg-[#0a0a0c] shadow-2xl animate-in fade-in slide-in-from-bottom-4 scroll-mt-6">
+        <Card className="border-cyan-500/40 bg-[#0a0a0c] shadow-2xl animate-in fade-in slide-in-from-bottom-4">
           <CardHeader className="pb-3 border-b border-zinc-800 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base text-zinc-100 flex items-center gap-2">

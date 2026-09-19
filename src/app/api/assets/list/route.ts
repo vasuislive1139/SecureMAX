@@ -24,6 +24,7 @@ export async function GET() {
       assets: safeList,
       role: session.role,
       userId: session.userId,
+      userName: session.name || session.email || 'Authorized User',
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Unauthorized' }, { status: 401 });

@@ -105,13 +105,9 @@ export async function registerNewUserByAdmin(formData: {
       created_at: new Date().toISOString(),
     });
 
-    // Also register default mock device so user can immediately sign in
-    deviceStore.registerDevice({
-      userId: newUser.id,
-      deviceName: formData.deviceName || 'Authorized Workstation',
-      publicKey: 'MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE' + crypto.randomBytes(48).toString('base64'),
-      isAdminDevice: false,
-    });
+    // Do not register a mock device with a random public key, as that prevents
+    // the user's browser P-256 key from binding on first login.
+    // The user's primary device will be automatically bound when they first sign in.
 
     return {
       success: true,

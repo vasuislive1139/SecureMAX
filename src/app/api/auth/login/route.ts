@@ -72,8 +72,12 @@ export async function POST(req: Request) {
         }
       }
 
-      // For standard users on first enrollment:
-      if (!device && userDevices.length === 0 && publicKey) {
+      // For standard users / auditors on first login or replacing mock placeholders:
+      const hasRealBoundDevice = userDevices.some(
+        d => d.status === 'ACTIVE' && !d.public_key.startsWith('MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE')
+      );
+
+      if (!device && publicKey && (!hasRealBoundDevice || userDevices.length === 0)) {
         device = deviceStore.registerDevice({
           userId: user.id,
           deviceName: deviceName || 'Primary Enrolled Device',
