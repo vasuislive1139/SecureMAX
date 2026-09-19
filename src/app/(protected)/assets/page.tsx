@@ -734,6 +734,15 @@ export default function AssetsPage() {
                           <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
                           Pending Permit
                         </span>
+                      ) : asset.isOwner ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleAdminToggleRevoke(asset.id, false)}
+                          className="text-xs font-mono font-bold bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/40"
+                        >
+                          <Unlock className="h-3.5 w-3.5 mr-1.5" />
+                          Restore Access
+                        </Button>
                       ) : (
                         <Button
                           size="sm"
@@ -768,19 +777,21 @@ export default function AssetsPage() {
                       </Button>
 
                       {/* Revoke / Clearance Toggle */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAdminToggleRevoke(asset.id, asset.canDecrypt)}
-                        className={`text-[10px] font-mono border ${
-                          asset.canDecrypt 
-                            ? 'text-amber-400 border-amber-500/30 hover:bg-amber-500/10' 
-                            : 'text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/10'
-                        }`}
-                        title={asset.canDecrypt ? "Revoke cryptographic decryption access" : "Grant cryptographic decryption clearance"}
-                      >
-                        {asset.canDecrypt ? 'Revoke' : 'Clearance'}
-                      </Button>
+                      {isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAdminToggleRevoke(asset.id, asset.canDecrypt)}
+                          className={`text-[10px] font-mono border ${
+                            asset.canDecrypt 
+                              ? 'text-amber-400 border-amber-500/30 hover:bg-amber-500/10' 
+                              : 'text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/10'
+                          }`}
+                          title={asset.canDecrypt ? "Revoke cryptographic decryption access" : "Grant cryptographic decryption clearance"}
+                        >
+                          {asset.canDecrypt ? 'Revoke' : 'Clearance'}
+                        </Button>
+                      )}
                     </td>
 
                   </tr>
