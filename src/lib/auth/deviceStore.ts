@@ -657,14 +657,14 @@ class SecureMaxStore {
       },
       is_predefined: false,
       created_at: '2026-09-02T00:00:00.000Z',
-      created_by: 'Vasu (Administrator)',
+      created_by: 'Aarav Mehta',
     };
     this.positions.set(customPos.id, customPos);
 
     // Root Administrator Only
     const adminUser: StoredUser = {
       id: 'usr_admin_001',
-      name: 'Vasu (Administrator)',
+      name: 'Aarav Mehta',
       email: 'admin@securemax.mil',
       role: UserRole.ADMIN,
       position: 'Root Administrator',
@@ -934,10 +934,10 @@ class SecureMaxStore {
     this.devices.set(userDeviceLaptop.id, userDeviceLaptop);
     this.devicePassports.set(userDeviceLaptop.id, userDeviceLaptop);
 
-    // 3. AUDITOR (Compliance Auditor)
+    // 3. AUDITOR (Neha Kapoor)
     const auditorUser: StoredUser = {
       id: 'usr_auditor_003',
-      name: 'Compliance Auditor',
+      name: 'Neha Kapoor',
       email: 'auditor@securemax.mil',
       role: UserRole.AUDITOR,
       position: 'Auditor',
