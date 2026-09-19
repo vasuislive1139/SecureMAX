@@ -324,7 +324,7 @@ class SecureMaxStore {
   }
 
   public saveToDisk(): void {
-    if (process.env.NODE_ENV === 'test' || process.env.VITEST) return;
+    if ((process.env.NODE_ENV === 'test' || process.env.VITEST) && !process.env.SECUREMAX_STORE_PATH) return;
     try {
       const filePath = this.getDbFilePath();
       const dir = path.dirname(filePath);
@@ -351,6 +351,7 @@ class SecureMaxStore {
         systemSettings: this.systemSettings,
         recoveryVault: this.recoveryVault,
         adminWallet: this.adminWallet,
+        sessions: Array.from(this.sessions.values()),
         challenges: Array.from(this.challenges.values()).filter(c => !c.consumed && new Date(c.expiresAt).getTime() > Date.now()),
         updatedAt: new Date().toISOString(),
       };
@@ -387,6 +388,13 @@ class SecureMaxStore {
         this.devices.clear();
         for (const d of parsed.devices) {
           this.devices.set(d.id, d);
+        }
+      }
+
+      if (Array.isArray(parsed.sessions)) {
+        this.sessions.clear();
+        for (const s of parsed.sessions) {
+          this.sessions.set(s.session_id, s);
         }
       }
 
@@ -1741,6 +1749,53 @@ class SecureMaxStore {
     return null;
   }
 
+  public registerUser(params: {
+    name: string;
+    email: string;
+    role?: UserRole;
+    positionId?: string;
+    positionName?: string;
+  }): { user: StoredUser; enrollmentCode: string } {
+    const cleanEmail = params.email.toLowerCase().trim();
+    const existing = this.getUserByEmail(cleanEmail);
+    if (existing) {
+      throw new Error(`User already registered with email ${cleanEmail}`);
+    }
+    const userId = 'usr_' + crypto.randomUUID().slice(0, 8);
+    const did = `did:securemax:user:${userId.slice(-6)}`;
+    const user: StoredUser = {
+      id: userId,
+      name: params.name.trim(),
+      email: cleanEmail,
+      role: params.role || UserRole.USER,
+      position_id: params.positionId || 'pos_user',
+      position: params.positionName || 'User',
+      kyc_status: 'PENDING',
+      status: UserStatus.ACTIVE,
+      did,
+      created_at: new Date().toISOString(),
+    };
+    this.users.set(user.id, user);
+    this.users.set(user.email, user);
+
+    const { plaintextCode } = this.createEnrollmentCapability({
+      userId: user.id,
+      positionId: user.position_id,
+      durationMinutes: 15,
+      maxDevices: 1,
+    });
+
+    storeEvents.emit('change', {
+      type: 'USER_REGISTERED',
+      data: user,
+      timestamp: Date.now(),
+    });
+
+    this.saveToDisk();
+
+    return { user, enrollmentCode: 'SMX-' + plaintextCode };
+  }
+
   // --- ROOT ADMIN BOOTSTRAP, RECOVERY & PANIC ---
   public bootstrapRootAdmin(params: RootAdminBootstrapParams): {
     rootAdmin: StoredUser;
@@ -1931,6 +1986,12 @@ class SecureMaxStore {
 
     // Commit state immediately to disk
     this.saveToDisk();
+
+    storeEvents.emit('change', {
+      type: 'BOOTSTRAP',
+      data: { rootAdmin: adminUser, adminDevice },
+      timestamp: Date.now(),
+    });
 
     return {
       rootAdmin: adminUser,
@@ -2199,6 +2260,20 @@ class SecureMaxStore {
         },
       });
     }
+
+    storeEvents.emit('change', {
+      type: 'ADMIN_LOGIN',
+      data: {
+        adminId: params.adminId,
+        deviceId: params.deviceId,
+        success: params.success,
+        reason: params.reason,
+        region: params.region,
+        timestamp,
+      },
+      timestamp: Date.now(),
+    });
+    this.saveToDisk();
   }
 
   // --- CRYPTOGRAPHIC CHALLENGE MANAGEMENT ---
@@ -2621,7 +2696,7 @@ class SecureMaxStore {
     const plaintextCode = `${codeStr.slice(0, 4)}-${codeStr.slice(4, 8)}-${codeStr.slice(8, 12)}`;
     
     // Hash code with SHA-256 before storing
-    const cleanRaw = codeStr;
+    const cleanRaw = plaintextCode.toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
     const codeHash = crypto.createHash('sha256').update(cleanRaw).digest('hex');
 
     const durationMinutes = params.durationMinutes || 15;
@@ -2677,6 +2752,13 @@ class SecureMaxStore {
     });
 
     this.saveToDisk();
+
+    storeEvents.emit('change', {
+      type: 'ENROLLMENT_CAPABILITY_CREATED',
+      data: capability,
+      timestamp: Date.now(),
+    });
+
     return { enrollment: capability, plaintextCode };
 
   }
@@ -2692,7 +2774,7 @@ class SecureMaxStore {
       return { valid: false, error: 'Enrollment code is required' };
     }
 
-    const cleanCode = code.toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
+    const cleanCode = code.toUpperCase().replace(/^SMX-?/, '').replace(/[^A-Z0-9]/g, '').trim();
     const hash = crypto.createHash('sha256').update(cleanCode).digest('hex');
 
     let capability = this.enrollmentCapabilities.get(hash);
@@ -2899,6 +2981,12 @@ class SecureMaxStore {
     });
 
     this.saveToDisk();
+
+    storeEvents.emit('change', {
+      type: 'DEVICE_ENROLLED',
+      data: passport,
+      timestamp: Date.now(),
+    });
 
     return { passport, user };
   }
@@ -3342,6 +3430,12 @@ class SecureMaxStore {
       );
     }
 
+    storeEvents.emit('change', {
+      type: 'SESSION_CREATED',
+      data: session,
+      timestamp: Date.now(),
+    });
+
     return session;
   }
 
@@ -3376,6 +3470,11 @@ class SecureMaxStore {
       performedBy: callerUserId,
       severity: 'INFO',
     });
+    storeEvents.emit('change', {
+      type: 'SESSION_REVOKED',
+      data: { sessionId },
+      timestamp: Date.now(),
+    });
     this.saveToDisk();
     return true;
   }
@@ -3393,6 +3492,13 @@ class SecureMaxStore {
       performedBy: callerUserId,
       severity: 'INFO',
     });
+
+    storeEvents.emit('change', {
+      type: 'SESSION_REVOKED',
+      data: { sessionId },
+      timestamp: Date.now(),
+    });
+    this.saveToDisk();
   }
 
   public revokeAllSessionsForUser(userId: string, callerUserId?: string): void {
@@ -4382,6 +4488,12 @@ class SecureMaxStore {
 
     this.saveToDisk();
 
+    storeEvents.emit('change', {
+      type: 'ACCESS_REQUEST_SUBMITTED',
+      data: accessReq,
+      timestamp: Date.now(),
+    });
+
     return accessReq;
   }
 
@@ -4436,6 +4548,13 @@ class SecureMaxStore {
     });
 
     this.saveToDisk();
+
+    storeEvents.emit('change', {
+      type: 'ACCESS_REQUEST_APPROVED',
+      data: req,
+      timestamp: Date.now(),
+    });
+
     return req;
   }
 
@@ -4466,6 +4585,12 @@ class SecureMaxStore {
     });
 
     this.saveToDisk();
+
+    storeEvents.emit('change', {
+      type: 'ACCESS_REQUEST_REJECTED',
+      data: req,
+      timestamp: Date.now(),
+    });
 
     return req;
   }

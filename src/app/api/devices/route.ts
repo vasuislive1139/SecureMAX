@@ -8,28 +8,6 @@ export async function GET() {
     const session = await getVerifiedSession();
     const isAdmin = session.role === UserRole.ADMIN;
 
-    if (isAdmin && !deviceStore.getUserById(session.userId)) {
-      const adminUser = {
-        id: session.userId,
-        name: session.name || 'Administrator',
-        email: session.email || 'admin@securemax.mil',
-        role: UserRole.ADMIN,
-        position: 'Root Administrator',
-        position_id: 'pos_root_admin',
-        kyc_status: 'VERIFIED' as const,
-        status: UserStatus.ACTIVE,
-        did: session.did || `did:securemax:admin:${session.userId.toLowerCase()}`,
-        created_at: new Date().toISOString(),
-      };
-      deviceStore.users.set(adminUser.id, adminUser);
-      deviceStore.users.set(adminUser.email, adminUser);
-      deviceStore.systemSettings.admin_initialized = true;
-      deviceStore.systemSettings.bootstrap_enabled = false;
-      deviceStore.systemSettings.system_state = 'SYSTEM_LOCKED';
-      deviceStore.systemSettings.root_admin_id = adminUser.id;
-      deviceStore.saveToDisk();
-    }
-
     const passports = isAdmin
       ? deviceStore.getAllDevicePassports()
       : deviceStore.getDevicesForUser(session.userId).map(d => deviceStore.getDevicePassport(d.id) || (d as any));

@@ -27,14 +27,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User already registered with this email address' }, { status: 409 });
     }
 
-    // DISALLOW PUBLIC SELF-ASSIGNMENT OF ADMIN ROLE
-    // Administrator identity can only be established via Root Admin Bootstrap ceremony
-    let userRole = UserRole.USER;
-    if (requestedRole === 'AUDITOR') {
-      userRole = UserRole.AUDITOR;
-    } else if (requestedRole === 'MANAGER') {
-      userRole = UserRole.MANAGER;
-    }
+    // DISALLOW PUBLIC SELF-ASSIGNMENT OF PRIVILEGED ROLES (ADMIN, MANAGER, AUDITOR)
+    // All public registrations strictly default to USER with PENDING KYC.
+    // Privileged roles can only be granted by an administrator after KYC approval.
+    const userRole = UserRole.USER;
 
     const userId = 'usr_' + crypto.randomUUID().slice(0, 8);
     const did = `did:securemax:user:${userId.slice(-6)}`;
