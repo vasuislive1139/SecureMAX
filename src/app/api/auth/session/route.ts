@@ -1,11 +1,25 @@
 import { NextResponse } from 'next/server';
 import { getVerifiedSession } from '@/lib/auth/session';
+import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function GET() {
   try {
     const session = await getVerifiedSession();
-    return NextResponse.json({ session });
+    const user = session?.userId ? deviceStore.getUserById(session.userId) : null;
+    return NextResponse.json({ 
+      session,
+      user: user ? {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        position: user.position || user.role,
+        did: user.did,
+        admin_wallet: user.admin_wallet,
+        status: user.status,
+      } : null
+    });
   } catch (error) {
-    return NextResponse.json({ session: null });
+    return NextResponse.json({ session: null, user: null });
   }
 }
