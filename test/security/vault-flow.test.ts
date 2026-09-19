@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
@@ -6,6 +6,10 @@ import { deviceStore } from '../../src/lib/auth/deviceStore';
 import { authorizeAssetAccess, executeDecryption } from '../../src/lib/api/access-flow';
 
 describe('Secure Data Vault Core Features & Lifecycle Flow', () => {
+  beforeAll(() => {
+    deviceStore.seedTestDataForTesting();
+  });
+
   const adminId = 'usr_admin_001';
   const vasuId = 'usr_vasu_002';
   const auditorId = 'usr_auditor_003';

@@ -113,18 +113,22 @@ class SecureMaxStore {
   public enrollments: Map<string, DeviceEnrollment> = new Map();
   public assets: Map<string, StoredAsset> = new Map();
   public assignments: StoredAssignment[] = [];
+  public accessRequests: StoredAccessRequest[] = [];
+  public auditEvents: StoredAuditEvent[] = [];
   public wrappedDEKs: Map<string, { cipher: string; iv: string; authTag: string }> = new Map();
   public challengeCache: Map<string, { challengeId: string; identifier: string; nonce: string; message: string; expiresAt: string }> = new Map();
 
   constructor() {
-    this.seedInitialData();
+    // Zero demo data: all users, devices, assets, and audit logs are entered manually at runtime.
+    // For automated test suites, use seedTestDataForTesting().
   }
 
   public getWrappedDEK(assetId: string) {
     return this.wrappedDEKs.get(assetId);
   }
 
-  private seedInitialData() {
+  public seedTestDataForTesting(): void {
+    if (this.users.has('usr_admin_001')) return;
     // 1. ADMIN (Vasu Admin Laptop - Strictly Device Bound)
     const adminUser: StoredUser = {
       id: 'usr_admin_001',
@@ -1662,9 +1666,6 @@ class SecureMaxStore {
     asset.access_history.unshift(logEntry);
     asset.last_accessed_at = logEntry.timestamp;
   }
-
-  public accessRequests: StoredAccessRequest[] = [];
-  public auditEvents: StoredAuditEvent[] = [];
 
   // --- PERMANENT AUDIT TRAIL ---
   public recordAuditEvent(params: {

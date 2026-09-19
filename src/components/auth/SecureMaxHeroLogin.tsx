@@ -48,7 +48,7 @@ export default function SecureMaxHeroLogin() {
   // Self-Registration State
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
-  const [regRole, setRegRole] = useState<'USER' | 'AUDITOR'>('USER');
+  const [regRole, setRegRole] = useState<'USER' | 'ADMIN' | 'AUDITOR'>('USER');
   const [regDeviceName, setRegDeviceName] = useState('Primary Workstation');
 
   // Auth Status
@@ -64,20 +64,10 @@ export default function SecureMaxHeroLogin() {
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [enrollSuccess, setEnrollSuccess] = useState(false);
 
-  // Sync default email when switching role tab or clicking demo
+  // Update selected role on tab change without mock prefilled data
   const handleRoleChange = (role: LoginRole) => {
     setSelectedRole(role);
     setErrorMessage('');
-    if (role === 'ADMIN') {
-      setEmail('admin@securemax.mil');
-      setPassword('••••••••••••');
-    } else if (role === 'AUDITOR') {
-      setEmail('auditor@securemax.mil');
-      setPassword('••••••••••••');
-    } else {
-      setEmail('vasu@securemax.mil');
-      setPassword('••••••••••••');
-    }
   };
 
   // Initialize or discover client P-256 key on mount
@@ -707,24 +697,37 @@ export default function SecureMaxHeroLogin() {
                 </div>
 
                 {/* Role Selection */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   <button
                     type="button"
                     onClick={() => setRegRole('USER')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold tracking-wide border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-2 px-2 rounded-xl text-xs font-semibold tracking-wide border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       regRole === 'USER'
                         ? 'bg-cyan-950/80 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
                         : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
                     <User className="w-3.5 h-3.5 text-cyan-400" />
-                    Field Member
+                    User
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRegRole('ADMIN')}
+                    className={`py-2 px-2 rounded-xl text-xs font-semibold tracking-wide border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      regRole === 'ADMIN'
+                        ? 'bg-cyan-950/80 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
+                        : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    <Shield className="w-3.5 h-3.5 text-cyan-400" />
+                    Admin
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setRegRole('AUDITOR')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold tracking-wide border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-2 px-2 rounded-xl text-xs font-semibold tracking-wide border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       regRole === 'AUDITOR'
                         ? 'bg-cyan-950/80 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
                         : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'

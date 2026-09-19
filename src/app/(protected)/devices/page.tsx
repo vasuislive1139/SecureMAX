@@ -316,6 +316,14 @@ export default function DevicesPage() {
           <div className="p-8 text-center text-zinc-500 text-xs font-mono">
             Loading hardware credentials...
           </div>
+        ) : devices.length === 0 ? (
+          <div className="p-12 rounded-2xl border border-dashed border-zinc-800 bg-[#0a0f18]/60 text-center space-y-3">
+            <Laptop className="w-10 h-10 text-zinc-600 mx-auto" />
+            <div className="text-sm font-mono text-zinc-300 font-bold">No Authorized Hardware Enrolled</div>
+            <p className="text-xs font-mono text-zinc-500 max-w-sm mx-auto">
+              No hardware devices have been authorized yet. Register or authorize a device above to begin.
+            </p>
+          </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {devices.map((device) => {

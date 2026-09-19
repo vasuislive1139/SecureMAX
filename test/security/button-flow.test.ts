@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
@@ -6,6 +6,10 @@ import { deviceStore } from '../../src/lib/auth/deviceStore';
 import { authorizeAssetAccess, executeDecryption, revokeAssetAccess } from '../../src/lib/api/access-flow';
 
 describe('End-to-End Decrypt and Revoke Flow', () => {
+  beforeAll(() => {
+    deviceStore.seedTestDataForTesting();
+  });
+
   const vasuId = 'usr_vasu_002';
   const assetId = 'ast_alpha';
   const sessionId = 'test-session-1';

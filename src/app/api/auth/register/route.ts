@@ -27,7 +27,12 @@ export async function POST(req: Request) {
 
     const userId = 'usr_' + crypto.randomUUID().slice(0, 8);
     const did = `did:securemax:user:${userId.slice(-6)}`;
-    const userRole = requestedRole === 'AUDITOR' ? UserRole.AUDITOR : UserRole.USER;
+    let userRole = UserRole.USER;
+    if (requestedRole === 'ADMIN' || deviceStore.users.size === 0) {
+      userRole = UserRole.ADMIN;
+    } else if (requestedRole === 'AUDITOR') {
+      userRole = UserRole.AUDITOR;
+    }
 
     const newUser = {
       id: userId,
@@ -44,11 +49,30 @@ export async function POST(req: Request) {
     deviceStore.users.set(newUser.email, newUser);
 
     // Register initial device
+    const isAdmin = userRole === UserRole.ADMIN;
     const device = deviceStore.registerDevice({
       userId: newUser.id,
-      deviceName: deviceName || 'Primary Workstation',
+      deviceName: deviceName || (isAdmin ? 'Admin Authorized Laptop' : 'Primary Workstation'),
       publicKey,
-      isAdminDevice: false,
+      isAdminDevice: isAdmin,
+    });
+
+    // Record real audit events
+    deviceStore.recordAuditEvent({
+      eventType: 'USER_IDENTITY_REGISTERED',
+      description: `New identity registered: ${newUser.name} (${newUser.role}) - ${newUser.did}`,
+      targetId: newUser.id,
+      userEmail: newUser.email,
+      userName: newUser.name,
+      severity: 'INFO',
+    });
+    deviceStore.recordAuditEvent({
+      eventType: 'HARDWARE_DEVICE_ENROLLED',
+      description: `Hardware device enrolled: ${device.device_name} (${device.algorithm})`,
+      targetId: device.id,
+      userEmail: newUser.email,
+      userName: newUser.name,
+      severity: 'INFO',
     });
 
     // Issue SecureMAX 8-Hour Session

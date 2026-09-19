@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 vi.mock('server-only', () => ({}));
 import { POST as authLogin } from '../../src/app/api/auth/login/route';
 import { POST as authChallenge } from '../../src/app/api/auth/challenge/route';
@@ -20,6 +20,10 @@ vi.mock('next/headers', () => {
 });
 
 describe('SecureMAX P-256 Authentication & Zero-Trust Session Tests', () => {
+  beforeAll(() => {
+    deviceStore.seedTestDataForTesting();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     const cookieStore = cookies() as any;
