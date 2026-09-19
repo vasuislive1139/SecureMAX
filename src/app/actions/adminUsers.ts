@@ -121,9 +121,7 @@ export async function registerNewUserByAdmin(formData: {
       created_at: new Date().toISOString(),
     });
 
-    // Do not register a mock device with a random public key, as that prevents
-    // the user's browser P-256 key from binding on first login.
-    // The user's primary device will be automatically bound when they first sign in.
+    deviceStore.saveToDisk();
 
     return {
       success: true,

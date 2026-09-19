@@ -50,3 +50,7 @@ Thumbs.db
 # Temp files
 *.tmp
 .securemax_db/*.tmp
+
+# Local store data
+.data/
+

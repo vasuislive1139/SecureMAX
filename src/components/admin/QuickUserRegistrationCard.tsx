@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, CheckCircle2, Shield, User, Loader2, Sparkles, Key, AlertTriangle } from 'lucide-react';
 import { registerNewUserByAdmin, getRegisteredPersonnel } from '@/app/actions/adminUsers';
+import { useRealtimeSync } from '@/lib/hooks/useRealtimeSync';
 
 interface Member {
   id: string;
@@ -29,10 +30,22 @@ export function QuickUserRegistrationCard() {
 
   const [members, setMembers] = useState<Member[]>([]);
 
+  const fetchPersonnel = async () => {
+    try {
+      const list = await getRegisteredPersonnel();
+      if (list) setMembers(list);
+    } catch (err) {
+      console.error('Failed to load registered personnel:', err);
+    }
+  };
+
   // Load existing team members on mount
   useEffect(() => {
-    getRegisteredPersonnel().then(list => setMembers(list)).catch(console.error);
+    fetchPersonnel();
   }, []);
+
+  // Real-time SSE (<100ms) + 2.5s polling fallback
+  useRealtimeSync(fetchPersonnel, 2500);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

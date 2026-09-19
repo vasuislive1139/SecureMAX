@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { fetchAuditLedgerAction, submitAccessRequestAction, fetchAllAccessRequestsAction } from '@/app/actions/accessRequests';
 import { StoredAuditEvent, StoredAccessRequest } from '@/lib/auth/deviceStore';
+import { useRealtimeSync } from '@/lib/hooks/useRealtimeSync';
 
 export function AuditorDashboardView() {
   const [events, setEvents] = useState<StoredAuditEvent[]>([]);
@@ -36,9 +37,9 @@ export function AuditorDashboardView() {
   const [requestReason, setRequestReason] = useState('Statutory compliance audit review and statutory ledger update');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadData = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const [ledgerRes, reqRes] = await Promise.all([
         fetchAuditLedgerAction(),
         fetchAllAccessRequestsAction(),
@@ -53,13 +54,16 @@ export function AuditorDashboardView() {
     } catch (err) {
       console.error('Failed to load auditor data:', err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadData();
   }, []);
+
+  // Real-time SSE (<100ms) + 2.5s fallback polling
+  useRealtimeSync(() => loadData(true), 2500);
 
   const handleRequestAuditUpdate = async () => {
     setRequesting(true);
@@ -112,7 +116,7 @@ export function AuditorDashboardView() {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={loadData}
+            onClick={() => loadData(false)}
             className="border-zinc-800 hover:bg-white/5 text-xs font-mono text-zinc-300"
           >
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh

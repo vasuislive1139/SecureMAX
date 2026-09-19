@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import { SignJWT } from 'jose';
 import crypto from 'crypto';
 import { deviceStore } from '@/lib/auth/deviceStore';
-import { UserRole } from '@/types';
+import { getVerifiedSession } from '@/lib/auth/session';
+import { UserRole, UserStatus } from '@/types';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

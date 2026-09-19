@@ -22,6 +22,29 @@ export async function POST(req: Request) {
     let enrollForUserId = session.userId;
 
     if (session.role === UserRole.ADMIN) {
+      // Auto-heal admin into store if missing (ensures consistency across environments)
+      if (!deviceStore.getUserById(session.userId)) {
+        const adminUser = {
+          id: session.userId,
+          name: session.name || 'Administrator',
+          email: session.email || 'admin@securemax.mil',
+          role: UserRole.ADMIN,
+          position: 'Root Administrator',
+          position_id: 'pos_root_admin',
+          kyc_status: 'VERIFIED' as const,
+          status: UserStatus.ACTIVE,
+          did: session.did || `did:securemax:admin:${session.userId.toLowerCase()}`,
+          created_at: new Date().toISOString(),
+        };
+        deviceStore.users.set(adminUser.id, adminUser);
+        deviceStore.users.set(adminUser.email, adminUser);
+        deviceStore.systemSettings.admin_initialized = true;
+        deviceStore.systemSettings.bootstrap_enabled = false;
+        deviceStore.systemSettings.system_state = 'SYSTEM_LOCKED';
+        deviceStore.systemSettings.root_admin_id = adminUser.id;
+        deviceStore.saveToDisk();
+      }
+
       if (isNewUser || targetUserId === '__NEW_USER__') {
         if (!newUserName || !newUserEmail) {
           return NextResponse.json(
@@ -102,6 +125,7 @@ export async function POST(req: Request) {
       durationMinutes: durationMinutes ? Number(durationMinutes) : 15,
       maxDevices: maxDevices ? Number(maxDevices) : 1,
       callerUserId: session.userId,
+      callerRole: session.role,
       targetDeviceType,
     });
 

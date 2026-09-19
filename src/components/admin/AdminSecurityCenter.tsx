@@ -20,6 +20,7 @@ import {
   Key
 } from 'lucide-react';
 import { signChallengeWithLocalKey } from '@/lib/crypto/clientP256';
+import { useRealtimeSync } from '@/lib/hooks/useRealtimeSync';
 
 interface SecurityStatusData {
   systemStatus: string;
@@ -71,9 +72,9 @@ export function AdminSecurityCenter() {
   const [stepUpLoading, setStepUpLoading] = useState(false);
   const [stepUpSuccess, setStepUpSuccess] = useState(false);
 
-  const fetchSecurityStatus = async () => {
+  const fetchSecurityStatus = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const res = await fetch('/api/admin/security-status');
       if (!res.ok) throw new Error('Failed to load security center metrics');
       const json = await res.json();
@@ -81,13 +82,16 @@ export function AdminSecurityCenter() {
     } catch (err: any) {
       setError(err.message || 'Error fetching status');
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchSecurityStatus();
   }, []);
+
+  // Real-time SSE (<100ms) + 2.5s polling fallback
+  useRealtimeSync(() => fetchSecurityStatus(true), 2500);
 
   // Panic Mechanism: Lock Administrator
   const handleLockAdministrator = async () => {
@@ -186,7 +190,7 @@ export function AdminSecurityCenter() {
           <div className="flex items-center gap-2.5">
             <button
               type="button"
-              onClick={fetchSecurityStatus}
+              onClick={() => fetchSecurityStatus(false)}
               className="p-2 rounded-xl border border-zinc-800 hover:border-cyan-500/40 text-zinc-400 hover:text-white transition-all cursor-pointer"
               title="Refresh Security Status"
             >

@@ -35,9 +35,9 @@ export async function getDashboardMetrics() {
         supabaseAdmin.from('audit_events').select('*').order('created_at', { ascending: false }).limit(5),
       ]);
 
-      const totalUsers = (usersRes.count != null && usersRes.count > 0) ? usersRes.count : localUsersCount;
-      const activeAssets = (assetsRes.count != null && assetsRes.count > 0) ? assetsRes.count : localAssetsCount;
-      const pendingAccessRequests = reqRes.count != null ? reqRes.count : localPendingRequests;
+      const totalUsers = Math.max(localUsersCount, (usersRes.count != null && usersRes.count > 0) ? usersRes.count : 0);
+      const activeAssets = Math.max(localAssetsCount, (assetsRes.count != null && assetsRes.count > 0) ? assetsRes.count : 0);
+      const pendingAccessRequests = Math.max(localPendingRequests, reqRes.count != null ? reqRes.count : 0);
       const criticalAlerts = alertsRes.count ?? 0;
       const recentAudits = (auditRes.data && auditRes.data.length > 0) ? auditRes.data : localAudits;
 

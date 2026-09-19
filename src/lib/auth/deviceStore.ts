@@ -2,6 +2,11 @@ import 'server-only';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { EventEmitter } from 'events';
+
+export const storeEvents = new EventEmitter();
+storeEvents.setMaxListeners(200);
+
 import { 
   UserRole, 
   UserStatus, 
@@ -129,6 +134,7 @@ export interface StoredAccessRequest {
   created_at: string;
   approved_at?: string;
   rejected_at?: string;
+  rejected_reason?: string;
 }
 
 export interface LiveGrant {
@@ -311,6 +317,9 @@ class SecureMaxStore {
   }
 
   private getDbFilePath(): string {
+    if (process.env.SECUREMAX_STORE_PATH) {
+      return process.env.SECUREMAX_STORE_PATH;
+    }
     return path.join(process.cwd(), '.securemax_db', 'vault_ledger.json');
   }
 
@@ -349,6 +358,7 @@ class SecureMaxStore {
       const tmpPath = `${filePath}.${Date.now()}.tmp`;
       fs.writeFileSync(tmpPath, JSON.stringify(payload, null, 2), 'utf8');
       fs.renameSync(tmpPath, filePath);
+      storeEvents.emit('change', { type: 'STATE_MUTATION', timestamp: Date.now() });
     } catch (err) {
       console.error('[SecureMaxStore] Disk save error:', err);
     }
@@ -500,6 +510,7 @@ class SecureMaxStore {
       failed_admin_logins: 0,
     };
     this.recoveryVault = null;
+    this.saveToDisk();
   }
 
   public isSystemInitialized(): boolean {
@@ -2561,6 +2572,7 @@ class SecureMaxStore {
     durationMinutes?: number;
     maxDevices?: number;
     callerUserId?: string;
+    callerRole?: UserRole;
     targetDeviceType?: string;
   }): { enrollment: StoredEnrollmentCapability; plaintextCode: string } {
     const targetUser = this.getUserById(params.userId);
@@ -2572,7 +2584,7 @@ class SecureMaxStore {
 
     if (params.callerUserId) {
       const caller = this.getUserById(params.callerUserId);
-      const isCallerAdmin = caller?.role === UserRole.ADMIN;
+      const isCallerAdmin = (params.callerRole === UserRole.ADMIN) || (caller?.role === UserRole.ADMIN);
       if (params.callerUserId !== params.userId && !isCallerAdmin) {
         throw new Error('Unauthorized: only an Admin can issue device enrollment capabilities for other users');
       }
@@ -2885,6 +2897,8 @@ class SecureMaxStore {
       userName: user.name,
       severity: 'INFO',
     });
+
+    this.saveToDisk();
 
     return { passport, user };
   }
@@ -4436,6 +4450,7 @@ class SecureMaxStore {
 
     req.status = 'REJECTED';
     req.rejected_at = new Date().toISOString();
+    req.rejected_reason = reason;
 
     if (req.asset_id) {
       this.logAssetAccess(req.asset_id, req.user_name, `Access request denied: ${reason || 'Security policy restriction'}`, 'DENIED');
@@ -4590,4 +4605,4 @@ class SecureMaxStore {
 // Global singleton
 const globalForStore = global as unknown as { secureMaxStore?: SecureMaxStore };
 export const deviceStore = globalForStore.secureMaxStore || new SecureMaxStore();
-if (process.env.NODE_ENV !== 'production') globalForStore.secureMaxStore = deviceStore;
+globalForStore.secureMaxStore = deviceStore;
