@@ -521,6 +521,34 @@ class SecureMaxStore {
               }
             }
           }
+          if (Array.isArray(onDisk.devicePassports)) {
+            for (const dp of onDisk.devicePassports) {
+              if (!this.devicePassports.has(dp.id || dp.device_id)) {
+                this.devicePassports.set(dp.id || dp.device_id, dp);
+              }
+            }
+          }
+          if (Array.isArray(onDisk.sessions)) {
+            for (const s of onDisk.sessions) {
+              if (!this.sessions.has(s.session_id)) {
+                this.sessions.set(s.session_id, s);
+              }
+            }
+          }
+          if (Array.isArray(onDisk.enrollments)) {
+            for (const e of onDisk.enrollments) {
+              if (!this.enrollments.has(e.code)) {
+                this.enrollments.set(e.code, e);
+              }
+            }
+          }
+          if (Array.isArray(onDisk.liveGrants)) {
+            for (const lg of onDisk.liveGrants) {
+              if (!this.liveGrants.some(l => l.id === lg.id)) {
+                this.liveGrants.push(lg);
+              }
+            }
+          }
         } catch {}
       }
 
