@@ -6,8 +6,9 @@ import { UserRole, UserStatus } from '@/types';
 
 export async function POST(req: Request) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -29,8 +30,8 @@ export async function POST(req: Request) {
       if (isNewUser || targetUserId === '__NEW_USER__') {
         if (!newUserName || !newUserEmail) {
           
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
             { error: 'Please provide both Full Name and Email Address for the new user.' },
@@ -84,8 +85,8 @@ export async function POST(req: Request) {
       } else {
         if (!targetUserId) {
           
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
             { error: 'Admin account is strictly hardware-bound. To enroll a device, select an authorized team member or onboard a new user.' },
@@ -99,16 +100,16 @@ export async function POST(req: Request) {
     const targetUser = await deviceStore.getUserById(enrollForUserId);
     if (!targetUser) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Target user record not found' }, { status: 404 });
     }
 
     if (targetUser.role === UserRole.ADMIN) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
         { error: 'Root administrator accounts are strictly single-device hardware-bound. To onboard a team member, choose "Onboard New User". To authorize a new admin terminal, initiate an Administrator Recovery Ceremony.' },
@@ -141,8 +142,8 @@ export async function POST(req: Request) {
     });
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       success: true,
@@ -160,8 +161,8 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[Enrollment Start Error]:', error);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: error.message || 'Unauthorized or failed to initiate enrollment' }, { status: 400 });
   }

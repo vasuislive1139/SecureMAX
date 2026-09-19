@@ -14,8 +14,9 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'securemax
  */
 export async function POST(req: Request) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const body = await req.json().catch(() => ({}));
@@ -32,8 +33,8 @@ export async function POST(req: Request) {
 
     if (!adminId || !recoveryCode || !newPublicKey) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
         { error: 'Missing required recovery parameters: admin ID, recovery code, and new device public key are required.' },
@@ -84,8 +85,8 @@ export async function POST(req: Request) {
     });
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       success: true,
@@ -101,8 +102,8 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[Admin Emergency Recovery Error]:', error);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
       { error: error.message || 'Emergency recovery ceremony failed' },

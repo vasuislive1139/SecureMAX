@@ -6,8 +6,9 @@ import { supabaseAdmin } from '@/lib/db/client';
 
 export async function POST() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession().catch(() => null);
@@ -39,15 +40,15 @@ export async function POST() {
     cookies().delete('securemesh_session');
     
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     cookies().delete('securemesh_session');
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true });
   }

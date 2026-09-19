@@ -4,8 +4,9 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function POST(req: Request) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -15,8 +16,8 @@ export async function POST(req: Request) {
     const targetDeviceId = deviceId || session.deviceId;
     if (!targetDeviceId) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
         { error: 'Missing deviceId parameter for step-up authentication' },
@@ -31,8 +32,8 @@ export async function POST(req: Request) {
     });
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       success: true,
@@ -44,8 +45,8 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[Step-Up Auth Error]:', error);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
       { error: error.message || 'Step-up authentication failed' },

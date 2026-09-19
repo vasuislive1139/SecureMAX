@@ -10,16 +10,16 @@ export async function GET(req: Request) {
 
     if (!assetId) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
     }
 
     const shares = deviceStore.getSharesForAsset(assetId);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       success: true,
@@ -27,8 +27,8 @@ export async function GET(req: Request) {
     });
   } catch (error: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: error.message || 'Unauthorized' }, { status: 401 });
   }
@@ -36,8 +36,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -47,8 +48,8 @@ export async function POST(req: Request) {
 
     if (!assetId) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
     }
@@ -56,15 +57,15 @@ export async function POST(req: Request) {
     if (action === 'revoke') {
       if (!targetUserId) {
         
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Target user ID is required to revoke' }, { status: 400 });
       }
       deviceStore.revokeAssetShare(assetId, targetUserId, session.userId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
         success: true,
@@ -74,8 +75,8 @@ export async function POST(req: Request) {
 
     if (!targetUserId) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Target user ID is required (specify user ID or "ALL")' }, { status: 400 });
     }
@@ -112,8 +113,8 @@ export async function POST(req: Request) {
     const targetLabel = isAll ? 'All People (Organization-Wide)' : targetUserId;
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       success: true,
@@ -123,8 +124,8 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[Vault Share Error]:', error);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: error.message || 'Failed to share asset' }, { status: 403 });
   }

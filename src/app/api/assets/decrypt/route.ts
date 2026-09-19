@@ -6,8 +6,9 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function POST(req: Request) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -16,8 +17,8 @@ export async function POST(req: Request) {
 
     if (!assetId) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
     }
@@ -25,8 +26,8 @@ export async function POST(req: Request) {
     const asset = deviceStore.assets.get(assetId);
     if (!asset) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
     }
@@ -103,8 +104,8 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[Decryption API Error]:', error);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
       { error: error.message || 'Access Denied: You are not authorized to decrypt this asset.' },

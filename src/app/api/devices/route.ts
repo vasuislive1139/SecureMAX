@@ -100,8 +100,8 @@ export async function GET() {
       }));
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       success: true,
@@ -119,8 +119,8 @@ export async function GET() {
     });
   } catch (error: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: error.message || 'Unauthorized' }, { status: 401 });
   }
@@ -128,8 +128,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -139,8 +140,8 @@ export async function POST(req: Request) {
     if (action === 'revoke_session' && sessionId) {
       deviceStore.revokeSession(sessionId, session.userId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true, message: `Session ${sessionId} revoked successfully` });
     }
@@ -149,8 +150,8 @@ export async function POST(req: Request) {
       const userToRevoke = targetUserId || session.userId;
       deviceStore.revokeAllSessionsForUser(userToRevoke, session.userId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true, message: `All sessions revoked for user ${userToRevoke}` });
     }
@@ -159,15 +160,15 @@ export async function POST(req: Request) {
     if (action === 'suspend_user') {
       if (!targetUserId) {
         
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Missing targetUserId parameter' }, { status: 400 });
       }
       const suspendedUser = deviceStore.suspendUser(targetUserId, session.userId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
         success: true,
@@ -180,15 +181,15 @@ export async function POST(req: Request) {
     if (action === 'reactivate_user') {
       if (!targetUserId) {
         
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Missing targetUserId parameter' }, { status: 400 });
       }
       const reactivatedUser = deviceStore.reactivateUser(targetUserId, session.userId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
         success: true,
@@ -202,8 +203,8 @@ export async function POST(req: Request) {
       const targetLostDevice = lostDeviceId || deviceId;
       if (!targetLostDevice) {
         
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Missing lostDeviceId parameter for recovery' }, { status: 400 });
       }
@@ -212,8 +213,8 @@ export async function POST(req: Request) {
         callerUserId: session.userId,
       });
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
         success: true,
@@ -227,8 +228,8 @@ export async function POST(req: Request) {
 
     if (!deviceId) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Missing deviceId parameter' }, { status: 400 });
     }
@@ -236,8 +237,8 @@ export async function POST(req: Request) {
     if (action === 'revoke') {
       deviceStore.revokeDevice(session.userId, deviceId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true, message: `Device ${deviceId} revoked successfully` });
     }
@@ -245,8 +246,8 @@ export async function POST(req: Request) {
     if (action === 'suspend') {
       const passport = deviceStore.suspendDevice(deviceId, session.userId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true, message: `Device ${deviceId} suspended successfully`, passport });
     }
@@ -254,8 +255,8 @@ export async function POST(req: Request) {
     if (action === 'reactivate') {
       const passport = deviceStore.reactivateDevice(deviceId, session.userId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true, message: `Device ${deviceId} reactivated successfully`, passport });
     }
@@ -263,15 +264,15 @@ export async function POST(req: Request) {
     if (action === 'update_risk') {
       if (!riskState) {
         
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Missing riskState parameter' }, { status: 400 });
       }
       const passport = deviceStore.updateDeviceRiskState(deviceId, riskState, session.userId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true, message: `Device risk state updated to ${riskState}`, passport });
     }
@@ -279,21 +280,21 @@ export async function POST(req: Request) {
     if (action === 'force_reauth') {
       deviceStore.forceReauthentication(deviceId, session.userId);
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true, message: `Re-authentication enforced for device ${deviceId}` });
     }
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Invalid device action' }, { status: 400 });
   } catch (error: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: error.message || 'Failed to update device' }, { status: 400 });
   }

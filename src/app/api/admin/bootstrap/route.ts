@@ -22,8 +22,8 @@ export async function GET() {
     const settings = deviceStore.getSystemSettings();
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       initialized: isInitialized,
@@ -38,8 +38,8 @@ export async function GET() {
     });
   } catch (error: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: error.message || 'Failed to query bootstrap state' }, { status: 500 });
   }
@@ -52,8 +52,9 @@ export async function GET() {
  */
 export async function POST(req: Request) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const body = await req.json().catch(() => ({}));
@@ -82,8 +83,8 @@ export async function POST(req: Request) {
     // Strict validation
     if (!orgName || !adminName || !email || !publicKey) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
         { error: 'Missing required bootstrap fields: organization name, administrator name, official email, and device public key are required.' },
@@ -141,8 +142,8 @@ export async function POST(req: Request) {
     });
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       success: true,
@@ -168,8 +169,8 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[Admin Bootstrap Error]:', error);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
       { error: error.message || 'Bootstrap initialization failed' },

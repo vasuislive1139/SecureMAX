@@ -1,3 +1,4 @@
+import { deviceStore } from '@/lib/auth/deviceStore';
 import { NextRequest } from 'next/server';
 import { storeEvents } from '@/lib/auth/deviceStore';
 
@@ -6,8 +7,8 @@ export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  if (deviceStore) {
+    await deviceStore.loadFromCloud();
   }
   const encoder = new TextEncoder();
 

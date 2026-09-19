@@ -1,4 +1,5 @@
 'use server';
+import { deviceStore } from '@/lib/auth/deviceStore';
 
 import { supabaseAdmin } from '@/lib/db/client';
 import { ChainType } from '@/types';
@@ -12,8 +13,8 @@ export async function logTransaction(data: {
   status: string;
 }) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  if (deviceStore) {
+    await deviceStore.loadFromCloud();
   }
   try {
     await getVerifiedSession(); // Ensure user is authenticated
@@ -31,15 +32,15 @@ export async function logTransaction(data: {
     if (error) throw error;
     
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true };
   } catch (err: any) {
     console.error('Failed to log blockchain transaction:', err);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message };
   }

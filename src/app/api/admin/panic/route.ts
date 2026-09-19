@@ -14,8 +14,9 @@ import { UserRole } from '@/types';
  */
 export async function POST(req: Request) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession().catch(() => null);
@@ -24,8 +25,8 @@ export async function POST(req: Request) {
 
     if (!adminId) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
         { error: 'Missing administrator ID for panic lock' },
@@ -37,8 +38,8 @@ export async function POST(req: Request) {
     const targetAdmin = await deviceStore.getUserByEmailOrId(adminId);
     if (!targetAdmin || targetAdmin.role !== UserRole.ADMIN) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
         { error: 'Only root administrator accounts can activate panic lockout' },
@@ -52,8 +53,8 @@ export async function POST(req: Request) {
     cookies().delete('securemesh_session');
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       success: true,
@@ -63,8 +64,8 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[Admin Panic Error]:', error);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json(
       { error: error.message || 'Failed to trigger panic lock' },

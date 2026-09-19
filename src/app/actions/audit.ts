@@ -1,4 +1,5 @@
 'use server';
+import { deviceStore } from '@/lib/auth/deviceStore';
 
 import { logAuditEvent } from '@/lib/audit/logger';
 import { supabaseAdmin } from '@/lib/db/client';
@@ -7,8 +8,8 @@ import { revalidatePath } from 'next/cache';
 
 export async function logPresentationAuditEventAction() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  if (deviceStore) {
+    await deviceStore.loadFromCloud();
   }
   try {
     // 1. Idempotency safeguard: check if a presentation audit event was created in the last 60s
@@ -32,8 +33,8 @@ export async function logPresentationAuditEventAction() {
 
     if (existing && existing.length > 0) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
         success: true,
@@ -68,8 +69,8 @@ export async function logPresentationAuditEventAction() {
     }
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
       success: true,
@@ -78,8 +79,8 @@ export async function logPresentationAuditEventAction() {
   } catch (error: any) {
     console.error('Failed to log presentation audit event:', error);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
       success: false,
@@ -90,15 +91,15 @@ export async function logPresentationAuditEventAction() {
 
 export async function verifyChainIntegrityAction() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  if (deviceStore) {
+    await deviceStore.loadFromCloud();
   }
   try {
     const { deviceStore } = await import('@/lib/auth/deviceStore');
     const events = deviceStore.getAuditEvents();
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
       success: true,
@@ -109,8 +110,8 @@ export async function verifyChainIntegrityAction() {
   } catch (err: any) {
     console.error('Verify chain integrity error:', err);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
       success: false,

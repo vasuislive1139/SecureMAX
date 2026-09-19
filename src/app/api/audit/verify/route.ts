@@ -1,3 +1,4 @@
+import { deviceStore } from '@/lib/auth/deviceStore';
 import { NextResponse } from 'next/server';
 import { getVerifiedSession } from '@/lib/auth/session';
 import { supabaseAdmin } from '@/lib/db/client';
@@ -9,8 +10,8 @@ import deployedAddresses from '../../../../../deployed-addresses.json';
 
 export async function GET(req: Request) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  if (deviceStore) {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -18,8 +19,8 @@ export async function GET(req: Request) {
     // Only Admin or Auditors can verify
     if (session.role !== 'ADMIN' && session.role !== 'AUDITOR') {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Permission Denied: Must be ADMIN or AUDITOR' }, { status: 403 });
     }
@@ -40,8 +41,8 @@ export async function GET(req: Request) {
 
     if (logs.length === 0) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ success: true, message: 'No logs to verify', localRoot: '0x0000000000000000000000000000000000000000000000000000000000000000' });
     }
@@ -80,8 +81,8 @@ export async function GET(req: Request) {
     }
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({
       success: true,
@@ -96,8 +97,8 @@ export async function GET(req: Request) {
 
   } catch (error: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: error.message || 'Failed to verify audit logs' }, { status: 500 });
   }

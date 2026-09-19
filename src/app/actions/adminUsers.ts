@@ -21,8 +21,9 @@ export interface AdminCreateUserResult {
 
 export async function getRegisteredPersonnel() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   const users: Array<{
     id: string;
@@ -64,8 +65,8 @@ export async function registerNewUserByAdmin(formData: {
 
     if (!cleanEmail || !cleanName) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: 'Please enter both a name and an email address.' };
     }
@@ -73,8 +74,8 @@ export async function registerNewUserByAdmin(formData: {
     const existing = await deviceStore.getUserByEmail(cleanEmail);
     if (existing) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: `A team member with email ${cleanEmail} is already registered.` };
     }
@@ -138,8 +139,8 @@ export async function registerNewUserByAdmin(formData: {
     syncUserToSupabase(newUser).catch(() => {});
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
       success: true,
@@ -155,8 +156,8 @@ export async function registerNewUserByAdmin(formData: {
     };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
       success: false,

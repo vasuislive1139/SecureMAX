@@ -1,4 +1,5 @@
 'use server';
+import { deviceStore } from '@/lib/auth/deviceStore';
 
 import { executeSentinelScan } from '@/lib/sentinel/engine';
 import { supabaseAdmin } from '@/lib/db/client';
@@ -7,8 +8,8 @@ import { UserRole } from '@/types';
 
 export async function runSecurityScanAction(userId: string) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  if (deviceStore) {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -18,15 +19,15 @@ export async function runSecurityScanAction(userId: string) {
 
     const scanId = await executeSentinelScan(session.userId); // Use secure userId
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true, scanId };
   } catch (error: any) {
     console.error('Sentinel Scan Error:', error);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: error.message };
   }
@@ -34,8 +35,8 @@ export async function runSecurityScanAction(userId: string) {
 
 export async function fetchSecurityPosture() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  if (deviceStore) {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -50,8 +51,8 @@ export async function fetchSecurityPosture() {
     ]);
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
       scans: scans.data || [],
@@ -60,8 +61,8 @@ export async function fetchSecurityPosture() {
     };
   } catch (error) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { scans: [], findings: [], incidents: [] };
   }

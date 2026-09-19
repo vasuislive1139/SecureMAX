@@ -7,8 +7,9 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function getDashboardMetrics() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const session = await getVerifiedSession();
@@ -46,8 +47,8 @@ export async function getDashboardMetrics() {
       const recentAudits = (auditRes.data && auditRes.data.length > 0) ? auditRes.data : localAudits;
 
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
         success: true,
@@ -61,8 +62,8 @@ export async function getDashboardMetrics() {
       };
     } catch {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
         success: true,
@@ -90,8 +91,8 @@ export async function getDashboardMetrics() {
     }));
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
       success: true,

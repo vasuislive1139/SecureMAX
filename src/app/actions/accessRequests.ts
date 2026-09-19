@@ -12,8 +12,9 @@ export async function submitAccessRequestAction(params: {
   ttlMinutes?: number;
 }) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     let sessionUser: { userId: string; role: UserRole; name?: string; email?: string } | null = null;
@@ -30,8 +31,8 @@ export async function submitAccessRequestAction(params: {
 
     if (!sessionUser) {
       
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: 'User session could not be established' };
     }
@@ -60,14 +61,14 @@ export async function submitAccessRequestAction(params: {
     }
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true, request: req };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message || 'Failed to submit access request' };
   }
@@ -75,8 +76,9 @@ export async function submitAccessRequestAction(params: {
 
 export async function approveAccessRequestAction(params: { requestId: string; ttlMinutes?: number }) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     let adminUserId = 'usr_admin_001';
@@ -84,8 +86,8 @@ export async function approveAccessRequestAction(params: { requestId: string; tt
       const session = await getVerifiedSession();
       if (session.role !== UserRole.ADMIN) {
         
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: 'Only administrators can approve access requests and mint NFT permits' };
       }
@@ -96,14 +98,14 @@ export async function approveAccessRequestAction(params: { requestId: string; tt
 
     const approved = deviceStore.approveAccessRequest(params.requestId, adminUserId, params.ttlMinutes || 30);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true, request: approved };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message || 'Failed to approve request' };
   }
@@ -111,8 +113,9 @@ export async function approveAccessRequestAction(params: { requestId: string; tt
 
 export async function rejectAccessRequestAction(params: { requestId: string; reason?: string }) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     let adminUserId = 'usr_admin_001';
@@ -120,8 +123,8 @@ export async function rejectAccessRequestAction(params: { requestId: string; rea
       const session = await getVerifiedSession();
       if (session.role !== UserRole.ADMIN) {
         
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: 'Only administrators can reject access requests' };
       }
@@ -132,14 +135,14 @@ export async function rejectAccessRequestAction(params: { requestId: string; rea
 
     const rejected = deviceStore.rejectAccessRequest(params.requestId, adminUserId, params.reason);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true, request: rejected };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message || 'Failed to reject request' };
   }
@@ -147,8 +150,9 @@ export async function rejectAccessRequestAction(params: { requestId: string; rea
 
 export async function revokeLiveGrantAction(params: { grantId: string }) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     let adminName = 'Administrator';
@@ -159,14 +163,14 @@ export async function revokeLiveGrantAction(params: { grantId: string }) {
 
     const revoked = deviceStore.revokeLiveGrant(params.grantId, adminName);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true, grant: revoked };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message || 'Failed to revoke live grant' };
   }
@@ -174,20 +178,21 @@ export async function revokeLiveGrantAction(params: { grantId: string }) {
 
 export async function extendLiveGrantAction(params: { grantId: string; additionalMinutes?: number }) {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const extended = deviceStore.extendLiveGrant(params.grantId, params.additionalMinutes || 15);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true, grant: extended };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message || 'Failed to extend live grant' };
   }
@@ -195,19 +200,20 @@ export async function extendLiveGrantAction(params: { grantId: string; additiona
 
 export async function fetchLiveGrantsAction() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true, grants: deviceStore.getLiveGrants() };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message || 'Failed to fetch live grants', grants: [] };
   }
@@ -215,8 +221,9 @@ export async function fetchLiveGrantsAction() {
 
 export async function fetchAllAccessRequestsAction() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     let isAdmin = false;
@@ -233,14 +240,14 @@ export async function fetchAllAccessRequestsAction() {
     const allRequests = deviceStore.getAccessRequests();
     const requests = (isAdmin || !userId) ? allRequests : allRequests.filter(r => r.user_id === userId);
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true, requests, isAdmin };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message || 'Failed to fetch requests', requests: [], isAdmin: false };
   }
@@ -248,19 +255,20 @@ export async function fetchAllAccessRequestsAction() {
 
 export async function fetchAuditLedgerAction() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: true, events: deviceStore.getAuditEvents() };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message || 'Failed to fetch audit events', events: [] };
   }
@@ -268,8 +276,9 @@ export async function fetchAuditLedgerAction() {
 
 export async function fetchCommandCenterStateAction() {
   
-  if (require('@/lib/auth/deviceStore').deviceStore) {
-    await require('@/lib/auth/deviceStore').deviceStore.loadFromCloud();
+  
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
   }
   try {
     const pending = deviceStore.getAccessRequests().filter(r => r.status === 'PENDING');
@@ -278,8 +287,8 @@ export async function fetchCommandCenterStateAction() {
     const notifications = deviceStore.getNotifications();
 
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return {
       success: true,
@@ -305,8 +314,8 @@ export async function fetchCommandCenterStateAction() {
     };
   } catch (err: any) {
     
-    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
-      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    if (deviceStore?.lastSyncPromise) {
+      await deviceStore.lastSyncPromise;
     }
     return { success: false, error: err.message };
   }
