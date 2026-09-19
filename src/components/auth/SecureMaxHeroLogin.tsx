@@ -46,8 +46,6 @@ export default function SecureMaxHeroLogin() {
   const [adminCount, setAdminCount] = useState<number>(0);
   const [showBootstrapWizard, setShowBootstrapWizard] = useState<boolean>(false);
   const [showRecoveryModal, setShowRecoveryModal] = useState<boolean>(false);
-  const [accountType, setAccountType] = useState<'STAFF' | 'ADMIN'>('STAFF');
-  const [adminIdInput, setAdminIdInput] = useState<string>('ADM-0001');
 
   // Cinematic Intro State
   const [showIntro, setShowIntro] = useState(false);
@@ -84,8 +82,6 @@ export default function SecureMaxHeroLogin() {
   // Auth Mode: Sign In vs Register
   const [authMode, setAuthMode] = useState<'SIGN_IN' | 'REGISTER'>('SIGN_IN');
 
-  // Role Selection (for demo sign in)
-  const [selectedRole, setSelectedRole] = useState<LoginRole | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -168,12 +164,6 @@ export default function SecureMaxHeroLogin() {
   const [enrollLoading, setEnrollLoading] = useState(false);
   const [enrollSuccess, setEnrollSuccess] = useState(false);
 
-  // Update selected role on tab change without mock prefilled data
-  const handleRoleChange = (role: LoginRole) => {
-    setSelectedRole(role);
-    setErrorMessage('');
-  };
-
   // Initialize or discover client P-256 key on mount
   useEffect(() => {
     if (email) {
@@ -184,72 +174,7 @@ export default function SecureMaxHeroLogin() {
   }, [email]);
 
   // ----------------------------------------------------
-  // ADMIN ROOT AUTHENTICATION (WebAuthn / Device Security)
-  // ----------------------------------------------------
-  const handleAdminLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage('');
-    const targetAdminId = adminIdInput.trim() || 'ADM-0001';
-
-    setLoading(true);
-    setStatusMessage('Initiating root administrator cryptographic verification...');
-
-    try {
-      // 1. Get or create local device key
-      const dev = deviceInfo || await getOrCreateLocalDeviceKey('SecureMAX Admin Laptop', targetAdminId);
-      setDeviceInfo(dev);
-
-      // 2. Request high-entropy challenge
-      setStatusMessage(`Requesting cryptographic challenge for ${targetAdminId}...`);
-      const challengeRes = await fetch('/api/auth/challenge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: targetAdminId }),
-      });
-
-      if (!challengeRes.ok) {
-        const chalData = await challengeRes.json().catch(() => ({}));
-        throw new Error(chalData.error || 'Failed to request challenge from server');
-      }
-
-      const challenge = await challengeRes.json();
-
-      // 3. Sign challenge with local hardware key (Face ID / Touch ID / PIN)
-      setStatusMessage('Authenticating with device security (Face ID / Fingerprint / PIN)...');
-      const signature = await signChallengeWithLocalKey(challenge.message);
-
-      // 4. Verify on server
-      setStatusMessage('Verifying root credential & singleton device binding...');
-      const loginRes = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          adminId: targetAdminId,
-          deviceId: dev.deviceId,
-          deviceName: dev.deviceName,
-          publicKey: dev.publicKeySpki,
-          challengeId: challenge.challengeId,
-          signature,
-        }),
-      });
-
-      const result = await loginRes.json();
-      if (!loginRes.ok) {
-        setLoading(false);
-        setErrorMessage(result.error || 'Authentication failed');
-        return;
-      }
-
-      setStatusMessage('Admin verified! Entering Command Center...');
-      router.push('/dashboard/admin');
-    } catch (err: any) {
-      setLoading(false);
-      setErrorMessage(err.message || 'Administrator authentication error');
-    }
-  };
-
-  // ----------------------------------------------------
-  // PRIMARY LOGIN (Connect button: "Login ->")
+  // ZERO-TRUST LOGIN: Role and Permissions Determined by Identity & Hardware
   // ----------------------------------------------------
   const handlePrimaryLogin = async (e?: React.FormEvent, overrideEmail?: string, overrideDevice?: ClientDeviceInfo) => {
     if (e) e.preventDefault();
@@ -257,14 +182,9 @@ export default function SecureMaxHeroLogin() {
 
     const targetEmail = (overrideEmail || email).trim().toLowerCase();
     if (!targetEmail) {
-      setErrorMessage('Please enter your account email address.');
+      setErrorMessage('Please enter your account email address or User ID.');
       return;
     }
-
-    const determinedRole: LoginRole = selectedRole || (
-      targetEmail.includes('auditor') ? 'AUDITOR' :
-      targetEmail.includes('manager') ? 'MANAGER' : 'USER'
-    );
 
     setLoading(true);
     setStatusMessage('Initiating zero-trust cryptographic verification...');
@@ -670,168 +590,8 @@ export default function SecureMaxHeroLogin() {
 
             {authMode === 'SIGN_IN' ? (
               <>
-                {/* Role Switcher Pills */}
-                <div className="grid grid-cols-4 gap-1.5 bg-zinc-950/70 p-1.5 rounded-xl border border-zinc-800/80 mb-5 relative z-10">
-                  <button
-                    type="button"
-                    onClick={() => handleRoleChange('USER')}
-                    className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer ${
-                      selectedRole === 'USER'
-                        ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
-                        : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
-                    }`}
-                  >
-                    <User className="w-3.5 h-3.5 text-cyan-400" />
-                    User
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRoleChange('MANAGER')}
-                    className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer ${
-                      selectedRole === 'MANAGER'
-                        ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
-                        : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
-                    }`}
-                  >
-                    <Briefcase className="w-3.5 h-3.5 text-cyan-400" />
-                    Manager
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRoleChange('AUDITOR')}
-                    className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer ${
-                      selectedRole === 'AUDITOR'
-                        ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
-                        : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
-                    }`}
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                    Auditor
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!systemInitialized) {
-                        setShowBootstrapWizard(true);
-                      } else {
-                        handleRoleChange('ADMIN');
-                      }
-                    }}
-                    className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1 transition-all cursor-pointer ${
-                      selectedRole === 'ADMIN'
-                        ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
-                        : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
-                    }`}
-                  >
-                    <Shield className="w-3.5 h-3.5 text-cyan-400" />
-                    Admin
-                    {!systemInitialized && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse ml-0.5" title="Uninitialized" />
-                    )}
-                  </button>
-                </div>
-
-                {selectedRole === 'ADMIN' ? (
-                  /* Dedicated Root Administrator Login Form */
-                  <form onSubmit={handleAdminLogin} className="space-y-4 relative z-10">
-                    <div className="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/30">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-mono uppercase tracking-wider text-cyan-400">Root Identity Security</span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                          AAL-3 Required
-                        </span>
-                      </div>
-                      <p className="text-xs text-zinc-400 mt-1">
-                        Root Administrator authentication requires your singleton hardware-bound device and WebAuthn credentials.
-                      </p>
-                    </div>
-
-                    {/* Administrator ID */}
-                    <div>
-                      <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5">
-                        Administrator ID
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                          <Shield className="w-4 h-4 text-cyan-400" />
-                        </div>
-                        <input
-                          type="text"
-                          value={adminIdInput}
-                          onChange={(e) => setAdminIdInput(e.target.value)}
-                          placeholder="ADM-0001"
-                          required
-                          className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 font-mono transition-colors"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Trusted Device */}
-                    <div>
-                      <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5">
-                        Trusted Device
-                      </label>
-                      <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Laptop className="w-4 h-4 text-cyan-400" />
-                          <span className="text-xs font-mono text-zinc-200">{deviceInfo?.deviceName || 'SecureMAX Admin Laptop'}</span>
-                        </div>
-                        <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" />
-                          ● Bound (1/1)
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Status Message */}
-                    {loading && (
-                      <div className="p-3 bg-zinc-900/90 border border-cyan-500/30 rounded-xl flex items-center gap-2.5 text-xs font-mono text-cyan-300 animate-in fade-in">
-                        <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
-                        <span className="truncate">{statusMessage}</span>
-                      </div>
-                    )}
-
-                    {/* Error Message */}
-                    {errorMessage && (
-                      <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-xl flex items-start gap-2 text-red-400 text-xs font-mono animate-in fade-in">
-                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span>{errorMessage}</span>
-                      </div>
-                    )}
-
-                    {/* Authenticate Button */}
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 hover:from-cyan-300 hover:via-sky-400 hover:to-blue-500 text-white font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
-                    >
-                      <Key className="w-4 h-4" />
-                      <span>AUTHENTICATE WITH DEVICE</span>
-                    </button>
-
-                    <div className="text-center text-[11px] text-zinc-500 pt-1">
-                      Use your device security: Face ID • Fingerprint • Windows Hello • PIN
-                    </div>
-
-                    {/* Emergency Recovery Link */}
-                    <div className="pt-3 text-center border-t border-zinc-800/80">
-                      <button
-                        type="button"
-                        onClick={() => setShowRecoveryModal(true)}
-                        className="text-xs text-amber-400 hover:text-amber-300 font-mono underline flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
-                      >
-                        <AlertTriangle className="w-3.5 h-3.5" />
-                        Emergency Recovery Ceremony
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  /* Staff Login Form */
-                  <form onSubmit={handlePrimaryLogin} className="space-y-4 relative z-10">
+                {/* Unified Zero-Trust Login Form (Role determined by Identity & Device) */}
+                <form onSubmit={handlePrimaryLogin} className="space-y-4 relative z-10">
                     
                     {/* Input 1: User ID / Email */}
                     <div className="relative">
@@ -990,7 +750,6 @@ export default function SecureMaxHeroLogin() {
                     </div>
 
                   </form>
-                )}
               </>
             ) : (
               /* Register Identity with Security Code Form */
@@ -1083,53 +842,6 @@ export default function SecureMaxHeroLogin() {
                     required
                     className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-cyan-400 transition-colors"
                   />
-                </div>
-
-                {/* 4. Role Selection (Locked to the Enrollment Code) */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[10px] font-mono tracking-wider text-zinc-400 uppercase mb-1">
-                    <span>Assigned Position</span>
-                    <span className="text-cyan-400/80 text-[9px]">
-                      {verifiedCapability ? 'Bound to Enrollment Code' : 'Enter code to unlock'}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div
-                      className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all select-none ${
-                        regRole === 'USER'
-                          ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
-                          : 'opacity-40 border border-zinc-800 text-zinc-500 bg-zinc-950/40'
-                      }`}
-                    >
-                      <User className="w-3.5 h-3.5 text-cyan-400" />
-                      User
-                      {regRole === 'USER' && verifiedCapability && <CheckCircle2 className="w-3 h-3 text-emerald-400 ml-0.5" />}
-                    </div>
-
-                    <div
-                      className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all select-none ${
-                        regRole === 'MANAGER'
-                          ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
-                          : 'opacity-40 border border-zinc-800 text-zinc-500 bg-zinc-950/40'
-                      }`}
-                    >
-                      <Briefcase className="w-3.5 h-3.5 text-cyan-400" />
-                      Manager
-                      {regRole === 'MANAGER' && verifiedCapability && <CheckCircle2 className="w-3 h-3 text-emerald-400 ml-0.5" />}
-                    </div>
-
-                    <div
-                      className={`py-2 px-1.5 rounded-lg text-xs font-semibold tracking-wide flex items-center justify-center gap-1.5 transition-all select-none ${
-                        regRole === 'AUDITOR'
-                          ? 'bg-cyan-950/70 border border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
-                          : 'opacity-40 border border-zinc-800 text-zinc-500 bg-zinc-950/40'
-                      }`}
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                      Auditor
-                      {regRole === 'AUDITOR' && verifiedCapability && <CheckCircle2 className="w-3 h-3 text-emerald-400 ml-0.5" />}
-                    </div>
-                  </div>
                 </div>
 
                 {/* 5. Device Name Input */}
@@ -1322,8 +1034,7 @@ export default function SecureMaxHeroLogin() {
           setSystemInitialized(true);
           setAdminCount(1);
           setShowBootstrapWizard(false);
-          setSelectedRole('ADMIN');
-          router.refresh();
+          router.push('/dashboard/admin');
         }}
       />
 
@@ -1333,8 +1044,7 @@ export default function SecureMaxHeroLogin() {
         onClose={() => setShowRecoveryModal(false)}
         onSuccess={() => {
           setShowRecoveryModal(false);
-          setSelectedRole('ADMIN');
-          router.refresh();
+          router.push('/dashboard/admin');
         }}
       />
 
