@@ -16,12 +16,20 @@ export async function GET() {
       requests = allRequests.filter(r => r.user_id === session.userId);
     }
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       requests,
       liveGrants,
     });
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Failed to fetch access data' }, { status: 500 });
   }
 }
@@ -55,55 +63,111 @@ export async function POST(req: Request) {
         deviceStore.saveToDisk();
       }
 
-      return NextResponse.json({ success: true, request });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, request });
     }
 
     if (action === 'approve') {
       if (session.role !== UserRole.ADMIN) {
-        return NextResponse.json({ error: 'Unauthorized: Admin access required to approve clearances' }, { status: 403 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Unauthorized: Admin access required to approve clearances' }, { status: 403 });
       }
       if (!requestId) {
-        return NextResponse.json({ error: 'Request ID is required' }, { status: 400 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Request ID is required' }, { status: 400 });
       }
 
       const approved = deviceStore.approveAccessRequest(requestId, session.userId, ttlMinutes || 30);
-      return NextResponse.json({ success: true, request: approved });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, request: approved });
     }
 
     if (action === 'reject') {
       if (session.role !== UserRole.ADMIN) {
-        return NextResponse.json({ error: 'Unauthorized: Admin access required to reject clearances' }, { status: 403 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Unauthorized: Admin access required to reject clearances' }, { status: 403 });
       }
       if (!requestId) {
-        return NextResponse.json({ error: 'Request ID is required' }, { status: 400 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Request ID is required' }, { status: 400 });
       }
 
       const rejected = deviceStore.rejectAccessRequest(requestId, session.userId, reason);
-      return NextResponse.json({ success: true, request: rejected });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, request: rejected });
     }
 
     if (action === 'revoke_grant') {
       if (session.role !== UserRole.ADMIN) {
-        return NextResponse.json({ error: 'Unauthorized: Admin access required to revoke live grants' }, { status: 403 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Unauthorized: Admin access required to revoke live grants' }, { status: 403 });
       }
       if (!grantId) {
-        return NextResponse.json({ error: 'Grant ID is required' }, { status: 400 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Grant ID is required' }, { status: 400 });
       }
 
       const revoked = deviceStore.revokeLiveGrant(grantId, session.name || session.email || 'Administrator');
-      return NextResponse.json({ success: true, grant: revoked });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, grant: revoked });
     }
 
     if (action === 'extend_grant') {
       if (!grantId) {
-        return NextResponse.json({ error: 'Grant ID is required' }, { status: 400 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Grant ID is required' }, { status: 400 });
       }
       const extended = deviceStore.extendLiveGrant(grantId, additionalMinutes || 15);
-      return NextResponse.json({ success: true, grant: extended });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, grant: extended });
     }
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Operation failed' }, { status: 400 });
   }
 }

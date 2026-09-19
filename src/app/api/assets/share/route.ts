@@ -9,15 +9,27 @@ export async function GET(req: Request) {
     const assetId = url.searchParams.get('assetId');
 
     if (!assetId) {
-      return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
     }
 
     const shares = deviceStore.getSharesForAsset(assetId);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       shares,
     });
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Unauthorized' }, { status: 401 });
   }
 }
@@ -30,22 +42,38 @@ export async function POST(req: Request) {
     const { action, assetId, targetUserId, canRead, canDecrypt, canDownload, canEdit, canDelete, expiry } = body;
 
     if (!assetId) {
-      return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
     }
 
     if (action === 'revoke') {
       if (!targetUserId) {
-        return NextResponse.json({ error: 'Target user ID is required to revoke' }, { status: 400 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Target user ID is required to revoke' }, { status: 400 });
       }
       deviceStore.revokeAssetShare(assetId, targetUserId, session.userId);
-      return NextResponse.json({
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({
         success: true,
         message: `Access revoked for ${targetUserId === 'ALL' ? 'All People' : targetUserId}.`,
       });
     }
 
     if (!targetUserId) {
-      return NextResponse.json({ error: 'Target user ID is required (specify user ID or "ALL")' }, { status: 400 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Target user ID is required (specify user ID or "ALL")' }, { status: 400 });
     }
 
     let expiresAt: string | null = null;
@@ -79,6 +107,10 @@ export async function POST(req: Request) {
     const isAll = targetUserId === 'ALL';
     const targetLabel = isAll ? 'All People (Organization-Wide)' : targetUserId;
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       assignment,
@@ -86,6 +118,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Vault Share Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Failed to share asset' }, { status: 403 });
   }
 }

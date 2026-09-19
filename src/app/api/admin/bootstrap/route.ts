@@ -21,6 +21,10 @@ export async function GET() {
     const adminCount = deviceStore.getAdminCount();
     const settings = deviceStore.getSystemSettings();
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       initialized: isInitialized,
       adminCount,
@@ -33,6 +37,10 @@ export async function GET() {
       }
     });
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Failed to query bootstrap state' }, { status: 500 });
   }
 }
@@ -69,7 +77,11 @@ export async function POST(req: Request) {
 
     // Strict validation
     if (!orgName || !adminName || !email || !publicKey) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Missing required bootstrap fields: organization name, administrator name, official email, and device public key are required.' },
         { status: 400 }
       );
@@ -124,6 +136,10 @@ export async function POST(req: Request) {
       maxAge: 8 * 60 * 60, // 8 hours
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       message: 'SecureMAX Root Administrator successfully initialized and device enrolled.',
@@ -147,6 +163,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Admin Bootstrap Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: error.message || 'Bootstrap initialization failed' },
       { status: 403 }

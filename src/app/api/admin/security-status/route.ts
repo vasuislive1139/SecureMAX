@@ -20,7 +20,11 @@ export async function GET() {
   try {
     const session = await getVerifiedSession().catch(() => null);
     if (!session || session.role !== UserRole.ADMIN) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Unauthorized: Admin access required for Security Center' },
         { status: 403 }
       );
@@ -38,6 +42,10 @@ export async function GET() {
       a => a.severity === 'CRITICAL' || a.severity === 'WARNING' || (a.event_type && a.event_type.includes('ALERT')) || ((a as any).eventType && (a as any).eventType.includes('ALERT'))
     );
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       systemStatus: settings.system_state,
       initialized: settings.admin_initialized,
@@ -68,6 +76,10 @@ export async function GET() {
     });
   } catch (error: any) {
     console.error('[Admin Security Status Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: error.message || 'Failed to retrieve security status' },
       { status: 500 }

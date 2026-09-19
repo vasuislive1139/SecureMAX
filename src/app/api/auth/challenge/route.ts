@@ -30,6 +30,10 @@ export async function POST(req: Request) {
       maxAge: 120,
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       challengeId: record.challengeId,
       challengeToken: record.nonce,
@@ -44,6 +48,10 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error('[Challenge API Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: 'Failed to generate cryptographic challenge' }, { status: 500 });
   }
 }
@@ -71,6 +79,10 @@ export async function GET(req: Request) {
       maxAge: 120,
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       challengeId: record.challengeId,
       challengeToken: record.nonce,
@@ -84,6 +96,10 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: 'Internal challenge error' }, { status: 500 });
   }
 }

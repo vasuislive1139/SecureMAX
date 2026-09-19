@@ -10,7 +10,11 @@ export async function POST(req: Request) {
 
     const targetDeviceId = deviceId || session.deviceId;
     if (!targetDeviceId) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Missing deviceId parameter for step-up authentication' },
         { status: 400 }
       );
@@ -22,6 +26,10 @@ export async function POST(req: Request) {
       assetId,
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       message: 'Step-up authentication verified successfully. Temporary Server-Side KMS decryption permit granted.',
@@ -31,6 +39,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Step-Up Auth Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: error.message || 'Step-up authentication failed' },
       { status: 403 }

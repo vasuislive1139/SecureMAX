@@ -6,6 +6,10 @@ export async function GET() {
   try {
     const session = await getVerifiedSession();
     const user = session?.userId ? await deviceStore.getUserById(session.userId) : null;
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ 
       session,
       user: user ? {
@@ -20,6 +24,10 @@ export async function GET() {
       } : null
     });
   } catch (error) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ session: null, user: null });
   }
 }

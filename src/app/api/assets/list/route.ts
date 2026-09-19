@@ -71,6 +71,10 @@ export async function GET(req: Request) {
     const approvedAssetIds = userRequests.filter(r => r.status === 'APPROVED' && r.asset_id).map(r => r.asset_id!);
     const rejectedAssetIds = userRequests.filter(r => r.status === 'REJECTED' && r.asset_id).map(r => r.asset_id!);
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       assets: safeList,
@@ -88,6 +92,10 @@ export async function GET(req: Request) {
       users,
     });
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Unauthorized' }, { status: 401 });
   }
 }
@@ -101,38 +109,74 @@ export async function POST(req: Request) {
 
     if (action === 'set_default_policy') {
       if (policy !== 'PRIVATE' && policy !== 'ORGANIZATION') {
-        return NextResponse.json({ error: 'Invalid policy option' }, { status: 400 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Invalid policy option' }, { status: 400 });
       }
       deviceStore.setUserDefaultAccessPolicy(session.userId, policy);
-      return NextResponse.json({ success: true, message: `Default access policy set to ${policy}.` });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, message: `Default access policy set to ${policy}.` });
     }
 
     if (!assetId) {
-      return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
     }
 
     if (action === 'revoke_share') {
       deviceStore.revokeAssetShare(assetId, effectiveTargetUserId, session.userId);
-      return NextResponse.json({ success: true, message: `Access for user ${effectiveTargetUserId} revoked.` });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, message: `Access for user ${effectiveTargetUserId} revoked.` });
     }
 
     // Admins can modify any user; users can toggle their own assignment
     if (session.role !== UserRole.ADMIN && effectiveTargetUserId !== session.userId) {
-      return NextResponse.json({ error: 'Only administrators can modify other users\' assignments.' }, { status: 403 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Only administrators can modify other users\' assignments.' }, { status: 403 });
     }
 
     if (action === 'revoke') {
       deviceStore.revokeAssignment(assetId, effectiveTargetUserId);
-      return NextResponse.json({ success: true, message: `Access for user ${effectiveTargetUserId} revoked.` });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, message: `Access for user ${effectiveTargetUserId} revoked.` });
     }
 
     if (action === 'assign') {
       deviceStore.setAssignment(assetId, effectiveTargetUserId, Boolean(canRead), Boolean(canDecrypt));
-      return NextResponse.json({ success: true, message: `Access updated for user ${effectiveTargetUserId}.` });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, message: `Access updated for user ${effectiveTargetUserId}.` });
     }
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Failed to update asset' }, { status: 500 });
   }
 }

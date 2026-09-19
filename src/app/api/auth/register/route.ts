@@ -16,7 +16,11 @@ export async function POST(req: Request) {
     const { email, name, publicKey, deviceName, role: requestedRole, deviceType, os, browser } = body;
 
     if (!email || !name || !publicKey) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Missing required registration fields (email, name, publicKey required)' },
         { status: 400 }
       );
@@ -25,7 +29,11 @@ export async function POST(req: Request) {
     const cleanEmail = String(email).toLowerCase().trim();
     const existing = await deviceStore.getUserByEmail(cleanEmail);
     if (existing) {
-      return NextResponse.json({ error: 'User already registered with this email address' }, { status: 409 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'User already registered with this email address' }, { status: 409 });
     }
 
     // Zero-Trust: Public self-registration ALWAYS defaults to USER.
@@ -114,6 +122,10 @@ export async function POST(req: Request) {
       maxAge: 8 * 60 * 60, // 8 hours
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       user: {
@@ -131,6 +143,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Register API Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Registration failed' }, { status: 500 });
   }
 }

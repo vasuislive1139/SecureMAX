@@ -36,7 +36,11 @@ export async function POST(req: Request) {
     if (isMetaMaskAuth) {
       const cleanWallet = String(walletAddress || '').trim().toLowerCase();
       if (!cleanWallet || !challengeId || !signature) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Missing required credentials (walletAddress, challengeId, and signature required for Admin authentication)' },
           { status: 400 }
         );
@@ -45,7 +49,11 @@ export async function POST(req: Request) {
       // STRICT NONCE LIFECYCLE: Enforce challengeId matches the HttpOnly cookie
       const authNonceCookie = cookies().get('auth_nonce')?.value;
       if (!authNonceCookie || authNonceCookie !== challengeId) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Authentication challenge expired or invalid (nonce mismatch). Please request a new challenge.' },
           { status: 400 }
         );
@@ -56,7 +64,11 @@ export async function POST(req: Request) {
       // 1. Retrieve challenge from persistent store
       const storedChallenge = deviceStore.getChallenge(challengeId);
       if (!storedChallenge) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Authentication challenge expired or invalid. Please request a new challenge.' },
           { status: 400 }
         );
@@ -68,14 +80,22 @@ export async function POST(req: Request) {
           description: `Security Alert: Attempted replay of already consumed challenge ${challengeId} for wallet ${cleanWallet}`,
           severity: 'CRITICAL',
         });
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Challenge has already been consumed (replay attack prevented). Please request a new challenge.' },
           { status: 400 }
         );
       }
 
       if (new Date(storedChallenge.expiresAt).getTime() < Date.now()) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Challenge expired. Please request a new challenge.' },
           { status: 400 }
         );
@@ -91,7 +111,11 @@ export async function POST(req: Request) {
           description: `Admin authentication failed: Malformed cryptographic signature for wallet ${cleanWallet}`,
           severity: 'WARNING',
         });
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Malformed or invalid cryptographic wallet signature.' },
           { status: 401 }
         );
@@ -104,7 +128,11 @@ export async function POST(req: Request) {
           description: `Admin authentication failed: Claimed wallet ${cleanWallet} does not match signature signer ${recoveredSigner}`,
           severity: 'CRITICAL',
         });
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Wallet signature mismatch. Cryptographic proof failed.' },
           { status: 401 }
         );
@@ -118,7 +146,11 @@ export async function POST(req: Request) {
           description: `ACCESS DENIED: Unauthorized wallet ${recoveredSigner} attempted Administrator login. Registered admin wallet is ${registeredAdminWallet}`,
           severity: 'CRITICAL',
         });
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'ACCESS DENIED: Wallet address is not authorized as the Organization Administrator.' },
           { status: 403 }
         );
@@ -130,14 +162,22 @@ export async function POST(req: Request) {
                         Array.from(deviceStore.users.values()).find(u => u.role === UserRole.ADMIN);
 
       if (!adminUser) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'System error: Organization Administrator identity record not found. Bootstrap required.' },
           { status: 500 }
         );
       }
 
       if (adminUser.status !== UserStatus.ACTIVE) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: `Administrator account is ${adminUser.status}. Access prohibited.` },
           { status: 403 }
         );
@@ -150,7 +190,11 @@ export async function POST(req: Request) {
           success: false,
           reason: 'ADMIN_ACCOUNT_LOCKED',
         });
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'ACCESS DENIED: Administrator account is locked. Emergency recovery ceremony required.' },
           { status: 403 }
         );
@@ -159,7 +203,11 @@ export async function POST(req: Request) {
       // 5. Atomically consume the challenge
       const consumption = deviceStore.consumeChallenge(challengeId);
       if (!consumption.valid) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: consumption.error || 'Failed to consume challenge' },
           { status: 400 }
         );
@@ -225,7 +273,11 @@ export async function POST(req: Request) {
         maxAge: 8 * 60 * 60, // 8 hours
       });
 
-      return NextResponse.json({
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({
         success: true,
         assuranceLevel: 'LEVEL_3',
         authModel: 'METAMASK',
@@ -246,7 +298,11 @@ export async function POST(req: Request) {
     const identifier = String(email || adminId || body.userId || '').trim();
 
     if (!identifier || (!challengeId && !challengeToken) || !signature) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Missing required credentials (email/userId, challengeId, and cryptographic signature required)' },
         { status: 400 }
       );
@@ -256,7 +312,11 @@ export async function POST(req: Request) {
     if (challengeId) {
       const authNonceCookie = cookies().get('auth_nonce')?.value;
       if (!authNonceCookie || authNonceCookie !== challengeId) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Cryptographic challenge expired or invalid (nonce mismatch). Please request a new challenge.' },
           { status: 400 }
         );
@@ -271,7 +331,11 @@ export async function POST(req: Request) {
     if (challengeId) {
       const storedChallenge = deviceStore.getChallenge(challengeId);
       if (!storedChallenge) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Cryptographic challenge expired or invalid. Please request a new challenge.' },
           { status: 400 }
         );
@@ -283,14 +347,22 @@ export async function POST(req: Request) {
           description: `Security Alert: Attempted replay of challenge ${challengeId} for user ${identifier}`,
           severity: 'CRITICAL',
         });
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Challenge has already been consumed (replay attack prevented). Please request a new challenge.' },
           { status: 400 }
         );
       }
 
       if (new Date(storedChallenge.expiresAt).getTime() < Date.now()) {
-        return NextResponse.json({ error: 'Challenge expired. Please request a new challenge.' }, { status: 400 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Challenge expired. Please request a new challenge.' }, { status: 400 });
       }
 
       challengeMessage = storedChallenge.message;
@@ -299,13 +371,21 @@ export async function POST(req: Request) {
       if (tokenVerification.valid && tokenVerification.data) {
         challengeMessage = tokenVerification.data.message;
         if (new Date(tokenVerification.data.expiresAt).getTime() < Date.now()) {
-          return NextResponse.json({ error: 'Challenge token expired. Please request a new challenge.' }, { status: 400 });
+          
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Challenge token expired. Please request a new challenge.' }, { status: 400 });
         }
       }
     }
 
     if (!challengeMessage) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Cryptographic challenge expired or invalid. Please request a new challenge.' },
         { status: 400 }
       );
@@ -340,7 +420,11 @@ export async function POST(req: Request) {
     const user = foundUser!;
 
     if (user.status !== UserStatus.ACTIVE) {
-      return NextResponse.json({ error: `User account is ${user.status}. Access prohibited.` }, { status: 403 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: `User account is ${user.status}. Access prohibited.` }, { status: 403 });
     }
 
     // 3. Resolve Device & Enforce Enrollment Binding
@@ -353,7 +437,11 @@ export async function POST(req: Request) {
 
       // Check single-device policy: only the primary admin workstation device is allowed
       if (deviceId && adminDev && deviceId !== adminDev.id && deviceId !== adminDev.device_id) {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Non-primary device attempted administrative login. Access denied.' },
           { status: 403 }
         );
@@ -386,7 +474,11 @@ export async function POST(req: Request) {
 
         device = adminDev;
       } else {
-        return NextResponse.json(
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
           { error: 'Organization Administrator must authenticate using MetaMask wallet signature.' },
           { status: 403 }
         );
@@ -411,7 +503,11 @@ export async function POST(req: Request) {
     }
 
     if (device.status !== 'ACTIVE') {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: `This device credential has been ${device.status}. Please contact administrator.` },
         { status: 403 }
       );
@@ -436,7 +532,11 @@ export async function POST(req: Request) {
         userName: user.name,
         severity: 'WARNING',
       });
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Cryptographic signature verification failed. Private key mismatch.' },
         { status: 401 }
       );
@@ -501,6 +601,10 @@ export async function POST(req: Request) {
       maxAge: 8 * 60 * 60, // 8 hours
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       assuranceLevel,
@@ -520,6 +624,10 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error('[Login API Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: 'Internal authentication server error' }, { status: 500 });
   }
 }

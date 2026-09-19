@@ -7,7 +7,11 @@ export async function POST(req: Request) {
     const { code } = body;
 
     if (!code) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Enrollment code is required' },
         { status: 400 }
       );
@@ -16,12 +20,20 @@ export async function POST(req: Request) {
     const verification = deviceStore.verifyEnrollmentCapability(code);
 
     if (!verification.valid || !verification.enrollment) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: verification.error || 'Invalid or expired enrollment code' },
         { status: 400 }
       );
     }
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       valid: true,
@@ -48,6 +60,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Verify Enrollment Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: error.message || 'Failed to verify enrollment code' },
       { status: 500 }

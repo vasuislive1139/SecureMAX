@@ -24,7 +24,11 @@ export async function POST(req: Request) {
     if (session.role === UserRole.ADMIN) {
       if (isNewUser || targetUserId === '__NEW_USER__') {
         if (!newUserName || !newUserEmail) {
-          return NextResponse.json(
+          
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
             { error: 'Please provide both Full Name and Email Address for the new user.' },
             { status: 400 }
           );
@@ -75,7 +79,11 @@ export async function POST(req: Request) {
         }
       } else {
         if (!targetUserId) {
-          return NextResponse.json(
+          
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
             { error: 'Admin account is strictly hardware-bound. To enroll a device, select an authorized team member or onboard a new user.' },
             { status: 400 }
           );
@@ -86,11 +94,19 @@ export async function POST(req: Request) {
 
     const targetUser = await deviceStore.getUserById(enrollForUserId);
     if (!targetUser) {
-      return NextResponse.json({ error: 'Target user record not found' }, { status: 404 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Target user record not found' }, { status: 404 });
     }
 
     if (targetUser.role === UserRole.ADMIN) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Root administrator accounts are strictly single-device hardware-bound. To onboard a team member, choose "Onboard New User". To authorize a new admin terminal, initiate an Administrator Recovery Ceremony.' },
         { status: 403 }
       );
@@ -120,6 +136,10 @@ export async function POST(req: Request) {
       expiresAt: enrollment.expires_at,
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       enrollment: {
@@ -135,6 +155,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Enrollment Start Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Unauthorized or failed to initiate enrollment' }, { status: 400 });
   }
 }

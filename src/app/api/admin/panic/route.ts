@@ -19,7 +19,11 @@ export async function POST(req: Request) {
     const adminId = body.adminId || session?.userId;
 
     if (!adminId) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Missing administrator ID for panic lock' },
         { status: 400 }
       );
@@ -28,7 +32,11 @@ export async function POST(req: Request) {
     // Verify caller is admin
     const targetAdmin = await deviceStore.getUserByEmailOrId(adminId);
     if (!targetAdmin || targetAdmin.role !== UserRole.ADMIN) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Only root administrator accounts can activate panic lockout' },
         { status: 403 }
       );
@@ -39,6 +47,10 @@ export async function POST(req: Request) {
     // Clear session cookie immediately
     cookies().delete('securemesh_session');
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       message: 'CRITICAL SECURITY ACTION: Administrator account is locked. All sessions revoked and device suspended. Emergency recovery ceremony is required to re-establish access.',
@@ -46,6 +58,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Admin Panic Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: error.message || 'Failed to trigger panic lock' },
       { status: 500 }

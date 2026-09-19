@@ -27,7 +27,11 @@ export async function POST(req: Request) {
     } = body;
 
     if (!adminId || !recoveryCode || !newPublicKey) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Missing required recovery parameters: admin ID, recovery code, and new device public key are required.' },
         { status: 400 }
       );
@@ -75,6 +79,10 @@ export async function POST(req: Request) {
       maxAge: 8 * 60 * 60,
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       message: 'Emergency recovery ceremony completed. Previous credentials revoked and new device securely enrolled.',
@@ -88,6 +96,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Admin Emergency Recovery Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: error.message || 'Emergency recovery ceremony failed' },
       { status: 403 }

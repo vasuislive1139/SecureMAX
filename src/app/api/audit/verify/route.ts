@@ -13,7 +13,11 @@ export async function GET(req: Request) {
     
     // Only Admin or Auditors can verify
     if (session.role !== 'ADMIN' && session.role !== 'AUDITOR') {
-      return NextResponse.json({ error: 'Permission Denied: Must be ADMIN or AUDITOR' }, { status: 403 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Permission Denied: Must be ADMIN or AUDITOR' }, { status: 403 });
     }
 
     // 1. Fetch all audit logs (up to 1000 for demo)
@@ -31,7 +35,11 @@ export async function GET(req: Request) {
     }
 
     if (logs.length === 0) {
-      return NextResponse.json({ success: true, message: 'No logs to verify', localRoot: '0x0000000000000000000000000000000000000000000000000000000000000000' });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ success: true, message: 'No logs to verify', localRoot: '0x0000000000000000000000000000000000000000000000000000000000000000' });
     }
 
     // 2. Compute local Merkle Root
@@ -67,6 +75,10 @@ export async function GET(req: Request) {
       }
     }
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       logCount: leaves.length,
@@ -79,6 +91,10 @@ export async function GET(req: Request) {
     });
 
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Failed to verify audit logs' }, { status: 500 });
   }
 }

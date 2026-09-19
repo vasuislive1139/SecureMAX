@@ -11,6 +11,10 @@ export const revalidate = 0;
 export async function POST(req: Request) {
   // CRITICAL PRODUCTION GUARD
   if (process.env.NODE_ENV === 'production') {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: 'ACCESS DENIED: Demo bypass authentication is strictly disabled in production environments.' },
       { status: 403 }
@@ -27,14 +31,22 @@ export async function POST(req: Request) {
 
     const user = await deviceStore.getUserByEmail(targetEmail);
     if (!user) {
-      return NextResponse.json({ error: 'Demo user record not found' }, { status: 404 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Demo user record not found' }, { status: 404 });
     }
 
     const devices = deviceStore.getDevicesForUser(user.id);
     const activeDevice = devices.find(d => d.status === 'ACTIVE') || devices[0] || null;
 
     if (!activeDevice) {
-      return NextResponse.json({ error: 'No active device configured for demo user' }, { status: 400 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'No active device configured for demo user' }, { status: 400 });
     }
 
     // Establish stateful session
@@ -79,6 +91,10 @@ export async function POST(req: Request) {
       maxAge: 8 * 60 * 60, // 8 hours
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       user: {
@@ -92,6 +108,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Demo Login Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: 'Failed to create demo session' }, { status: 500 });
   }
 }

@@ -6,11 +6,19 @@ import { UserRole } from '@/types';
 export async function GET() {
   try {
     const positions = deviceStore.getPositions();
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       positions,
     });
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: error.message || 'Failed to fetch positions' },
       { status: 500 }
@@ -22,7 +30,11 @@ export async function POST(req: Request) {
   try {
     const session = await getVerifiedSession();
     if (session.role !== UserRole.ADMIN) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Unauthorized: Only Administrator can create or configure positions' },
         { status: 403 }
       );
@@ -32,7 +44,11 @@ export async function POST(req: Request) {
     const { name, description, privilege_level, permissions, adminConfirmed } = body;
 
     if (!name || !description) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Position Name and Description are required' },
         { status: 400 }
       );
@@ -41,7 +57,11 @@ export async function POST(req: Request) {
     const validLevels = ['STANDARD', 'ELEVATED', 'ADMINISTRATIVE'];
     const level = (privilege_level || 'STANDARD').toUpperCase();
     if (!validLevels.includes(level)) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         { error: 'Invalid privilege level. Must be STANDARD, ELEVATED, or ADMINISTRATIVE' },
         { status: 400 }
       );
@@ -57,7 +77,11 @@ export async function POST(req: Request) {
     );
 
     if ((isHighPrivilege || hasDangerousPerms) && !adminConfirmed) {
-      return NextResponse.json(
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json(
         {
           error: 'High-privilege position creation requires explicit administrative confirmation.',
           requiresConfirmation: true,
@@ -96,6 +120,10 @@ export async function POST(req: Request) {
       callerUserId: session.userId,
     });
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       position: newPosition,
@@ -103,6 +131,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Create Position Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: error.message || 'Failed to create position' },
       { status: 400 }

@@ -9,15 +9,27 @@ export async function POST(req: Request) {
     const { action, assetId, newName, newFolder } = body;
 
     if (!assetId) {
-      return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
     }
 
     if (action === 'rename') {
       if (!newName || typeof newName !== 'string' || !newName.trim()) {
-        return NextResponse.json({ error: 'New file name is required' }, { status: 400 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'New file name is required' }, { status: 400 });
       }
       const updated = deviceStore.renameAsset(assetId, newName.trim(), session.userId);
-      return NextResponse.json({
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({
         success: true,
         message: `Asset renamed to "${updated.name}".`,
         asset: updated,
@@ -27,10 +39,18 @@ export async function POST(req: Request) {
     if (action === 'move') {
       const validFolders = ['Projects', 'Finance', 'HR', 'Engineering', 'Legal'];
       if (!newFolder || !validFolders.includes(newFolder)) {
-        return NextResponse.json({ error: 'Invalid destination folder' }, { status: 400 });
+        
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Invalid destination folder' }, { status: 400 });
       }
       const updated = deviceStore.moveAssetFolder(assetId, newFolder, session.userId);
-      return NextResponse.json({
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({
         success: true,
         message: `Asset moved to folder "${newFolder}".`,
         asset: updated,
@@ -39,15 +59,27 @@ export async function POST(req: Request) {
 
     if (action === 'delete') {
       deviceStore.deleteAsset(assetId, session.userId);
-      return NextResponse.json({
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({
         success: true,
         message: 'Asset permanently deleted from vault.',
       });
     }
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: 'Invalid action requested' }, { status: 400 });
   } catch (error: any) {
     console.error('[Vault Action Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ error: error.message || 'Operation failed' }, { status: 403 });
   }
 }

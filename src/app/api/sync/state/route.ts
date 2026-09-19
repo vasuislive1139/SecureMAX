@@ -30,6 +30,10 @@ export async function GET() {
       ttlMinutes: r.ttl_minutes || 30,
     }));
 
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({
       success: true,
       pendingRequests: formattedPending,
@@ -45,6 +49,10 @@ export async function GET() {
       timestamp: Date.now(),
     });
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to sync state' },
       { status: 500 }
@@ -89,6 +97,10 @@ export async function POST(req: Request) {
 
     return GET();
   } catch (error: any) {
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { success: false, error: error.message || 'Sync POST error' },
       { status: 500 }

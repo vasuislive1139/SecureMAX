@@ -11,12 +11,20 @@ export async function POST(req: Request) {
     const { assetId } = body;
 
     if (!assetId) {
-      return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Missing assetId parameter' }, { status: 400 });
     }
 
     const asset = deviceStore.assets.get(assetId);
     if (!asset) {
-      return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+      
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
+    return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
     }
 
     // 1. Authorize access via 10-step flow
@@ -90,6 +98,10 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('[Decryption API Error]:', error);
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json(
       { error: error.message || 'Access Denied: You are not authorized to decrypt this asset.' },
       { status: 403 }

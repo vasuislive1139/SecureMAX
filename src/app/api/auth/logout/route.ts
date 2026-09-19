@@ -34,9 +34,17 @@ export async function POST() {
 
     cookies().delete('securemesh_session');
     
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     cookies().delete('securemesh_session');
+    
+    if (require('@/lib/auth/deviceStore').deviceStore?.lastSyncPromise) {
+      await require('@/lib/auth/deviceStore').deviceStore.lastSyncPromise;
+    }
     return NextResponse.json({ success: true });
   }
 }
