@@ -58,8 +58,8 @@ export function getLocalDeviceInfo(): ClientDeviceInfo | null {
 }
 
 /**
- * Generates or retrieves the device's hardware-isolated P-256 key pair.
- * The private key never leaves this browser.
+ * Generates or retrieves the device's cryptographic ECDSA P-256 credential.
+ * The private key is held in browser local storage and never transmitted over the network.
  */
 export async function getOrCreateLocalDeviceKey(
   preferredName?: string,

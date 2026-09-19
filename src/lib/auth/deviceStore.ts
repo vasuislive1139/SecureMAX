@@ -3176,6 +3176,26 @@ class SecureMaxStore {
     return Array.from(this.sessions.values()).filter(s => s.user_id === userId);
   }
 
+  public getSession(sessionId: string): StoredDeviceSession | undefined {
+    return this.sessions.get(sessionId);
+  }
+
+  public invalidateSession(sessionId: string, callerUserId?: string): boolean {
+    const s = this.sessions.get(sessionId);
+    if (!s) return false;
+    s.status = 'REVOKED';
+    this.recordAuditEvent({
+      eventType: 'SESSION_REVOKED',
+      description: `Session ${sessionId} revoked for user ${s.user_name || s.user_id}`,
+      targetId: sessionId,
+      target: sessionId,
+      performedBy: callerUserId,
+      severity: 'INFO',
+    });
+    this.saveToDisk();
+    return true;
+  }
+
   public revokeSession(sessionId: string, callerUserId?: string): void {
     const s = this.sessions.get(sessionId);
     if (!s) return;

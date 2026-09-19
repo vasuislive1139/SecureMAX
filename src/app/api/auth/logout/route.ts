@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getVerifiedSession } from '@/lib/auth/session';
+import { deviceStore } from '@/lib/auth/deviceStore';
 import { supabaseAdmin } from '@/lib/db/client';
 
 export async function POST() {
@@ -8,13 +9,27 @@ export async function POST() {
     const session = await getVerifiedSession().catch(() => null);
     
     if (session) {
+      if (session.sessionId) {
+        deviceStore.invalidateSession(session.sessionId, session.userId);
+      }
+
+      deviceStore.recordAuditEvent({
+        eventType: 'USER_LOGOUT',
+        description: `User ${session.name || session.email || session.userId} logged out`,
+        targetId: session.sessionId,
+        userName: session.name,
+        userEmail: session.email,
+        performedBy: session.name || session.email,
+        severity: 'INFO',
+      });
+
       try {
         await supabaseAdmin
           .from('access_sessions')
           .update({ status: 'REVOKED' })
           .eq('id', session.sessionId);
       } catch (dbErr) {
-        // Ignore offline database errors
+        // Fallback gracefully when Supabase is offline
       }
     }
 

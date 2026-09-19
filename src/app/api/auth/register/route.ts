@@ -3,18 +3,20 @@ import { cookies } from 'next/headers';
 import { SignJWT } from 'jose';
 import crypto from 'crypto';
 import { deviceStore } from '@/lib/auth/deviceStore';
+import { getJwtSecret } from '@/lib/auth/session';
 import { UserRole, UserStatus } from '@/types';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { email, name, publicKey, deviceName, role: requestedRole } = body;
+    const { email, name, publicKey, deviceName, role: requestedRole, deviceType, os, browser } = body;
 
     if (!email || !name || !publicKey) {
       return NextResponse.json(
-        { error: 'Missing required registration fields (email, name, publicKey)' },
+        { error: 'Missing required registration fields (email, name, publicKey required)' },
         { status: 400 }
       );
     }
@@ -22,24 +24,28 @@ export async function POST(req: Request) {
     const cleanEmail = String(email).toLowerCase().trim();
     const existing = deviceStore.getUserByEmail(cleanEmail);
     if (existing) {
-      return NextResponse.json({ error: 'User already registered with this email' }, { status: 409 });
+      return NextResponse.json({ error: 'User already registered with this email address' }, { status: 409 });
+    }
+
+    // DISALLOW PUBLIC SELF-ASSIGNMENT OF ADMIN ROLE
+    // Administrator identity can only be established via Root Admin Bootstrap ceremony
+    let userRole = UserRole.USER;
+    if (requestedRole === 'AUDITOR') {
+      userRole = UserRole.AUDITOR;
+    } else if (requestedRole === 'MANAGER') {
+      userRole = UserRole.MANAGER;
     }
 
     const userId = 'usr_' + crypto.randomUUID().slice(0, 8);
     const did = `did:securemax:user:${userId.slice(-6)}`;
-    let userRole = UserRole.USER;
-    if (requestedRole === 'ADMIN' || deviceStore.users.size === 0) {
-      userRole = UserRole.ADMIN;
-    } else if (requestedRole === 'AUDITOR') {
-      userRole = UserRole.AUDITOR;
-    }
 
+    // INITIAL KYC STATUS MUST BE PENDING (Zero-Trust)
     const newUser = {
       id: userId,
       name: String(name).trim(),
       email: cleanEmail,
       role: userRole,
-      kyc_status: 'VERIFIED' as const,
+      kyc_status: 'PENDING' as const,
       status: UserStatus.ACTIVE,
       did,
       created_at: new Date().toISOString(),
@@ -48,35 +54,43 @@ export async function POST(req: Request) {
     deviceStore.users.set(newUser.id, newUser);
     deviceStore.users.set(newUser.email, newUser);
 
-    // Register initial device
-    const isAdmin = userRole === UserRole.ADMIN;
+    // Enroll initial device credential
     const device = deviceStore.registerDevice({
       userId: newUser.id,
-      deviceName: deviceName || (isAdmin ? 'Admin Authorized Laptop' : 'Primary Workstation'),
-      publicKey,
-      isAdminDevice: isAdmin,
+      deviceName: deviceName || 'Primary Enrolled Device',
+      publicKey: String(publicKey).trim(),
+      isAdminDevice: false,
     });
 
-    // Record real audit events
+    // Record audit trails
     deviceStore.recordAuditEvent({
       eventType: 'USER_IDENTITY_REGISTERED',
-      description: `New identity registered: ${newUser.name} (${newUser.role}) - ${newUser.did}`,
+      description: `New identity registered: ${newUser.name} (${newUser.role}) with status PENDING KYC - ${newUser.did}`,
       targetId: newUser.id,
       userEmail: newUser.email,
       userName: newUser.name,
       severity: 'INFO',
     });
+
     deviceStore.recordAuditEvent({
       eventType: 'HARDWARE_DEVICE_ENROLLED',
-      description: `Hardware device enrolled: ${device.device_name} (${device.algorithm})`,
+      description: `Primary device credential enrolled: ${device.device_name} (${device.algorithm})`,
       targetId: device.id,
       userEmail: newUser.email,
       userName: newUser.name,
       severity: 'INFO',
     });
 
-    // Issue SecureMAX 8-Hour Session
-    const sessionId = crypto.randomUUID();
+    // Establish stateful session
+    const session = deviceStore.createSession({
+      userId: newUser.id,
+      deviceId: device.id,
+      authLevel: 'P256',
+      durationHours: 8,
+    });
+
+    // Issue SecureMAX 8-Hour Session Token
+    const jwtSecret = getJwtSecret();
     const sessionToken = await new SignJWT({
       userId: newUser.id,
       email: newUser.email,
@@ -85,12 +99,13 @@ export async function POST(req: Request) {
       did: newUser.did,
       deviceId: device.id,
       deviceName: device.device_name,
-      sessionId,
+      sessionId: session.session_id,
+      assuranceLevel: 'LEVEL_2',
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('8h')
-      .sign(JWT_SECRET);
+      .sign(jwtSecret);
 
     cookies().set('securemesh_session', sessionToken, {
       httpOnly: true,
@@ -108,6 +123,7 @@ export async function POST(req: Request) {
         email: newUser.email,
         did: newUser.did,
         role: newUser.role,
+        kycStatus: newUser.kyc_status,
         device: {
           id: device.id,
           name: device.device_name,

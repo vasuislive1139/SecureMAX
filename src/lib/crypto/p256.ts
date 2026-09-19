@@ -9,6 +9,7 @@ export interface ChallengeData {
   message: string;
   issuedAt: string;
   expiresAt: string;
+  challengeToken?: string;
 }
 
 /**
@@ -52,6 +53,10 @@ export function createChallenge(identifier: string, ttlSeconds = 120): Challenge
     expiresAt,
   });
 
+  const secret = process.env.JWT_SECRET || 'securemax-challenge-signing-secret';
+  const hmac = crypto.createHmac('sha256', secret).update(`${challengeId}:${identifier}:${nonce}:${expiresAt}`).digest('hex');
+  const challengeToken = Buffer.from(JSON.stringify({ challengeId, identifier, nonce, expiresAt, hmac })).toString('base64');
+
   return {
     challengeId,
     identifier,
@@ -59,7 +64,51 @@ export function createChallenge(identifier: string, ttlSeconds = 120): Challenge
     message,
     issuedAt,
     expiresAt,
+    challengeToken,
   };
+}
+
+/**
+ * Validates a signed challenge token for serverless environments.
+ */
+export function verifyChallengeToken(token: string): { valid: boolean; data?: ChallengeData } {
+  try {
+    const raw = Buffer.from(token, 'base64').toString('utf8');
+    const parsed = JSON.parse(raw);
+    const secret = process.env.JWT_SECRET || 'securemax-challenge-signing-secret';
+    const expectedHmac = crypto.createHmac('sha256', secret).update(`${parsed.challengeId}:${parsed.identifier}:${parsed.nonce}:${parsed.expiresAt}`).digest('hex');
+
+    if (expectedHmac !== parsed.hmac) {
+      return { valid: false };
+    }
+
+    if (new Date(parsed.expiresAt).getTime() < Date.now()) {
+      return { valid: false };
+    }
+
+    const message = buildChallengeMessage({
+      challengeId: parsed.challengeId,
+      identifier: parsed.identifier,
+      nonce: parsed.nonce,
+      issuedAt: new Date(new Date(parsed.expiresAt).getTime() - 120000).toISOString(),
+      expiresAt: parsed.expiresAt,
+    });
+
+    return {
+      valid: true,
+      data: {
+        challengeId: parsed.challengeId,
+        identifier: parsed.identifier,
+        nonce: parsed.nonce,
+        message,
+        issuedAt: new Date(new Date(parsed.expiresAt).getTime() - 120000).toISOString(),
+        expiresAt: parsed.expiresAt,
+        challengeToken: token,
+      },
+    };
+  } catch {
+    return { valid: false };
+  }
 }
 
 /**

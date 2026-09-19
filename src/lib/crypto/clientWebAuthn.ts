@@ -167,16 +167,16 @@ export async function registerWebAuthnPasskey(deviceName: string, userEmail?: st
         };
       }
     } catch (err) {
-      console.warn('[WebAuthn Platform Auth Notice]: Falling back to hardware-isolated Web Crypto P-256:', err);
+      console.warn('[WebAuthn Platform Auth Notice]: Falling back to Cryptographic Device Credential (ECDSA P-256):', err);
     }
   }
 
-  // Secure Enclave P-256 fallback (works 100% on all browsers, desktops, and automated test runners)
+  // Cryptographic ECDSA P-256 credential fallback (works 100% on all browsers, desktops, and automated test runners)
   const localKey = await generateAndSaveDeviceKey(deviceName, userEmail);
   return {
     credentialId: 'cred_' + window.crypto.randomUUID().slice(0, 16),
     publicKeySpki: localKey.publicKeySpki,
-    credentialType: 'Hardware-Isolated P-256 Passkey',
+    credentialType: 'Cryptographic Device Credential — ECDSA P-256',
     clientDevice: localKey,
   };
 }

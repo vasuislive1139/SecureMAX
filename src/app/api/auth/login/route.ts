@@ -2,38 +2,53 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { SignJWT } from 'jose';
 import crypto from 'crypto';
-import { verifyP256Signature } from '@/lib/crypto/p256';
+import { verifyP256Signature, verifyChallengeToken } from '@/lib/crypto/p256';
 import { deviceStore } from '@/lib/auth/deviceStore';
+import { getJwtSecret } from '@/lib/auth/session';
 import { UserRole, UserStatus } from '@/types';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { email, adminId, deviceId, challengeId, signature, publicKey, deviceName, region } = body;
+    const { email, adminId, deviceId, challengeId, challengeToken, signature, region } = body;
     const identifier = String(email || adminId || body.userId || '').trim();
 
-    if (!identifier || !challengeId || !signature) {
+    if (!identifier || (!challengeId && !challengeToken) || !signature) {
       return NextResponse.json(
         { error: 'Missing required credentials (email/adminId, challengeId, and cryptographic signature required)' },
         { status: 400 }
       );
     }
 
-    // 1. Retrieve and validate the challenge
-    const cachedChallenge = deviceStore.challengeCache.get(challengeId);
-    if (!cachedChallenge) {
+    // 1. Retrieve and validate the challenge (via memory cache or signed token)
+    let challengeMessage: string | null = null;
+    let challengeExpiresAt: string | null = null;
+
+    if (challengeId && deviceStore.challengeCache.has(challengeId)) {
+      const cachedChallenge = deviceStore.challengeCache.get(challengeId)!;
+      challengeMessage = cachedChallenge.message;
+      challengeExpiresAt = cachedChallenge.expiresAt;
+      // Single-use: delete to prevent replay attacks
+      deviceStore.challengeCache.delete(challengeId);
+    } else if (challengeToken) {
+      const tokenVerification = verifyChallengeToken(challengeToken);
+      if (tokenVerification.valid && tokenVerification.data) {
+        challengeMessage = tokenVerification.data.message;
+        challengeExpiresAt = tokenVerification.data.expiresAt;
+      }
+    }
+
+    if (!challengeMessage || !challengeExpiresAt) {
       return NextResponse.json(
         { error: 'Cryptographic challenge expired or invalid. Please request a new challenge.' },
         { status: 400 }
       );
     }
 
-    // Delete single-use challenge to prevent replay attacks
-    deviceStore.challengeCache.delete(challengeId);
-
-    if (new Date(cachedChallenge.expiresAt).getTime() < Date.now()) {
+    if (new Date(challengeExpiresAt).getTime() < Date.now()) {
       return NextResponse.json({ error: 'Challenge expired. Please try again.' }, { status: 400 });
     }
 
@@ -61,125 +76,63 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Resolve Device & Enforce Device Credential Binding
+    // 3. Resolve Device & Enforce Enrollment Binding (NEVER enroll or replace key during login)
     const userDevices = deviceStore.getDevicesForUser(user.id);
-    let device = deviceId ? deviceStore.getDeviceById(deviceId) : null;
+    let device = null;
 
-    // A device registered to a different user ID cannot be used for this login
-    if (device && device.user_id !== user.id) {
-      device = null;
-    }
-
-    // If user is ADMIN: HARDWARE-BOUND SINGLETON WORKSTATION
-    // Auto-anchor the administrator's physical browser terminal key to the verified admin terminal
     if (user.role === UserRole.ADMIN) {
-      let adminDev = (device && device.is_admin_device) ? device : (userDevices.find(d => d.is_admin_device && d.status === 'ACTIVE') || userDevices.find(d => d.is_admin_device));
-
+      // ADMIN SINGLE-DEVICE POLICY: strictly bound to primary admin workstation
+      const adminDev = userDevices.find(d => d.is_admin_device && d.status === 'ACTIVE');
+      
       if (!adminDev) {
-        // Register this workstation browser as the verified Admin hardware terminal
-        adminDev = deviceStore.registerDevice({
-          userId: user.id,
-          deviceName: deviceName || 'Admin Workstation (Hardware-Bound Terminal)',
-          publicKey: publicKey || 'admin_terminal_key',
-          isAdminDevice: true,
-          customDeviceId: deviceId || 'dev_admin_primary',
-        });
-      } else if (publicKey && adminDev.public_key !== publicKey) {
-        // Anchor the physical browser hardware key to this Admin device
-        adminDev.public_key = publicKey;
-        if (deviceName) adminDev.device_name = deviceName;
-        adminDev.last_authenticated_at = new Date().toISOString();
-        deviceStore.devices.set(adminDev.id, adminDev);
-        const passport = deviceStore.devicePassports.get(adminDev.id);
-        if (passport) {
-          passport.public_key = publicKey;
-          if (deviceName) passport.device_name = deviceName;
-          passport.last_authenticated_at = new Date().toISOString();
-          deviceStore.devicePassports.set(adminDev.id, passport);
-        }
-        deviceStore.recordAuditEvent({
-          eventType: 'ADMIN_HARDWARE_TERMINAL_BOUND',
-          description: `Admin hardware terminal anchored with P-256 passkey for ${user.name}`,
-          targetId: adminDev.id,
-          userName: user.name,
-          userEmail: user.email,
-          performedBy: user.name,
-          severity: 'INFO',
-        });
-        deviceStore.saveToDisk();
-      }
-      device = adminDev;
-    }
-
-    if (!device) {
-      if (publicKey) {
-        device = userDevices.find(d => d.public_key === publicKey) || null;
-      }
-
-      // For standard users / managers / auditors on first login:
-      if (!device) {
-        const seededDev = userDevices.find(
-          d => d.status === 'ACTIVE' && (d.public_key.startsWith('MFkwEwYHKoZIzj0CAQYIKoZ') || d.public_key.startsWith('MHYw') || d.public_key.includes('==') || d.public_key.length < 50)
+        return NextResponse.json(
+          { error: 'ACCESS DENIED: No active Primary Admin Workstation registered. System bootstrap required.' },
+          { status: 403 }
         );
-
-        if (seededDev && publicKey) {
-          seededDev.public_key = publicKey;
-          if (deviceName) seededDev.device_name = deviceName;
-          seededDev.last_authenticated_at = new Date().toISOString();
-          deviceStore.devices.set(seededDev.id, seededDev);
-          const passport = deviceStore.devicePassports.get(seededDev.id);
-          if (passport) {
-            passport.public_key = publicKey;
-            if (deviceName) passport.device_name = deviceName;
-            passport.last_authenticated_at = new Date().toISOString();
-            deviceStore.devicePassports.set(seededDev.id, passport);
-          }
-          deviceStore.saveToDisk();
-          device = seededDev;
-        } else if (publicKey && userDevices.length === 0) {
-          device = deviceStore.registerDevice({
-            userId: user.id,
-            deviceName: deviceName || 'Primary Enrolled Device',
-            publicKey,
-            isAdminDevice: false,
-            customDeviceId: deviceId,
-          });
-        }
       }
-    }
 
-    if (!device) {
-      return NextResponse.json(
-        { error: 'Device not registered. Please enroll this device using an enrollment code from your primary device.' },
-        { status: 403 }
-      );
+      // If client supplied a deviceId, it must match the enrolled primary admin device
+      if (deviceId && deviceId !== adminDev.id) {
+        deviceStore.recordAdminLogin({
+          adminId: user.id,
+          deviceId,
+          success: false,
+          reason: 'NON_ADMIN_DEVICE_ATTEMPT',
+        });
+        return NextResponse.json(
+          { error: 'ACCESS DENIED: Non-primary device attempted administrative login. Admin access is strictly bound to your primary workstation.' },
+          { status: 403 }
+        );
+      }
+
+      device = adminDev;
+    } else {
+      // Non-Admin: Multi-device support (lookup pre-enrolled device)
+      if (deviceId) {
+        device = userDevices.find(d => d.id === deviceId) || null;
+      } else if (userDevices.length === 1 && userDevices[0].status === 'ACTIVE') {
+        device = userDevices[0];
+      }
+
+      if (!device) {
+        return NextResponse.json(
+          { error: 'Device not enrolled. Please enroll this device using an enrollment code from your active device.' },
+          { status: 403 }
+        );
+      }
     }
 
     if (device.status !== 'ACTIVE') {
       return NextResponse.json(
-        { error: 'This device credential has been REVOKED or SUSPENDED. Please contact administrator.' },
+        { error: `This device credential has been ${device.status}. Please contact administrator.` },
         { status: 403 }
       );
     }
 
-    // Check admin device integrity
-    if (user.role === UserRole.ADMIN && !device.is_admin_device) {
-      deviceStore.recordAdminLogin({
-        adminId: user.id,
-        deviceId: device.id,
-        success: false,
-        reason: 'NON_ADMIN_DEVICE_ATTEMPT',
-      });
-      return NextResponse.json(
-        { error: 'ACCESS DENIED: Non-admin device attempted administrative login.' },
-        { status: 403 }
-      );
-    }
-
-    // 4. Verify Cryptographic P-256 Signature
+    // 4. Verify Cryptographic P-256 Signature using STORED public key only
     const isValidSignature = await verifyP256Signature(
       device.public_key,
-      cachedChallenge.message,
+      challengeMessage,
       signature
     );
 
@@ -192,13 +145,29 @@ export async function POST(req: Request) {
           reason: 'SIGNATURE_VERIFICATION_FAILED',
         });
       }
+      deviceStore.recordAuditEvent({
+        eventType: 'LOGIN_SIGNATURE_FAILED',
+        description: `Cryptographic signature verification failed for user ${user.email} on device ${device.id}`,
+        targetId: device.id,
+        userEmail: user.email,
+        userName: user.name,
+        severity: 'WARNING',
+      });
       return NextResponse.json(
         { error: 'Cryptographic signature verification failed. Private key mismatch.' },
         { status: 401 }
       );
     }
 
-    // 5. Record permanent login event in database & update device
+    // 5. Establish Stateful Zero-Trust Session
+    const assuranceLevel = user.role === UserRole.ADMIN ? 'LEVEL_3' : 'LEVEL_2';
+    const session = deviceStore.createSession({
+      userId: user.id,
+      deviceId: device.id,
+      authLevel: 'P256',
+      durationHours: 8,
+    });
+
     deviceStore.updateDeviceLastUsed(device.id);
     deviceStore.recordLogin({
       userId: user.id,
@@ -218,10 +187,17 @@ export async function POST(req: Request) {
       });
     }
 
-    // 6. Issue SecureMAX 8-Hour Session with Assurance Level
-    const sessionId = crypto.randomUUID();
-    const assuranceLevel = user.role === UserRole.ADMIN ? 'LEVEL_3' : 'LEVEL_2';
+    deviceStore.recordAuditEvent({
+      eventType: 'USER_LOGIN_SUCCESS',
+      description: `Zero-trust authentication successful for ${user.name} (${user.role}) via ${device.device_name}`,
+      targetId: session.session_id,
+      userEmail: user.email,
+      userName: user.name,
+      severity: 'INFO',
+    });
 
+    // 6. Issue SecureMAX 8-Hour Session Token
+    const jwtSecret = getJwtSecret();
     const sessionToken = await new SignJWT({
       userId: user.id,
       email: user.email,
@@ -230,13 +206,13 @@ export async function POST(req: Request) {
       did: user.did,
       deviceId: device.id,
       deviceName: device.device_name,
-      sessionId,
+      sessionId: session.session_id,
       assuranceLevel,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('8h')
-      .sign(JWT_SECRET);
+      .sign(jwtSecret);
 
     cookies().set('securemesh_session', sessionToken, {
       httpOnly: true,

@@ -1,13 +1,22 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { SignJWT } from 'jose';
-import crypto from 'crypto';
 import { deviceStore } from '@/lib/auth/deviceStore';
+import { getJwtSecret } from '@/lib/auth/session';
 import { UserRole } from '@/types';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-min-32-chars-long-padding');
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function POST(req: Request) {
+  // CRITICAL PRODUCTION GUARD
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'ACCESS DENIED: Demo bypass authentication is strictly disabled in production environments.' },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const requestedRole = (body.role as UserRole) || UserRole.ADMIN;
@@ -22,36 +31,49 @@ export async function POST(req: Request) {
     }
 
     const devices = deviceStore.getDevicesForUser(user.id);
-    const activeDevice = devices[0] || null;
+    const activeDevice = devices.find(d => d.status === 'ACTIVE') || devices[0] || null;
+
+    if (!activeDevice) {
+      return NextResponse.json({ error: 'No active device configured for demo user' }, { status: 400 });
+    }
+
+    // Establish stateful session
+    const session = deviceStore.createSession({
+      userId: user.id,
+      deviceId: activeDevice.id,
+      authLevel: user.role === UserRole.ADMIN ? 'WEBAUTHN' : 'P256',
+      durationHours: 8,
+    });
 
     deviceStore.recordLogin({
       userId: user.id,
       userName: user.name,
       userEmail: user.email,
       role: user.role,
-      deviceName: activeDevice?.device_name || 'Verified Demo Terminal',
+      deviceName: activeDevice.device_name || 'Verified Demo Terminal',
       status: 'SUCCESS',
     });
 
-    const sessionId = crypto.randomUUID();
+    const jwtSecret = getJwtSecret();
     const sessionToken = await new SignJWT({
       userId: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
       did: user.did,
-      deviceId: activeDevice?.id || 'dev_demo_session',
-      deviceName: activeDevice?.device_name || 'Verified Demo Terminal',
-      sessionId,
+      deviceId: activeDevice.id,
+      deviceName: activeDevice.device_name || 'Verified Demo Terminal',
+      sessionId: session.session_id,
+      assuranceLevel: user.role === UserRole.ADMIN ? 'LEVEL_3' : 'LEVEL_2',
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('8h')
-      .sign(JWT_SECRET);
+      .sign(jwtSecret);
 
     cookies().set('securemesh_session', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite: 'lax',
       path: '/',
       maxAge: 8 * 60 * 60, // 8 hours
@@ -65,7 +87,7 @@ export async function POST(req: Request) {
         email: user.email,
         role: user.role,
         did: user.did,
-        device: activeDevice ? { id: activeDevice.id, name: activeDevice.device_name } : null,
+        device: { id: activeDevice.id, name: activeDevice.device_name },
       },
     });
   } catch (error: any) {

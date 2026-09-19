@@ -210,8 +210,8 @@ export default function SecureMaxHeroLogin() {
 
       const challenge = await challengeRes.json();
 
-      // 3. Sign challenge with local hardware key
-      setStatusMessage('Signing challenge with hardware-isolated P-256 key...');
+      // 3. Sign challenge with local device credential
+      setStatusMessage('Signing challenge with Cryptographic Device Credential (ECDSA P-256)...');
       const signature = await signChallengeWithLocalKey(challenge.message);
 
       // 4. Verify on server
@@ -268,7 +268,7 @@ export default function SecureMaxHeroLogin() {
     }
 
     setLoading(true);
-    setStatusMessage('Generating hardware-isolated P-256 key pair in browser...');
+    setStatusMessage('Generating Cryptographic Device Credential (ECDSA P-256) in browser...');
 
     try {
       const dev = await generateAndSaveDeviceKey(regDeviceName || 'Primary Workstation', targetEmail);
@@ -983,7 +983,7 @@ export default function SecureMaxHeroLogin() {
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold text-xs tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {enrollLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Laptop className="w-4 h-4" />}
-                REGISTER HARDWARE ENCLAVE KEY
+                REGISTER CRYPTOGRAPHIC DEVICE CREDENTIAL
               </button>
 
               <div className="pt-2 text-center">
