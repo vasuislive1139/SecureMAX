@@ -2,8 +2,9 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract AuditAnchor is Ownable {
+contract AuditAnchor is Ownable, ReentrancyGuard {
     struct Anchor {
         uint256 batchStartId;
         uint256 batchEndId;
@@ -18,7 +19,7 @@ contract AuditAnchor is Ownable {
 
     constructor() Ownable(msg.sender) {}
 
-    function anchorMerkleRoot(uint256 batchStartId, uint256 batchEndId, bytes32 merkleRoot) external onlyOwner {
+    function anchorMerkleRoot(uint256 batchStartId, uint256 batchEndId, bytes32 merkleRoot) external onlyOwner nonReentrant {
         require(batchEndId >= batchStartId, "Invalid batch range");
         Anchor memory newAnchor = Anchor({
             batchStartId: batchStartId,

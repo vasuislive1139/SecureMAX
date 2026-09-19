@@ -2,8 +2,9 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract RBACManager is Ownable {
+contract RBACManager is Ownable, ReentrancyGuard {
     struct RoleAssignment {
         string did;
         uint8 role;
@@ -19,7 +20,7 @@ contract RBACManager is Ownable {
 
     constructor() Ownable(msg.sender) {}
 
-    function assignRole(string memory did, uint8 role, uint256 permissions) external onlyOwner {
+    function assignRole(string memory did, uint8 role, uint256 permissions) external onlyOwner nonReentrant {
         assignments[did] = RoleAssignment({
             did: did,
             role: role,
@@ -30,7 +31,7 @@ contract RBACManager is Ownable {
         emit RoleAssigned(did, role, permissions);
     }
 
-    function revokeRole(string memory did) external onlyOwner {
+    function revokeRole(string memory did) external onlyOwner nonReentrant {
         require(assignments[did].isActive, "Role not active");
         assignments[did].isActive = false;
         emit RoleRevoked(did);

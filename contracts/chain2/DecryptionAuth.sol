@@ -2,9 +2,10 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/ISecureMax.sol";
 
-contract DecryptionAuth is Ownable {
+contract DecryptionAuth is Ownable, ReentrancyGuard {
     struct AuthorizationRecord {
         bytes32 authId;
         string userDid;
@@ -23,7 +24,7 @@ contract DecryptionAuth is Ownable {
 
     constructor() Ownable(msg.sender) {}
 
-    function recordAuthorization(bytes32 authId, string memory userDid, bytes32 assetId, bytes32 keyId, uint256 expiresAt) external onlyOwner {
+    function recordAuthorization(bytes32 authId, string memory userDid, bytes32 assetId, bytes32 keyId, uint256 expiresAt) external onlyOwner nonReentrant {
         require(authorizations[authId].timestamp == 0, "Auth ID already exists");
         authorizations[authId] = AuthorizationRecord({
             authId: authId,
@@ -37,14 +38,14 @@ contract DecryptionAuth is Ownable {
         emit DecryptionAuthorized(authId, userDid, assetId);
     }
 
-    function recordCompletion(bytes32 authId) external onlyOwner {
+    function recordCompletion(bytes32 authId) external onlyOwner nonReentrant {
         require(authorizations[authId].timestamp != 0, "Auth ID not found");
         require(authorizations[authId].result == ISecureMax.AuthResult.Authorized, "Not authorized");
         authorizations[authId].result = ISecureMax.AuthResult.Completed;
         emit DecryptionCompleted(authId);
     }
 
-    function recordDenial(bytes32 authId, string memory userDid, bytes32 assetId, string memory reason) external onlyOwner {
+    function recordDenial(bytes32 authId, string memory userDid, bytes32 assetId, string memory reason) external onlyOwner nonReentrant {
         require(authorizations[authId].timestamp == 0, "Auth ID already exists");
         authorizations[authId] = AuthorizationRecord({
             authId: authId,

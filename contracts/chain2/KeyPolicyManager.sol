@@ -2,8 +2,9 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract KeyPolicyManager is Ownable {
+contract KeyPolicyManager is Ownable, ReentrancyGuard {
     struct KeyPolicy {
         bytes32 policyId;
         bytes32 keyId;
@@ -22,7 +23,7 @@ contract KeyPolicyManager is Ownable {
 
     constructor() Ownable(msg.sender) {}
 
-    function createPolicy(bytes32 policyId, bytes32 keyId, uint8 policyType, bytes32 conditionsHash) external onlyOwner {
+    function createPolicy(bytes32 policyId, bytes32 keyId, uint8 policyType, bytes32 conditionsHash) external onlyOwner nonReentrant {
         require(policies[policyId].createdAt == 0, "Policy already exists");
         policies[policyId] = KeyPolicy({
             policyId: policyId,
@@ -36,7 +37,7 @@ contract KeyPolicyManager is Ownable {
         emit PolicyCreated(policyId, keyId);
     }
 
-    function updatePolicy(bytes32 policyId, bytes32 newConditionsHash) external onlyOwner {
+    function updatePolicy(bytes32 policyId, bytes32 newConditionsHash) external onlyOwner nonReentrant {
         require(policies[policyId].createdAt != 0, "Policy not found");
         require(policies[policyId].isActive, "Policy is inactive");
         policies[policyId].conditionsHash = newConditionsHash;
@@ -44,7 +45,7 @@ contract KeyPolicyManager is Ownable {
         emit PolicyUpdated(policyId);
     }
 
-    function deactivatePolicy(bytes32 policyId) external onlyOwner {
+    function deactivatePolicy(bytes32 policyId) external onlyOwner nonReentrant {
         require(policies[policyId].createdAt != 0, "Policy not found");
         require(policies[policyId].isActive, "Policy is inactive");
         policies[policyId].isActive = false;

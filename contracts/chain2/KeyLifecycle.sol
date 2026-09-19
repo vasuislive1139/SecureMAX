@@ -2,9 +2,10 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/ISecureMax.sol";
 
-contract KeyLifecycle is Ownable {
+contract KeyLifecycle is Ownable, ReentrancyGuard {
     struct KeyMetadata {
         bytes32 keyId;
         bytes32 assetId;
@@ -24,7 +25,7 @@ contract KeyLifecycle is Ownable {
 
     constructor() Ownable(msg.sender) {}
 
-    function registerKey(bytes32 keyId, bytes32 assetId, uint256 version, uint8 algorithm) external onlyOwner {
+    function registerKey(bytes32 keyId, bytes32 assetId, uint256 version, uint8 algorithm) external onlyOwner nonReentrant {
         require(keys[keyId].createdAt == 0, "Key already exists");
         keys[keyId] = KeyMetadata({
             keyId: keyId,
@@ -39,7 +40,7 @@ contract KeyLifecycle is Ownable {
         emit KeyRegistered(keyId, assetId);
     }
 
-    function rotateKey(bytes32 oldKeyId, bytes32 newKeyId, uint256 newVersion) external onlyOwner {
+    function rotateKey(bytes32 oldKeyId, bytes32 newKeyId, uint256 newVersion) external onlyOwner nonReentrant {
         require(keys[oldKeyId].createdAt != 0, "Old key not found");
         require(keys[oldKeyId].status == ISecureMax.KeyState.Active, "Old key not active");
         require(keys[newKeyId].createdAt == 0, "New key already exists");
@@ -61,7 +62,7 @@ contract KeyLifecycle is Ownable {
         emit KeyRotated(oldKeyId, newKeyId);
     }
 
-    function revokeKey(bytes32 keyId) external onlyOwner {
+    function revokeKey(bytes32 keyId) external onlyOwner nonReentrant {
         require(keys[keyId].createdAt != 0, "Key not found");
         require(keys[keyId].status == ISecureMax.KeyState.Active || keys[keyId].status == ISecureMax.KeyState.Rotated, "Invalid state for revocation");
         

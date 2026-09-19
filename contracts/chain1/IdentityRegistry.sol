@@ -3,9 +3,10 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/ISecureMax.sol";
 
-contract IdentityRegistry is Ownable, Pausable {
+contract IdentityRegistry is Ownable, Pausable, ReentrancyGuard {
     struct Identity {
         address owner;
         string did;
@@ -24,7 +25,7 @@ contract IdentityRegistry is Ownable, Pausable {
 
     constructor() Ownable(msg.sender) {}
 
-    function registerIdentity(address _owner, string memory did, bytes32 nameHash, uint8 role) external onlyOwner whenNotPaused {
+    function registerIdentity(address _owner, string memory did, bytes32 nameHash, uint8 role) external onlyOwner whenNotPaused nonReentrant {
         require(identities[did].owner == address(0), "DID already registered");
         identities[did] = Identity({
             owner: _owner,
@@ -38,14 +39,14 @@ contract IdentityRegistry is Ownable, Pausable {
         emit IdentityRegistered(did, _owner, role);
     }
 
-    function updateStatus(string memory did, ISecureMax.IdentityStatus status) external onlyOwner whenNotPaused {
+    function updateStatus(string memory did, ISecureMax.IdentityStatus status) external onlyOwner whenNotPaused nonReentrant {
         require(identities[did].owner != address(0), "Identity not found");
         identities[did].status = status;
         identities[did].updatedAt = block.timestamp;
         emit IdentityStatusChanged(did, status);
     }
 
-    function updateRole(string memory did, uint8 role) external onlyOwner whenNotPaused {
+    function updateRole(string memory did, uint8 role) external onlyOwner whenNotPaused nonReentrant {
         require(identities[did].owner != address(0), "Identity not found");
         uint8 oldRole = identities[did].role;
         identities[did].role = role;
