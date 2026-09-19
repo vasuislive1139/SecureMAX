@@ -7,12 +7,16 @@ import { useBlockchainTransaction } from '@/hooks/useBlockchainTransaction';
 import { AssetNFTABI } from '@/lib/blockchain/abis';
 import { useAccount, useReadContract } from 'wagmi';
 
+import deployedAddresses from '../../../deployed-addresses.json';
+
 export function AssignAssetButton({ assetId, assigneeDid }: { assetId: string, assigneeDid: string }) {
   const { execute, txState, errorMessage, hash } = useBlockchainTransaction();
   const { address } = useAccount();
 
+  const assetNftAddress = (process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS || deployedAddresses.contracts.AssetNFT) as `0x${string}`;
+
   const { data: assetData, isLoading: assetLoading } = useReadContract({
-    address: process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS as `0x${string}`,
+    address: assetNftAddress,
     abi: AssetNFTABI,
     functionName: 'getAssetByAssetId',
     args: [assetId]
@@ -23,7 +27,7 @@ export function AssignAssetButton({ assetId, assigneeDid }: { assetId: string, a
 
   const handleAssign = () => {
     execute({
-      address: process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS as `0x${string}`,
+      address: assetNftAddress,
       abi: AssetNFTABI,
       functionName: 'allocateAsset',
       args: [isRegistered ? (assetData as any).tokenId : 0n, "0x0000000000000000000000000000000000000000"], // Dummy address, it needs the real assignee address which we might not have here? We only have assigneeDid.

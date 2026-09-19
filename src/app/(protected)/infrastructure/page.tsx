@@ -4,10 +4,12 @@ import * as React from 'react';
 import { Server, Activity, Clock, Box, ShieldCheck, ChevronDown } from 'lucide-react';
 import { useBlockNumber, usePublicClient } from 'wagmi';
 
+import deployedAddresses from '../../../../deployed-addresses.json';
+
 const CONTRACTS = [
-  { name: 'IdentityRegistry', address: process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS || '0x...', domain: 'DOMAIN 1' },
-  { name: 'AccessControlManager', address: process.env.NEXT_PUBLIC_ACCESS_CONTROL_MANAGER_ADDRESS || '0x...', domain: 'DOMAIN 1' },
-  { name: 'AssetNFT', address: process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS || '0x...', domain: 'DOMAIN 1' }
+  { name: 'IdentityRegistry', address: process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS || deployedAddresses.contracts.IdentityRegistry, domain: 'DOMAIN 1' },
+  { name: 'AccessControlManager', address: process.env.NEXT_PUBLIC_ACCESS_CONTROL_MANAGER_ADDRESS || deployedAddresses.contracts.AccessControlManager, domain: 'DOMAIN 1' },
+  { name: 'AssetNFT', address: process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS || deployedAddresses.contracts.AssetNFT, domain: 'DOMAIN 1' }
 ];
 
 export default function InfrastructurePage() {

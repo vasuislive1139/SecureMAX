@@ -1,10 +1,7 @@
 import { ethers } from "ethers";
 
 export function getChain1Provider(): ethers.JsonRpcProvider {
-  const rpcUrl = process.env.NEXT_PUBLIC_CHAIN_RPC_URL;
-  if (!rpcUrl) {
-    throw new Error("Blockchain unavailable: NEXT_PUBLIC_CHAIN_RPC_URL is not set");
-  }
+  const rpcUrl = process.env.NEXT_PUBLIC_CHAIN_RPC_URL || 'https://eth-sepolia.g.alchemy.com/v2/alch_0qnxXuC1AluDumPOynCns';
   return new ethers.JsonRpcProvider(rpcUrl);
 }
 

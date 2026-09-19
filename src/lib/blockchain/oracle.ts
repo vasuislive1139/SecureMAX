@@ -3,6 +3,8 @@ import { createPublicClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
 import { AssetNFTABI } from './abis';
 
+import deployedAddresses from '../../../deployed-addresses.json';
+
 export type OracleResult = {
   allowed: boolean;
   status: 'AUTHORIZED' | 'DENIED' | 'UNAVAILABLE' | 'ERROR' | 'CONFIG_ERROR';
@@ -12,7 +14,7 @@ export type OracleResult = {
 };
 
 const targetChain = sepolia;
-const rpcUrl = process.env.NEXT_PUBLIC_CHAIN_RPC_URL || 'https://rpc.sepolia.org';
+const rpcUrl = process.env.NEXT_PUBLIC_CHAIN_RPC_URL || 'https://eth-sepolia.g.alchemy.com/v2/alch_0qnxXuC1AluDumPOynCns';
 
 const publicClient = createPublicClient({
   chain: targetChain,
@@ -20,7 +22,7 @@ const publicClient = createPublicClient({
 });
 
 export async function verifyChain1Access(userId: string, assetId: string): Promise<OracleResult> {
-  const contractAddress = process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS as `0x${string}`;
+  const contractAddress = (process.env.NEXT_PUBLIC_ASSET_NFT_ADDRESS || deployedAddresses.contracts.AssetNFT) as `0x${string}`;
   if (!contractAddress) {
     return { allowed: false, status: 'CONFIG_ERROR', chainId: targetChain.id, reason: 'AssetNFT address not configured' };
   }
