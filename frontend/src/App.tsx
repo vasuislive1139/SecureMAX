@@ -7,10 +7,20 @@ import { UserDashboardPage } from "./pages/UserDashboardPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { ManagerDashboardPage } from "./pages/ManagerDashboardPage";
 import { AuditorDashboardPage } from "./pages/AuditorDashboardPage";
+import { BlockchainHeroAnimation } from "./components/BlockchainHeroAnimation";
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState<string>("login");
+  // Show hero animation only once on initial load, before login
+  const [showAnimation, setShowAnimation] = useState<boolean>(true);
+
+  // Full-screen hero plays first, before any login UI
+  if (!isAuthenticated && showAnimation) {
+    return (
+      <BlockchainHeroAnimation onComplete={() => setShowAnimation(false)} />
+    );
+  }
 
   const renderContent = () => {
     if (!isAuthenticated) {
