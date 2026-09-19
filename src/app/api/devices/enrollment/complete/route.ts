@@ -4,7 +4,20 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { enrollmentCode, deviceName, publicKey, deviceId } = body;
+    const { 
+      enrollmentCode, 
+      deviceName, 
+      publicKey, 
+      deviceId,
+      deviceType,
+      os,
+      browser,
+      browserVersion,
+      model,
+      region,
+      credentialId,
+      credentialType
+    } = body;
 
     if (!enrollmentCode || !publicKey) {
       return NextResponse.json(
@@ -13,35 +26,51 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Consume one-time enrollment code
-    let userId: string;
+    // Consume enrollment capability and create Device Passport
+    let result: { passport: any; user: any };
     try {
-      userId = deviceStore.consumeEnrollment(enrollmentCode);
+      result = deviceStore.consumeEnrollmentCapability(enrollmentCode, {
+        deviceName: deviceName || 'Enrolled Device',
+        deviceType,
+        os,
+        browser,
+        browserVersion,
+        model,
+        region,
+        publicKey,
+        credentialId,
+        credentialType: credentialType || 'WebAuthn',
+        customDeviceId: deviceId,
+      });
     } catch (err: any) {
       return NextResponse.json({ error: err.message || 'Invalid or expired enrollment code' }, { status: 400 });
     }
 
-    const user = deviceStore.getUserById(userId);
-    if (!user) {
-      return NextResponse.json({ error: 'User account not found' }, { status: 404 });
-    }
+    const { passport, user } = result;
 
-    // 2. Register Device B
-    const registeredDevice = deviceStore.registerDevice({
-      userId,
-      deviceName: deviceName || 'Secondary Enrolled Device',
-      publicKey,
-      isAdminDevice: false,
-      customDeviceId: deviceId,
+    // Create active session for the newly registered device
+    const session = deviceStore.createSession({
+      userId: user.id,
+      deviceId: passport.device_id,
+      position: passport.position,
+      authLevel: 'PASSKEY',
+      durationHours: 8,
     });
 
     return NextResponse.json({
       success: true,
-      message: `Device "${registeredDevice.device_name}" successfully linked to SecureMAX identity`,
+      message: `Device "${passport.device_name}" successfully linked to SecureMAX identity`,
+      passport,
       device: {
-        id: registeredDevice.id,
-        name: registeredDevice.device_name,
-        status: registeredDevice.status,
+        id: passport.device_id,
+        name: passport.device_name,
+        status: passport.status,
+        risk_state: passport.risk_state,
+        registration_region: passport.registration_region,
+      },
+      session: {
+        id: session.session_id,
+        expiresAt: session.expires_at,
       },
       user: {
         id: user.id,
@@ -49,6 +78,7 @@ export async function POST(req: Request) {
         email: user.email,
         did: user.did,
         role: user.role,
+        position: passport.position,
       },
     });
   } catch (error: any) {

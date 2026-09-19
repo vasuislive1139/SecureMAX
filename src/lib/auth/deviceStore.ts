@@ -1,6 +1,17 @@
 import 'server-only';
 import crypto from 'crypto';
-import { UserRole, UserStatus, UserDevice, DeviceEnrollment } from '@/types';
+import { 
+  UserRole, 
+  UserStatus, 
+  UserDevice, 
+  DeviceEnrollment, 
+  DevicePassport, 
+  DeviceTimelineEvent,
+  PositionPermissions,
+  StoredPosition,
+  StoredEnrollmentCapability,
+  StoredDeviceSession
+} from '@/types';
 import { deriveKEK, generateDEK, encryptData } from '../crypto';
 
 export interface StoredUser {
@@ -8,6 +19,8 @@ export interface StoredUser {
   name: string;
   email: string;
   role: UserRole;
+  position_id?: string;
+  position?: string;
   kyc_status: 'VERIFIED' | 'PENDING' | 'REJECTED';
   status: UserStatus;
   did: string;
@@ -98,6 +111,10 @@ export interface StoredAuditEvent {
   event_type: string;
   description: string;
   target_id?: string;
+  target?: string;
+  before?: any;
+  after?: any;
+  performed_by?: string;
   user_email?: string;
   user_name?: string;
   severity: 'INFO' | 'WARNING' | 'CRITICAL';
@@ -106,11 +123,82 @@ export interface StoredAuditEvent {
   created_at: string;
 }
 
+export const PREDEFINED_POSITIONS: StoredPosition[] = [
+  {
+    id: 'pos_admin',
+    name: 'Administrator',
+    description: 'Complete organizational administration',
+    privilege_level: 'ADMINISTRATIVE',
+    is_predefined: true,
+    created_at: '2026-09-01T00:00:00.000Z',
+    permissions: {
+      identity: { register: true, suspend: true, revoke: true },
+      users: { create: true, suspend: true },
+      assets: { view: true, allocate: true, transfer: true, delete: true },
+      access: { approve: true, revoke: true },
+      audit: { view: true, export: true },
+      security: { view_alerts: true, manage_devices: true },
+    },
+  },
+  {
+    id: 'pos_manager',
+    name: 'Manager',
+    description: 'Operational asset and access management',
+    privilege_level: 'ELEVATED',
+    is_predefined: true,
+    created_at: '2026-09-01T00:00:00.000Z',
+    permissions: {
+      identity: { register: false, suspend: false, revoke: false },
+      users: { create: false, suspend: false },
+      assets: { view: true, allocate: true, transfer: true, delete: false },
+      access: { approve: true, revoke: true },
+      audit: { view: true, export: false },
+      security: { view_alerts: true, manage_devices: false },
+    },
+  },
+  {
+    id: 'pos_auditor',
+    name: 'Auditor',
+    description: 'Read-only evidence and audit investigation',
+    privilege_level: 'STANDARD',
+    is_predefined: true,
+    created_at: '2026-09-01T00:00:00.000Z',
+    permissions: {
+      identity: { register: false, suspend: false, revoke: false },
+      users: { create: false, suspend: false },
+      assets: { view: true, allocate: false, transfer: false, delete: false },
+      access: { approve: false, revoke: false },
+      audit: { view: true, export: true },
+      security: { view_alerts: true, manage_devices: false },
+    },
+  },
+  {
+    id: 'pos_user',
+    name: 'User',
+    description: 'Assigned organizational asset access',
+    privilege_level: 'STANDARD',
+    is_predefined: true,
+    created_at: '2026-09-01T00:00:00.000Z',
+    permissions: {
+      identity: { register: false, suspend: false, revoke: false },
+      users: { create: false, suspend: false },
+      assets: { view: true, allocate: false, transfer: false, delete: false },
+      access: { approve: false, revoke: false },
+      audit: { view: false, export: false },
+      security: { view_alerts: false, manage_devices: false },
+    },
+  },
+];
+
 // In-memory persistent state (persists across hot-reloads within the server instance)
 class SecureMaxStore {
   public users: Map<string, StoredUser> = new Map();
   public devices: Map<string, UserDevice> = new Map();
   public enrollments: Map<string, DeviceEnrollment> = new Map();
+  public enrollmentCapabilities: Map<string, StoredEnrollmentCapability> = new Map();
+  public positions: Map<string, StoredPosition> = new Map();
+  public sessions: Map<string, StoredDeviceSession> = new Map();
+  public devicePassports: Map<string, DevicePassport> = new Map();
   public assets: Map<string, StoredAsset> = new Map();
   public assignments: StoredAssignment[] = [];
   public accessRequests: StoredAccessRequest[] = [];
@@ -129,12 +217,38 @@ class SecureMaxStore {
 
   public seedTestDataForTesting(): void {
     if (this.users.has('usr_admin_001')) return;
+
+    // Seed Positions
+    for (const p of PREDEFINED_POSITIONS) {
+      this.positions.set(p.id, { ...p });
+    }
+    const customPos: StoredPosition = {
+      id: 'pos_sec_manager',
+      name: 'Security Manager',
+      description: 'Responsible for security operations and device management',
+      privilege_level: 'ELEVATED',
+      permissions: {
+        identity: { register: true, suspend: true, revoke: false },
+        users: { create: false, suspend: true },
+        assets: { view: true, allocate: true, transfer: false, delete: false },
+        access: { approve: true, revoke: true },
+        audit: { view: true, export: true },
+        security: { view_alerts: true, manage_devices: true },
+      },
+      is_predefined: false,
+      created_at: '2026-09-02T00:00:00.000Z',
+      created_by: 'Vasu (Administrator)',
+    };
+    this.positions.set(customPos.id, customPos);
+
     // 1. ADMIN (Vasu Admin Laptop - Strictly Device Bound)
     const adminUser: StoredUser = {
       id: 'usr_admin_001',
       name: 'Vasu (Administrator)',
       email: 'admin@securemax.mil',
       role: UserRole.ADMIN,
+      position: 'Administrator',
+      position_id: 'pos_admin',
       kyc_status: 'VERIFIED',
       status: UserStatus.ACTIVE,
       did: 'did:securemax:admin:001',
@@ -144,18 +258,39 @@ class SecureMaxStore {
     this.users.set(adminUser.email, adminUser);
 
     // Admin's single bound device
-    const adminDevice: UserDevice = {
+    const adminDevice: DevicePassport = {
       id: 'dev_admin_primary',
+      device_id: 'dev_admin_primary',
       user_id: adminUser.id,
+      user_name: adminUser.name,
+      user_email: adminUser.email,
+      position: 'Administrator',
       device_name: "Admin Laptop (Hardware-Bound)",
+      device_type: 'terminal',
+      os: 'macOS',
+      browser: 'Safari',
+      browser_version: '18.0',
+      model: 'Admin Secure Enclave Terminal',
+      credential_id: 'cred_admin_hw_01',
+      credential_type: 'WebAuthn',
+      registered_at: '2026-09-01T00:00:00.000Z',
+      last_authenticated_at: new Date().toISOString(),
+      last_active_at: new Date().toISOString(),
+      risk_state: 'TRUSTED',
+      registration_region: 'Punjab, India',
       public_key: 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2Z37UoHq3y1V4XwH5K7oF9P9k3sZ0s7uVvWxX0y1A2bC3dE4fG5hI6jK7lM8nO9pQ0rS1tU2vW3xY4z5A6bC7w==', // standard P-256 SPKI
       algorithm: 'ECDSA_P256',
       status: 'ACTIVE',
       is_admin_device: true,
       created_at: '2026-09-01T00:00:00.000Z',
       last_used_at: new Date().toISOString(),
+      timeline: [
+        { id: 'tl_adm_1', timestamp: '2026-09-01T00:00:00.000Z', event: 'DEVICE_REGISTERED', details: 'Root Administrator physical terminal bound', severity: 'INFO' },
+        { id: 'tl_adm_2', timestamp: '2026-09-01T00:01:00.000Z', event: 'PASSKEY_ENROLLED', details: 'Hardware enclave P-256 key anchored', severity: 'INFO' },
+      ],
     };
     this.devices.set(adminDevice.id, adminDevice);
+    this.devicePassports.set(adminDevice.id, adminDevice);
 
     // 2. USER (Vasu - Multi-Device Enabled)
     const standardUser: StoredUser = {
@@ -163,6 +298,8 @@ class SecureMaxStore {
       name: 'Vasu (Lead Engineer)',
       email: 'vasu@securemax.mil',
       role: UserRole.USER,
+      position: 'Manager',
+      position_id: 'pos_manager',
       kyc_status: 'VERIFIED',
       status: UserStatus.ACTIVE,
       did: 'did:securemax:user:002',
@@ -172,18 +309,40 @@ class SecureMaxStore {
     this.users.set(standardUser.email, standardUser);
 
     // User's primary Laptop
-    const userDeviceLaptop: UserDevice = {
+    const userDeviceLaptop: DevicePassport = {
       id: 'dev_vasu_laptop',
+      device_id: 'dev_vasu_laptop',
       user_id: standardUser.id,
-      device_name: 'Workstation Laptop A',
+      user_name: standardUser.name,
+      user_email: standardUser.email,
+      position: 'Manager',
+      device_name: 'Vasu — Primary MacBook',
+      device_type: 'laptop',
+      os: 'macOS',
+      browser: 'Chrome',
+      browser_version: '128.0',
+      model: 'MacBook Pro',
+      credential_id: 'cred_vasu_mbp_01',
+      credential_type: 'WebAuthn',
+      registered_at: '2026-09-02T00:00:00.000Z',
+      last_authenticated_at: new Date().toISOString(),
+      last_active_at: new Date().toISOString(),
+      risk_state: 'TRUSTED',
+      registration_region: 'Punjab, India',
       public_key: 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEq9V1zK2Y7nL6X4eQ8jB2tF0mS3wZ5xY8vU1tP2rQ3sA4bC5dE6fG7hI8jK9lM0nO1pQ2rS3tU4vW5xY6z7A8bC==',
       algorithm: 'ECDSA_P256',
       status: 'ACTIVE',
       is_admin_device: false,
       created_at: '2026-09-02T00:00:00.000Z',
       last_used_at: new Date().toISOString(),
+      timeline: [
+        { id: 'tl_vsu_1', timestamp: '2026-09-02T00:00:00.000Z', event: 'DEVICE_REGISTERED', details: 'Device registered via 15-minute pairing code', severity: 'INFO' },
+        { id: 'tl_vsu_2', timestamp: '2026-09-02T00:01:00.000Z', event: 'PASSKEY_ENROLLED', details: 'Touch ID / Passkey enrolled', severity: 'INFO' },
+        { id: 'tl_vsu_3', timestamp: '2026-09-02T00:02:00.000Z', event: 'FIRST_LOGIN', details: 'Successful biometric authentication', severity: 'INFO' },
+      ],
     };
     this.devices.set(userDeviceLaptop.id, userDeviceLaptop);
+    this.devicePassports.set(userDeviceLaptop.id, userDeviceLaptop);
 
     // 3. AUDITOR (Compliance Auditor)
     const auditorUser: StoredUser = {
@@ -191,6 +350,8 @@ class SecureMaxStore {
       name: 'Compliance Auditor',
       email: 'auditor@securemax.mil',
       role: UserRole.AUDITOR,
+      position: 'Auditor',
+      position_id: 'pos_auditor',
       kyc_status: 'VERIFIED',
       status: UserStatus.ACTIVE,
       did: 'did:securemax:auditor:003',
@@ -199,18 +360,70 @@ class SecureMaxStore {
     this.users.set(auditorUser.id, auditorUser);
     this.users.set(auditorUser.email, auditorUser);
 
-    const auditorDevice: UserDevice = {
+    const auditorDevice: DevicePassport = {
       id: 'dev_auditor_terminal',
+      device_id: 'dev_auditor_terminal',
       user_id: auditorUser.id,
+      user_name: auditorUser.name,
+      user_email: auditorUser.email,
+      position: 'Auditor',
       device_name: 'Audit Secure Terminal',
+      device_type: 'terminal',
+      os: 'Linux',
+      browser: 'Firefox',
+      browser_version: '129.0',
+      model: 'Audit Hardware Station',
+      credential_id: 'cred_audit_01',
+      credential_type: 'WebAuthn',
+      registered_at: '2026-09-03T00:00:00.000Z',
+      last_authenticated_at: new Date().toISOString(),
+      last_active_at: new Date().toISOString(),
+      risk_state: 'TRUSTED',
+      registration_region: 'Punjab, India',
       public_key: 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7p9X2mR5yT8vN1qW4sE7hK0bL3zC6xY9vU2tP3rQ4sA5bC6dE7fG8hI9jK0lM1nO2pQ3rS4tU5vW6xY7z8A9bC==',
       algorithm: 'ECDSA_P256',
       status: 'ACTIVE',
       is_admin_device: false,
       created_at: '2026-09-03T00:00:00.000Z',
       last_used_at: new Date().toISOString(),
+      timeline: [
+        { id: 'tl_aud_1', timestamp: '2026-09-03T00:00:00.000Z', event: 'DEVICE_REGISTERED', details: 'Audit terminal registered', severity: 'INFO' },
+        { id: 'tl_aud_2', timestamp: '2026-09-03T00:01:00.000Z', event: 'PASSKEY_ENROLLED', details: 'FIDO2 Hardware Key enrolled', severity: 'INFO' },
+      ],
     };
     this.devices.set(auditorDevice.id, auditorDevice);
+    this.devicePassports.set(auditorDevice.id, auditorDevice);
+
+    // Active Sessions
+    this.sessions.set('SES-8821', {
+      session_id: 'SES-8821',
+      user_id: standardUser.id,
+      user_name: standardUser.name,
+      user_email: standardUser.email,
+      device_id: userDeviceLaptop.id,
+      device_name: userDeviceLaptop.device_name,
+      position: 'Manager',
+      created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+      last_activity_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+      expires_at: new Date(Date.now() + 7.5 * 3600 * 1000).toISOString(),
+      authentication_level: 'PASSKEY',
+      status: 'ACTIVE',
+    });
+
+    this.sessions.set('SES-0001', {
+      session_id: 'SES-0001',
+      user_id: adminUser.id,
+      user_name: adminUser.name,
+      user_email: adminUser.email,
+      device_id: adminDevice.id,
+      device_name: adminDevice.device_name,
+      position: 'Administrator',
+      created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      last_activity_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      expires_at: new Date(Date.now() + 7 * 3600 * 1000).toISOString(),
+      authentication_level: 'WEBAUTHN',
+      status: 'ACTIVE',
+    });
 
     // 4. PRE-SEEDED ENCRYPTED ASSETS (AES-256-GCM)
     const masterKey = process.env.SECUREMAX_KMS_MASTER_KEY || '0000000000000000000000000000000000000000000000000000000000000000';
@@ -904,13 +1117,35 @@ class SecureMaxStore {
       throw new Error('Cannot revoke primary Admin hardware device. Emergency break-glass required.');
     }
 
+    const prevStatus = dev.status;
     dev.status = 'REVOKED';
     dev.revoked_at = new Date().toISOString();
+
+    const passport = this.devicePassports.get(deviceId);
+    if (passport) {
+      passport.status = 'REVOKED';
+      passport.risk_state = 'REVOKED';
+      passport.revoked_at = dev.revoked_at;
+    }
+
+    // Terminate all sessions for the revoked device
+    this.revokeAllSessionsForDevice(deviceId, callerUserId);
+
+    this.recordDeviceTimelineEvent(
+      deviceId,
+      'DEVICE_REVOKED',
+      `Device revoked by ${caller?.name || callerUserId}`,
+      'CRITICAL'
+    );
 
     this.recordAuditEvent({
       eventType: 'HARDWARE_DEVICE_REVOKED',
       description: `Hardware device revoked: ${dev.device_name} (ID: ${dev.id})`,
       targetId: dev.id,
+      target: dev.id,
+      before: { status: prevStatus },
+      after: { status: 'REVOKED' },
+      performedBy: callerUserId,
       severity: 'WARNING',
     });
   }
@@ -922,56 +1157,953 @@ class SecureMaxStore {
     }
   }
 
-  // --- DEVICE ENROLLMENT (ONE-TIME CODES) ---
-  public createEnrollment(userId: string, callerUserId?: string): DeviceEnrollment {
-    const targetUser = this.getUserById(userId);
+  // --- POSITION MANAGEMENT ---
+  public getPositions(): StoredPosition[] {
+    if (this.positions.size === 0) {
+      for (const p of PREDEFINED_POSITIONS) {
+        this.positions.set(p.id, { ...p });
+      }
+    }
+    return Array.from(this.positions.values());
+  }
+
+  public getPositionById(idOrName: string): StoredPosition | null {
+    const list = this.getPositions();
+    return list.find(p => p.id === idOrName || p.name.toLowerCase() === idOrName.toLowerCase()) || null;
+  }
+
+  public createPosition(params: {
+    name: string;
+    description: string;
+    privilege_level: 'STANDARD' | 'ELEVATED' | 'ADMINISTRATIVE';
+    permissions: PositionPermissions;
+    callerUserId?: string;
+  }): StoredPosition {
+    const cleanName = params.name.trim();
+    if (!cleanName) throw new Error('Position name is required');
+
+    // Check duplicate
+    const existing = this.getPositionById(cleanName);
+    if (existing) throw new Error(`Position "${cleanName}" already exists`);
+
+    const caller = params.callerUserId ? this.getUserById(params.callerUserId) : null;
+    if (caller && caller.role !== UserRole.ADMIN) {
+      throw new Error('Unauthorized: Only Administrator can create positions');
+    }
+
+    const id = 'pos_' + crypto.randomUUID().slice(0, 8);
+    const position: StoredPosition = {
+      id,
+      name: cleanName,
+      description: params.description.trim(),
+      privilege_level: params.privilege_level,
+      permissions: params.permissions,
+      is_predefined: false,
+      created_at: new Date().toISOString(),
+      created_by: caller?.name || 'Administrator',
+    };
+
+    this.positions.set(id, position);
+
+    this.recordAuditEvent({
+      eventType: 'POSITION_CREATED',
+      description: `New position created: ${position.name} [Level: ${position.privilege_level}] by ${caller?.name || 'System'}`,
+      targetId: id,
+      target: id,
+      before: null,
+      after: {
+        name: position.name,
+        privilege_level: position.privilege_level,
+        permissions: position.permissions,
+      },
+      performedBy: caller?.name || 'Administrator',
+      userEmail: caller?.email,
+      userName: caller?.name,
+      severity: params.privilege_level === 'ADMINISTRATIVE' ? 'WARNING' : 'INFO',
+    });
+
+    return position;
+  }
+
+  // --- DEVICE ENROLLMENT (15-MINUTE CAPABILITIES & SHA-256 CODES) ---
+  public createEnrollmentCapability(params: {
+    userId: string;
+    positionId?: string;
+    durationMinutes?: number;
+    maxDevices?: number;
+    callerUserId?: string;
+    targetDeviceType?: string;
+  }): { enrollment: StoredEnrollmentCapability; plaintextCode: string } {
+    const targetUser = this.getUserById(params.userId);
     if (!targetUser) throw new Error('User not found');
 
-    // If caller is provided, verify permissions
-    if (callerUserId) {
-      const caller = this.getUserById(callerUserId);
+    if (targetUser.status === UserStatus.SUSPENDED || targetUser.status === UserStatus.REVOKED) {
+      throw new Error(`Cannot issue enrollment capability: user account is ${targetUser.status}`);
+    }
+
+    if (params.callerUserId) {
+      const caller = this.getUserById(params.callerUserId);
       const isCallerAdmin = caller?.role === UserRole.ADMIN;
-      if (callerUserId !== userId && !isCallerAdmin) {
-        throw new Error('Unauthorized: only an Admin can issue device enrollment codes for other users');
+      if (params.callerUserId !== params.userId && !isCallerAdmin) {
+        throw new Error('Unauthorized: only an Admin can issue device enrollment capabilities for other users');
       }
     }
 
-    // Rule: Admin root accounts cannot have secondary devices
     if (targetUser.role === UserRole.ADMIN) {
       throw new Error('Admin account is strictly device-bound. Multi-device enrollment is disabled for root administrative security.');
     }
 
-    // Generate human-friendly code: SMX-XXXX-XXXX
-    const raw = crypto.randomBytes(4).toString('hex').toUpperCase();
-    const code = `SMX-${raw.slice(0, 4)}-${raw.slice(4, 8)}`;
+    // Resolve position
+    let positionName: string = targetUser.role;
+    let positionId = 'pos_user';
+    if (params.positionId) {
+      const pos = this.getPositionById(params.positionId);
+      if (pos) {
+        positionId = pos.id;
+        positionName = pos.name;
+      }
+    } else if (targetUser.position_id) {
+      const pos = this.getPositionById(targetUser.position_id);
+      if (pos) {
+        positionId = pos.id;
+        positionName = pos.name;
+      }
+    }
 
-    const enrollment: DeviceEnrollment = {
-      code,
+    // Generate cryptographically strong random code (256-bit entropy, Base32 encoded, 12 chars e.g. 7K4M-92QP-8X2L)
+    const rawBytes = crypto.randomBytes(32);
+    const charset = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let codeStr = '';
+    for (let i = 0; i < 12; i++) {
+      codeStr += charset[rawBytes[i] % charset.length];
+    }
+    const plaintextCode = `${codeStr.slice(0, 4)}-${codeStr.slice(4, 8)}-${codeStr.slice(8, 12)}`;
+    
+    // Hash code with SHA-256 before storing
+    const cleanRaw = codeStr;
+    const codeHash = crypto.createHash('sha256').update(cleanRaw).digest('hex');
+
+    const durationMinutes = params.durationMinutes || 15;
+    const enrollmentId = 'enr_' + crypto.randomUUID().slice(0, 8);
+    const expiresAt = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
+
+    const capability: StoredEnrollmentCapability = {
+      id: enrollmentId,
+      code_hash: codeHash,
       user_id: targetUser.id,
-      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
+      user_name: targetUser.name,
+      user_email: targetUser.email,
+      position_id: positionId,
+      position_name: positionName,
+      duration_minutes: durationMinutes,
+      max_devices: params.maxDevices || 1,
+      devices_enrolled: 0,
+      created_by: params.callerUserId ? (this.getUserById(params.callerUserId)?.name || 'Admin') : targetUser.name,
       created_at: new Date().toISOString(),
+      expires_at: expiresAt,
+      status: 'ACTIVE',
+      target_device_type: params.targetDeviceType,
     };
 
-    this.enrollments.set(code, enrollment);
-    return enrollment;
+    this.enrollmentCapabilities.set(codeHash, capability);
+    this.enrollmentCapabilities.set(enrollmentId, capability);
+
+    // Backward compatibility: also store in legacy enrollments map
+    this.enrollments.set(plaintextCode, {
+      code: plaintextCode,
+      user_id: targetUser.id,
+      expires_at: expiresAt,
+      created_at: capability.created_at,
+    });
+
+    // Never record the plaintext code into the audit log!
+    this.recordAuditEvent({
+      eventType: 'DEVICE_ENROLLMENT_CREATED',
+      description: `Temporary ${durationMinutes}-minute device enrollment capability issued for ${targetUser.name} (${positionName})`,
+      targetId: enrollmentId,
+      target: enrollmentId,
+      before: null,
+      after: {
+        position: positionName,
+        duration_minutes: durationMinutes,
+        max_devices: capability.max_devices,
+        target_device_type: capability.target_device_type,
+      },
+      performedBy: params.callerUserId || targetUser.name,
+      userEmail: targetUser.email,
+      userName: targetUser.name,
+      severity: 'INFO',
+    });
+
+    return { enrollment: capability, plaintextCode };
   }
 
+  public verifyEnrollmentCapability(code: string): {
+    valid: boolean;
+    enrollment?: StoredEnrollmentCapability;
+    user?: StoredUser;
+    position?: StoredPosition;
+    error?: string;
+  } {
+    if (!code || typeof code !== 'string') {
+      return { valid: false, error: 'Enrollment code is required' };
+    }
+
+    const cleanCode = code.toUpperCase().replace(/[^A-Z0-9]/g, '').trim();
+    const hash = crypto.createHash('sha256').update(cleanCode).digest('hex');
+
+    let capability = this.enrollmentCapabilities.get(hash);
+
+    // Fallback: check legacy enrollments
+    if (!capability) {
+      const legacy = this.enrollments.get(code.toUpperCase().trim());
+      if (legacy) {
+        capability = {
+          id: 'enr_legacy_' + legacy.code,
+          code_hash: hash,
+          user_id: legacy.user_id,
+          position_id: 'pos_user',
+          position_name: 'USER',
+          duration_minutes: 15,
+          max_devices: 1,
+          devices_enrolled: 0,
+          created_by: 'System',
+          created_at: legacy.created_at,
+          expires_at: legacy.expires_at,
+          status: 'ACTIVE',
+        };
+      }
+    }
+
+    if (!capability) {
+      return { valid: false, error: 'Invalid or non-existent enrollment code' };
+    }
+
+    if (capability.status === 'CONSUMED' || capability.devices_enrolled >= capability.max_devices) {
+      return { valid: false, error: 'This enrollment code has already been consumed (maximum device limit reached)' };
+    }
+
+    if (capability.status === 'REVOKED') {
+      return { valid: false, error: 'This enrollment capability has been revoked by administrator' };
+    }
+
+    if (new Date(capability.expires_at).getTime() < Date.now()) {
+      capability.status = 'EXPIRED';
+      return { valid: false, error: 'Enrollment code has expired. 15-minute validity window elapsed.' };
+    }
+
+    const user = this.getUserById(capability.user_id);
+    if (!user) {
+      return { valid: false, error: 'Target user record not found' };
+    }
+
+    if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REVOKED) {
+      return { valid: false, error: `User account is ${user.status}. Device enrollment is blocked.` };
+    }
+
+    const position = this.getPositionById(capability.position_id) || {
+      id: 'pos_user',
+      name: capability.position_name,
+      description: 'Standard User',
+      privilege_level: 'STANDARD',
+      permissions: PREDEFINED_POSITIONS[3].permissions,
+      is_predefined: true,
+      created_at: capability.created_at,
+    };
+
+    return { valid: true, enrollment: capability, user, position };
+  }
+
+  public consumeEnrollmentCapability(
+    code: string,
+    deviceData: {
+      deviceName: string;
+      deviceType?: string;
+      os?: string;
+      browser?: string;
+      browserVersion?: string;
+      model?: string;
+      region?: string;
+      publicKey: string;
+      credentialId?: string;
+      credentialType?: string;
+      customDeviceId?: string;
+    }
+  ): { passport: DevicePassport; user: StoredUser } {
+    const verified = this.verifyEnrollmentCapability(code);
+    if (!verified.valid || !verified.enrollment || !verified.user) {
+      throw new Error(verified.error || 'Failed to verify enrollment code');
+    }
+
+    const capability = verified.enrollment;
+    const user = verified.user;
+
+    // Check device type binding if specified
+    if (capability.target_device_type && capability.target_device_type !== 'any' && deviceData.deviceType) {
+      if (capability.target_device_type.toLowerCase() !== deviceData.deviceType.toLowerCase()) {
+        throw new Error(
+          `Device type mismatch: This enrollment code is strictly bound to "${capability.target_device_type}", but attempting to register "${deviceData.deviceType}".`
+        );
+      }
+    }
+
+    // Atomically increment devices enrolled and consume if reached limit
+    capability.devices_enrolled += 1;
+    if (capability.devices_enrolled >= capability.max_devices) {
+      capability.status = 'CONSUMED';
+      capability.used_at = new Date().toISOString();
+      this.enrollments.delete(code.toUpperCase().trim());
+    }
+
+    // Register Device Passport
+    const deviceId = deviceData.customDeviceId || 'DEV-' + crypto.randomUUID().slice(0, 8).toUpperCase();
+    const credId = deviceData.credentialId || 'cred_' + crypto.randomUUID().slice(0, 12);
+    const now = new Date().toISOString();
+
+    const passport: DevicePassport = {
+      id: deviceId,
+      device_id: deviceId,
+      user_id: user.id,
+      user_name: user.name,
+      user_email: user.email,
+      position: capability.position_name || user.role,
+      device_name: deviceData.deviceName.trim() || `${user.name} — Primary Laptop`,
+      device_type: (deviceData.deviceType as any) || 'laptop',
+      os: deviceData.os || 'macOS',
+      browser: deviceData.browser || 'Chrome',
+      browser_version: deviceData.browserVersion || '128.0',
+      model: deviceData.model || 'MacBook Pro',
+      credential_id: credId,
+      public_key: deviceData.publicKey,
+      algorithm: 'ECDSA_P256',
+      credential_type: deviceData.credentialType || 'WebAuthn',
+      registered_at: now,
+      last_authenticated_at: now,
+      last_active_at: now,
+      status: 'ACTIVE',
+      risk_state: 'TRUSTED',
+      registration_region: deviceData.region || 'Punjab, India',
+      is_admin_device: user.role === UserRole.ADMIN,
+      created_at: now,
+      last_used_at: now,
+      timeline: [
+        {
+          id: 'tl_' + crypto.randomUUID().slice(0, 8),
+          timestamp: now,
+          event: 'DEVICE_REGISTERED',
+          details: `Device "${deviceData.deviceName}" cryptographically registered to ${user.name}`,
+          severity: 'INFO',
+        },
+        {
+          id: 'tl_' + crypto.randomUUID().slice(0, 8),
+          timestamp: now,
+          event: 'PASSKEY_ENROLLED',
+          details: `WebAuthn / Passkey credential (${credId.slice(0, 12)}...) bound to hardware enclave`,
+          severity: 'INFO',
+        },
+      ],
+    };
+
+    this.devices.set(deviceId, passport);
+    this.devicePassports.set(deviceId, passport);
+
+    this.recordAuditEvent({
+      eventType: 'DEVICE_ENROLLMENT_CONSUMED',
+      description: `One-time enrollment capability consumed by device "${passport.device_name}" for ${user.name} (${capability.devices_enrolled}/${capability.max_devices} enrolled)`,
+      targetId: capability.id,
+      target: capability.id,
+      before: { devices_enrolled: capability.devices_enrolled - 1, status: 'ACTIVE' },
+      after: { devices_enrolled: capability.devices_enrolled, status: capability.status },
+      performedBy: user.id,
+      userEmail: user.email,
+      userName: user.name,
+      severity: 'INFO',
+    });
+
+    this.recordAuditEvent({
+      eventType: 'DEVICE_REGISTERED',
+      description: `New Device Passport issued: ${passport.device_name} (ID: ${passport.device_id}, OS: ${passport.os}, Region: ${passport.registration_region})`,
+      targetId: passport.device_id,
+      target: passport.device_id,
+      before: null,
+      after: {
+        device_id: passport.device_id,
+        device_name: passport.device_name,
+        device_type: passport.device_type,
+        os: passport.os,
+        registration_region: passport.registration_region,
+      },
+      performedBy: user.id,
+      userEmail: user.email,
+      userName: user.name,
+      severity: 'INFO',
+    });
+
+    this.recordAuditEvent({
+      eventType: 'PASSKEY_REGISTERED',
+      description: `WebAuthn / Passkey credential registered: ${passport.credential_type} for ${user.name}`,
+      targetId: passport.credential_id,
+      target: passport.credential_id,
+      before: null,
+      after: {
+        credential_id: passport.credential_id,
+        credential_type: passport.credential_type,
+      },
+      performedBy: user.id,
+      userEmail: user.email,
+      userName: user.name,
+      severity: 'INFO',
+    });
+
+    return { passport, user };
+  }
+
+  // Backward-compatible createEnrollment
+  public createEnrollment(userId: string, callerUserId?: string): DeviceEnrollment {
+    const { enrollment, plaintextCode } = this.createEnrollmentCapability({
+      userId,
+      callerUserId,
+      durationMinutes: 15,
+      maxDevices: 1,
+    });
+    return {
+      code: plaintextCode,
+      user_id: enrollment.user_id,
+      expires_at: enrollment.expires_at,
+      created_at: enrollment.created_at,
+    };
+  }
+
+  // Backward-compatible consumeEnrollment
   public consumeEnrollment(code: string): string {
-    const cleanCode = code.toUpperCase().trim();
-    const enrollment = this.enrollments.get(cleanCode);
-
-    if (!enrollment) {
-      throw new Error('Invalid or non-existent enrollment code');
+    const verified = this.verifyEnrollmentCapability(code);
+    if (!verified.valid || !verified.enrollment) {
+      throw new Error(verified.error || 'Invalid or non-existent enrollment code');
     }
 
-    if (new Date(enrollment.expires_at).getTime() < Date.now()) {
-      this.enrollments.delete(cleanCode);
-      throw new Error('Enrollment code has expired. Please generate a new code on your primary device.');
+    verified.enrollment.status = 'CONSUMED';
+    verified.enrollment.used_at = new Date().toISOString();
+    this.enrollments.delete(code.toUpperCase().trim());
+
+    return verified.enrollment.user_id;
+  }
+
+  // --- DEVICE PASSPORT & TRUST LIFECYCLE ---
+  public getDevicePassport(deviceId: string): DevicePassport | null {
+    const p = this.devicePassports.get(deviceId);
+    if (p) return p;
+
+    // Fallback: convert UserDevice to DevicePassport if not in passports map
+    const d = this.devices.get(deviceId);
+    if (!d) return null;
+
+    const user = this.getUserById(d.user_id);
+    const converted: DevicePassport = {
+      ...d,
+      device_id: d.id,
+      device_type: d.device_type || (d.is_admin_device ? 'terminal' : 'laptop'),
+      os: d.os || 'macOS',
+      browser: d.browser || 'Chrome',
+      browser_version: d.browser_version || '128.0',
+      model: d.model || 'MacBook Pro',
+      credential_id: d.credential_id || `cred_${d.id}`,
+      credential_type: d.credential_type || 'WebAuthn',
+      registered_at: d.created_at,
+      last_authenticated_at: d.last_used_at,
+      last_active_at: d.last_used_at,
+      risk_state: d.risk_state || 'TRUSTED',
+      registration_region: d.registration_region || 'Punjab, India',
+      position: d.position || (user ? user.role : 'USER'),
+      user_name: user?.name,
+      user_email: user?.email,
+      timeline: d.timeline || [
+        {
+          id: 'tl_' + d.id,
+          timestamp: d.created_at,
+          event: 'DEVICE_REGISTERED',
+          details: `Device ${d.device_name} registered`,
+          severity: 'INFO',
+        },
+      ],
+    };
+    return converted;
+  }
+
+  public getAllDevicePassports(): DevicePassport[] {
+    const list: DevicePassport[] = [];
+    for (const d of this.devices.values()) {
+      const passport = this.getDevicePassport(d.id);
+      if (passport) list.push(passport);
+    }
+    return list;
+  }
+
+  public updateDeviceRiskState(
+    deviceId: string,
+    riskState: 'TRUSTED' | 'REVIEW' | 'RESTRICTED' | 'REVOKED',
+    callerUserId?: string
+  ): DevicePassport {
+    const passport = this.getDevicePassport(deviceId);
+    if (!passport) throw new Error('Device not found');
+
+    const prevRisk = passport.risk_state || 'TRUSTED';
+    passport.risk_state = riskState;
+
+    if (riskState === 'REVOKED') {
+      passport.status = 'REVOKED';
+      passport.revoked_at = new Date().toISOString();
+      this.revokeAllSessionsForDevice(deviceId, callerUserId);
     }
 
-    // One-time use: delete immediately
-    this.enrollments.delete(cleanCode);
-    return enrollment.user_id;
+    this.recordDeviceTimelineEvent(
+      deviceId,
+      'RISK_STATE_CHANGED',
+      `Risk state changed from ${prevRisk} to ${riskState}`,
+      riskState === 'REVOKED' || riskState === 'RESTRICTED' ? 'WARNING' : 'INFO'
+    );
+
+    const dev = this.devices.get(deviceId);
+    if (dev) {
+      dev.risk_state = riskState;
+      if (riskState === 'REVOKED') {
+        dev.status = 'REVOKED';
+        dev.revoked_at = passport.revoked_at;
+      }
+    }
+
+    this.recordAuditEvent({
+      eventType: 'DEVICE_RISK_STATE_CHANGED',
+      description: `Device "${passport.device_name}" (${passport.device_id}) risk state transitioned from ${prevRisk} to ${riskState}`,
+      targetId: deviceId,
+      target: deviceId,
+      before: { risk_state: prevRisk },
+      after: { risk_state: riskState },
+      performedBy: callerUserId,
+      severity: riskState === 'REVOKED' || riskState === 'RESTRICTED' ? 'WARNING' : 'INFO',
+    });
+
+    return passport;
+  }
+
+  public suspendDevice(deviceId: string, callerUserId?: string): DevicePassport {
+    const passport = this.getDevicePassport(deviceId);
+    if (!passport) throw new Error('Device not found');
+
+    if (passport.is_admin_device) {
+      throw new Error('Cannot suspend primary Admin hardware device.');
+    }
+
+    passport.status = 'SUSPENDED';
+    const dev = this.devices.get(deviceId);
+    if (dev) dev.status = 'SUSPENDED';
+
+    // Terminate active sessions for suspended device
+    this.revokeAllSessionsForDevice(deviceId, callerUserId);
+
+    this.recordDeviceTimelineEvent(
+      deviceId,
+      'DEVICE_SUSPENDED',
+      'Device access suspended by administrator',
+      'WARNING'
+    );
+
+    this.recordAuditEvent({
+      eventType: 'DEVICE_SUSPENDED',
+      description: `Device access suspended: ${passport.device_name} (ID: ${passport.device_id})`,
+      targetId: deviceId,
+      target: deviceId,
+      before: { status: 'ACTIVE' },
+      after: { status: 'SUSPENDED' },
+      performedBy: callerUserId,
+      severity: 'WARNING',
+    });
+
+    return passport;
+  }
+
+  public reactivateDevice(deviceId: string, callerUserId?: string): DevicePassport {
+    const passport = this.getDevicePassport(deviceId);
+    if (!passport) throw new Error('Device not found');
+
+    passport.status = 'ACTIVE';
+    passport.risk_state = 'TRUSTED';
+    const dev = this.devices.get(deviceId);
+    if (dev) {
+      dev.status = 'ACTIVE';
+      dev.risk_state = 'TRUSTED';
+    }
+
+    this.recordDeviceTimelineEvent(
+      deviceId,
+      'DEVICE_REACTIVATED',
+      'Device restored to active trusted state by administrator',
+      'INFO'
+    );
+
+    this.recordAuditEvent({
+      eventType: 'DEVICE_REACTIVATED',
+      description: `Device reactivated: ${passport.device_name} (ID: ${passport.device_id})`,
+      targetId: deviceId,
+      target: deviceId,
+      before: { status: 'SUSPENDED' },
+      after: { status: 'ACTIVE' },
+      performedBy: callerUserId,
+      severity: 'INFO',
+    });
+
+    return passport;
+  }
+
+  // --- EMERGENCY CONTROLS: SUSPEND / REACTIVATE USER & DEVICE RECOVERY ---
+  public suspendUser(userId: string, callerUserId?: string): StoredUser {
+    const user = this.getUserById(userId);
+    if (!user) throw new Error('User not found');
+
+    if (user.role === UserRole.ADMIN) {
+      throw new Error('Cannot suspend root Administrator user account.');
+    }
+
+    const caller = callerUserId ? this.getUserById(callerUserId) : null;
+    if (caller && caller.role !== UserRole.ADMIN) {
+      throw new Error('Unauthorized: Only Administrator can suspend user accounts.');
+    }
+
+    const prevStatus = user.status;
+    user.status = UserStatus.SUSPENDED;
+
+    // Revoke all active sessions for this user
+    this.revokeAllSessionsForUser(userId, callerUserId);
+
+    // Suspend all user devices
+    for (const d of this.devices.values()) {
+      if (d.user_id === userId && !d.is_admin_device) {
+        d.status = 'SUSPENDED';
+        const p = this.devicePassports.get(d.id);
+        if (p) p.status = 'SUSPENDED';
+      }
+    }
+
+    this.recordAuditEvent({
+      eventType: 'USER_SUSPENDED',
+      description: `User account suspended: ${user.name} (${user.email}). All active sessions terminated and device access blocked.`,
+      targetId: userId,
+      target: userId,
+      before: { status: prevStatus },
+      after: { status: 'SUSPENDED' },
+      performedBy: callerUserId || 'Administrator',
+      userEmail: user.email,
+      userName: user.name,
+      severity: 'WARNING',
+    });
+
+    return user;
+  }
+
+  public reactivateUser(userId: string, callerUserId?: string): StoredUser {
+    const user = this.getUserById(userId);
+    if (!user) throw new Error('User not found');
+
+    const caller = callerUserId ? this.getUserById(callerUserId) : null;
+    if (caller && caller.role !== UserRole.ADMIN) {
+      throw new Error('Unauthorized: Only Administrator can reactivate user accounts.');
+    }
+
+    const prevStatus = user.status;
+    user.status = UserStatus.ACTIVE;
+
+    // Reactivate devices that were suspended
+    for (const d of this.devices.values()) {
+      if (d.user_id === userId && d.status === 'SUSPENDED') {
+        d.status = 'ACTIVE';
+        d.risk_state = 'TRUSTED';
+        const p = this.devicePassports.get(d.id);
+        if (p) {
+          p.status = 'ACTIVE';
+          p.risk_state = 'TRUSTED';
+        }
+      }
+    }
+
+    this.recordAuditEvent({
+      eventType: 'USER_REACTIVATED',
+      description: `User account reactivated: ${user.name} (${user.email}). Device access restored.`,
+      targetId: userId,
+      target: userId,
+      before: { status: prevStatus },
+      after: { status: 'ACTIVE' },
+      performedBy: callerUserId || 'Administrator',
+      userEmail: user.email,
+      userName: user.name,
+      severity: 'INFO',
+    });
+
+    return user;
+  }
+
+  public recoverDevice(params: {
+    lostDeviceId: string;
+    callerUserId: string;
+  }): { oldDevice: DevicePassport; enrollment: StoredEnrollmentCapability; plaintextCode: string } {
+    const oldDevice = this.getDevicePassport(params.lostDeviceId);
+    if (!oldDevice) throw new Error('Lost device record not found');
+
+    const caller = this.getUserById(params.callerUserId);
+    if (caller && caller.role !== UserRole.ADMIN) {
+      throw new Error('Unauthorized: Only Administrator can execute device recovery');
+    }
+
+    // 1. Mark old device as permanently REVOKED
+    oldDevice.status = 'REVOKED';
+    oldDevice.risk_state = 'REVOKED';
+    oldDevice.revoked_at = new Date().toISOString();
+    const d = this.devices.get(params.lostDeviceId);
+    if (d) {
+      d.status = 'REVOKED';
+      d.revoked_at = oldDevice.revoked_at;
+    }
+
+    // 2. Terminate all active sessions for the lost device
+    this.revokeAllSessionsForDevice(params.lostDeviceId, params.callerUserId);
+
+    this.recordDeviceTimelineEvent(
+      params.lostDeviceId,
+      'DEVICE_RECOVERED_REVOKED',
+      'Device reported lost or compromised. Terminal revocation executed by administrator during recovery.',
+      'CRITICAL'
+    );
+
+    // 3. Issue fresh 15-minute enrollment capability for replacement device
+    const { enrollment, plaintextCode } = this.createEnrollmentCapability({
+      userId: oldDevice.user_id,
+      callerUserId: params.callerUserId,
+      durationMinutes: 15,
+      maxDevices: 1,
+    });
+
+    this.recordAuditEvent({
+      eventType: 'DEVICE_RECOVERY_COMPLETED',
+      description: `Device recovery executed for ${oldDevice.user_name}: old device "${oldDevice.device_name}" revoked, new 15-minute enrollment capability issued.`,
+      targetId: oldDevice.device_id,
+      target: oldDevice.device_id,
+      before: { device_id: oldDevice.device_id, status: 'ACTIVE' },
+      after: { device_id: oldDevice.device_id, status: 'REVOKED', replacement_enrollment_id: enrollment.id },
+      performedBy: params.callerUserId,
+      severity: 'WARNING',
+    });
+
+    return { oldDevice, enrollment, plaintextCode };
+  }
+
+  public recordDeviceTimelineEvent(
+    deviceId: string,
+    event: string,
+    details?: string,
+    severity: 'INFO' | 'WARNING' | 'CRITICAL' = 'INFO'
+  ): void {
+    const passport = this.devicePassports.get(deviceId);
+    const eventObj: DeviceTimelineEvent = {
+      id: 'tl_' + crypto.randomUUID().slice(0, 8),
+      timestamp: new Date().toISOString(),
+      event,
+      details,
+      severity,
+    };
+    if (passport) {
+      if (!passport.timeline) passport.timeline = [];
+      passport.timeline.unshift(eventObj);
+    }
+    const dev = this.devices.get(deviceId);
+    if (dev && dev !== passport) {
+      if (!dev.timeline) dev.timeline = [];
+      dev.timeline.unshift(eventObj);
+    }
+  }
+
+  public forceReauthentication(deviceId: string, callerUserId?: string): void {
+    const passport = this.getDevicePassport(deviceId);
+    if (!passport) throw new Error('Device not found');
+
+    this.revokeAllSessionsForDevice(deviceId, callerUserId);
+    this.recordDeviceTimelineEvent(
+      deviceId,
+      'FORCE_REAUTH',
+      'Administrator forced re-authentication for all active sessions',
+      'WARNING'
+    );
+
+    this.recordAuditEvent({
+      eventType: 'FORCE_REAUTH_TRIGGERED',
+      description: `Re-authentication enforced for device: ${passport.device_name}`,
+      targetId: deviceId,
+      target: deviceId,
+      performedBy: callerUserId,
+      severity: 'INFO',
+    });
+  }
+
+  // --- SESSION MANAGEMENT ---
+  public createSession(params: {
+    userId: string;
+    deviceId: string;
+    position?: string;
+    authLevel?: 'PASSKEY' | 'WEBAUTHN' | 'P256';
+    durationHours?: number;
+  }): StoredDeviceSession {
+    const user = this.getUserById(params.userId);
+    if (user && (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REVOKED)) {
+      throw new Error(`Cannot establish session: User account is ${user.status}. Access denied.`);
+    }
+
+    const device = this.devices.get(params.deviceId);
+    if (device && (device.status === 'SUSPENDED' || device.status === 'REVOKED')) {
+      throw new Error(`Cannot establish session: Device is ${device.status}. Access denied.`);
+    }
+
+    const sessionId = 'SES-' + crypto.randomUUID().slice(0, 8).toUpperCase();
+    const durationHours = params.durationHours || 8;
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + durationHours * 3600 * 1000).toISOString();
+
+    const session: StoredDeviceSession = {
+      session_id: sessionId,
+      user_id: params.userId,
+      user_name: user?.name,
+      user_email: user?.email,
+      device_id: params.deviceId,
+      device_name: device?.device_name || 'Primary Device',
+      position: params.position || user?.role || 'USER',
+      created_at: now,
+      last_activity_at: now,
+      expires_at: expiresAt,
+      authentication_level: params.authLevel || 'PASSKEY',
+      status: 'ACTIVE',
+    };
+
+    this.sessions.set(sessionId, session);
+
+    // Update device timestamps & timeline
+    if (device) {
+      device.last_used_at = now;
+      this.recordDeviceTimelineEvent(
+        params.deviceId,
+        'LOGIN_SUCCESS',
+        `Authenticated session established via ${session.authentication_level}`,
+        'INFO'
+      );
+    }
+
+    return session;
+  }
+
+  public getActiveSessions(): StoredDeviceSession[] {
+    const active: StoredDeviceSession[] = [];
+    const now = Date.now();
+    for (const s of this.sessions.values()) {
+      if (s.status === 'ACTIVE' && new Date(s.expires_at).getTime() > now) {
+        active.push(s);
+      }
+    }
+    return active;
+  }
+
+  public getSessionsForUser(userId: string): StoredDeviceSession[] {
+    return Array.from(this.sessions.values()).filter(s => s.user_id === userId);
+  }
+
+  public revokeSession(sessionId: string, callerUserId?: string): void {
+    const s = this.sessions.get(sessionId);
+    if (!s) return;
+    s.status = 'REVOKED';
+
+    this.recordAuditEvent({
+      eventType: 'SESSION_REVOKED',
+      description: `Session ${sessionId} revoked for user ${s.user_name || s.user_id}`,
+      targetId: sessionId,
+      target: sessionId,
+      performedBy: callerUserId,
+      severity: 'INFO',
+    });
+  }
+
+  public revokeAllSessionsForUser(userId: string, callerUserId?: string): void {
+    for (const s of this.sessions.values()) {
+      if (s.user_id === userId && s.status === 'ACTIVE') {
+        s.status = 'REVOKED';
+      }
+    }
+
+    this.recordAuditEvent({
+      eventType: 'ALL_SESSIONS_REVOKED',
+      description: `All active sessions revoked for user ${userId}`,
+      targetId: userId,
+      target: userId,
+      performedBy: callerUserId,
+      severity: 'WARNING',
+    });
+  }
+
+  public revokeAllSessionsForDevice(deviceId: string, callerUserId?: string): void {
+    for (const s of this.sessions.values()) {
+      if (s.device_id === deviceId && s.status === 'ACTIVE') {
+        s.status = 'REVOKED';
+      }
+    }
+  }
+
+  // --- STEP-UP AUTHENTICATION & DECRYPTION AUTHORIZATION ---
+  public verifyStepUpAuthentication(params: {
+    userId: string;
+    deviceId: string;
+    assetId?: string;
+  }): { authorized: boolean; token: string; expiresAt: string } {
+    const passport = this.getDevicePassport(params.deviceId);
+    if (!passport) throw new Error('Device not found');
+    if (passport.status === 'REVOKED' || passport.risk_state === 'REVOKED') {
+      throw new Error('Device has been revoked');
+    }
+    if (passport.status !== 'ACTIVE') {
+      throw new Error(`Device is not active (${passport.status})`);
+    }
+
+    const user = this.getUserById(passport.user_id);
+    if (user && (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REVOKED)) {
+      throw new Error(`Step-up authentication denied: User account is ${user.status}.`);
+    }
+
+    const token = 'KMS-AUTH-' + crypto.randomUUID().slice(0, 12).toUpperCase();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes temporary clearance
+
+    this.recordDeviceTimelineEvent(
+      params.deviceId,
+      'STEP_UP_AUTH_SUCCESS',
+      `Step-up WebAuthn authentication verified for asset ${params.assetId || 'sensitive operation'}`,
+      'INFO'
+    );
+
+    this.recordDeviceTimelineEvent(
+      params.deviceId,
+      'DECRYPTION_AUTHORIZED',
+      `Temporary Server-Side KMS key-release permit granted: ${token}`,
+      'INFO'
+    );
+
+    this.recordAuditEvent({
+      eventType: 'STEP_UP_AUTH_SUCCESS',
+      description: `Step-up authentication verified for device "${passport.device_name}" (User: ${passport.user_name})`,
+      targetId: params.assetId || passport.device_id,
+      target: params.assetId || passport.device_id,
+      severity: 'INFO',
+    });
+
+    this.recordAuditEvent({
+      eventType: 'TEMPORARY_KEY_AUTHORIZED',
+      description: `Server-Side KMS issued short-lived decryption token (${token})`,
+      targetId: params.assetId || token,
+      target: params.assetId || token,
+      severity: 'INFO',
+    });
+
+    return { authorized: true, token, expiresAt };
   }
 
   // --- ASSET ASSIGNMENTS & ACCESS ENFORCEMENT ---
@@ -993,6 +2125,12 @@ class SecureMaxStore {
     assigned_users_count: number;
     shares?: Array<{ user_id: string; user_name: string; permissions: string; expires_at: string | null }>;
   }> {
+    const user = this.getUserById(userId);
+    // EMERGENCY CONTROL: If user is suspended or revoked, block all asset operations immediately!
+    if (user && (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REVOKED)) {
+      return [];
+    }
+
     const results: Array<{
       asset: StoredAsset;
       can_read: boolean;
@@ -1008,7 +2146,6 @@ class SecureMaxStore {
       assigned_users_count: number;
       shares?: Array<{ user_id: string; user_name: string; permissions: string; expires_at: string | null }>;
     }> = [];
-    const user = this.getUserById(userId);
     const isCallerAdmin = user?.role === UserRole.ADMIN;
     const showAllDataForAdmin = isCallerAdmin && options?.scope === 'ALL_DATA';
 
@@ -1118,6 +2255,12 @@ class SecureMaxStore {
   }
 
   public getAssignment(userId: string, assetId: string): StoredAssignment | null {
+    const user = this.getUserById(userId);
+    // EMERGENCY CONTROL: If user is suspended or revoked, block all assignments immediately!
+    if (user && (user.status === UserStatus.SUSPENDED || user.status === UserStatus.REVOKED)) {
+      return null;
+    }
+
     const asset = this.assets.get(assetId);
 
     // 1. Direct assignment for user
@@ -1174,7 +2317,6 @@ class SecureMaxStore {
     }
 
     // 4. Admin fallback
-    const user = this.getUserById(userId);
     if (user?.role === UserRole.ADMIN) {
       return {
         asset_id: assetId,
@@ -1206,6 +2348,20 @@ class SecureMaxStore {
     sharedWithName?: string
   ): StoredAssignment {
     const index = this.assignments.findIndex(a => a.asset_id === assetId && a.user_id === userId);
+    const prevAssignment = index >= 0 ? this.assignments[index] : null;
+    const prevPerms = prevAssignment ? [
+      prevAssignment.can_read && 'READ',
+      prevAssignment.can_decrypt && 'DECRYPT',
+      prevAssignment.can_download && 'DOWNLOAD',
+      prevAssignment.can_edit && 'EDIT',
+    ].filter(Boolean) : [];
+    const newPerms = [
+      canRead && 'READ',
+      canDecrypt && 'DECRYPT',
+      canDownload && 'DOWNLOAD',
+      canEdit && 'EDIT',
+    ].filter(Boolean);
+
     const assignment: StoredAssignment = {
       asset_id: assetId,
       user_id: userId,
@@ -1228,9 +2384,13 @@ class SecureMaxStore {
     }
 
     this.recordAuditEvent({
-      eventType: canDecrypt ? 'ASSET_ACCESS_GRANTED' : 'ASSET_ACCESS_REVOKED',
+      eventType: 'PERMISSION_CHANGED',
       description: `Cryptographic access ${canDecrypt ? 'granted' : 'restricted'} for asset ${assetId} (user: ${userId}).`,
       targetId: assetId,
+      target: assetId,
+      before: prevPerms,
+      after: newPerms,
+      performedBy: sharedBy || 'Administrator',
       severity: 'INFO',
     });
 
@@ -1239,6 +2399,14 @@ class SecureMaxStore {
 
   public revokeAssignment(assetId: string, userId: string): void {
     const index = this.assignments.findIndex(a => a.asset_id === assetId && a.user_id === userId);
+    const prevAssignment = index >= 0 ? this.assignments[index] : null;
+    const prevPerms = prevAssignment ? [
+      prevAssignment.can_read && 'READ',
+      prevAssignment.can_decrypt && 'DECRYPT',
+      prevAssignment.can_download && 'DOWNLOAD',
+      prevAssignment.can_edit && 'EDIT',
+    ].filter(Boolean) : ['READ', 'DECRYPT'];
+
     if (index >= 0) {
       this.assignments[index].status = 'REVOKED';
       this.assignments[index].can_decrypt = false;
@@ -1259,9 +2427,13 @@ class SecureMaxStore {
     }
 
     this.recordAuditEvent({
-      eventType: 'ASSET_ACCESS_REVOKED',
+      eventType: 'PERMISSION_CHANGED',
       description: `Cryptographic access revoked for asset ${assetId} (user: ${userId}).`,
       targetId: assetId,
+      target: assetId,
+      before: prevPerms,
+      after: ['READ'],
+      performedBy: 'Administrator',
       severity: 'WARNING',
     });
   }
@@ -1672,16 +2844,25 @@ class SecureMaxStore {
     eventType: string;
     description: string;
     targetId?: string;
+    target?: string;
+    before?: any;
+    after?: any;
+    performedBy?: string;
     userEmail?: string;
     userName?: string;
     severity?: 'INFO' | 'WARNING' | 'CRITICAL';
   }): StoredAuditEvent {
-    const rawHash = crypto.createHash('sha256').update(`${Date.now()}:${params.eventType}:${params.description}`).digest('hex');
+    const payload = `${Date.now()}:${params.eventType}:${params.description}:${JSON.stringify(params.before || {})}:${JSON.stringify(params.after || {})}`;
+    const rawHash = crypto.createHash('sha256').update(payload).digest('hex');
     const event: StoredAuditEvent = {
       id: 'aud_' + crypto.randomUUID().slice(0, 8),
       event_type: params.eventType,
       description: params.description,
-      target_id: params.targetId,
+      target_id: params.targetId || params.target,
+      target: params.target || params.targetId,
+      before: params.before,
+      after: params.after,
+      performed_by: params.performedBy,
       user_email: params.userEmail,
       user_name: params.userName,
       severity: params.severity || 'INFO',

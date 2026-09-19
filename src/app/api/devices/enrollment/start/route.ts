@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   try {
     const session = await getVerifiedSession();
     const body = await req.json().catch(() => ({}));
-    const { targetUserId } = body;
+    const { targetUserId, positionId, durationMinutes, maxDevices, targetDeviceType } = body;
 
     let enrollForUserId = session.userId;
 
@@ -33,25 +33,40 @@ export async function POST(req: Request) {
       );
     }
 
-    const enrollment = deviceStore.createEnrollment(targetUser.id, session.userId);
+    const { enrollment, plaintextCode } = deviceStore.createEnrollmentCapability({
+      userId: targetUser.id,
+      positionId,
+      durationMinutes: durationMinutes ? Number(durationMinutes) : 15,
+      maxDevices: maxDevices ? Number(maxDevices) : 1,
+      callerUserId: session.userId,
+      targetDeviceType,
+    });
+
+    const origin = req.headers.get('origin') || 'https://securemax.app';
+    const enrollmentUrl = `${origin}/register-device?code=${plaintextCode}`;
 
     const qrPayload = JSON.stringify({
       app: 'SecureMAX',
       action: 'enroll_device',
-      code: enrollment.code,
+      code: plaintextCode,
+      url: enrollmentUrl,
       userId: targetUser.id,
       userEmail: targetUser.email,
+      position: enrollment.position_name,
       expiresAt: enrollment.expires_at,
     });
 
     return NextResponse.json({
       success: true,
       enrollment: {
-        code: enrollment.code,
+        code: plaintextCode,
         expiresAt: enrollment.expires_at,
         qrPayload,
+        enrollmentUrl,
         targetUserName: targetUser.name,
         targetUserEmail: targetUser.email,
+        positionName: enrollment.position_name,
+        durationMinutes: enrollment.duration_minutes,
       },
     });
   } catch (error: any) {

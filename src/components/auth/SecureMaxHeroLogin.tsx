@@ -897,6 +897,16 @@ export default function SecureMaxHeroLogin() {
                 {enrollLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Laptop className="w-4 h-4" />}
                 REGISTER HARDWARE ENCLAVE KEY
               </button>
+
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => router.push(`/register-device${enrollCode ? `?code=${enrollCode}` : ''}`)}
+                  className="text-cyan-400 hover:text-cyan-300 text-xs font-mono underline cursor-pointer"
+                >
+                  Open Full Device Passport Registration Portal →
+                </button>
+              </div>
             </form>
           </div>
         </div>

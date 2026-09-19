@@ -17,17 +17,154 @@ export interface UserDevice {
   device_name: string;
   public_key: string; // Base64 SPKI
   algorithm: 'ECDSA_P256';
-  status: 'ACTIVE' | 'REVOKED';
+  status: 'ACTIVE' | 'SUSPENDED' | 'REVOKED';
   is_admin_device: boolean;
   created_at: string;
   last_used_at: string;
   revoked_at?: string | null;
+
+  // Device Passport Fields
+  device_id?: string;
+  last_active_at?: string;
+  device_type?: 'laptop' | 'phone' | 'tablet' | 'desktop' | 'terminal' | string;
+  os?: string;
+  browser?: string;
+  browser_version?: string;
+  model?: string;
+  credential_id?: string;
+  credential_type?: 'WebAuthn' | 'Passkey' | 'ECDSA_P256' | string;
+  registered_at?: string;
+  last_authenticated_at?: string;
+  risk_state?: 'TRUSTED' | 'REVIEW' | 'RESTRICTED' | 'REVOKED';
+  registration_region?: string;
+  position?: string;
+  timeline?: DeviceTimelineEvent[];
+}
+
+export interface DeviceTimelineEvent {
+  id: string;
+  timestamp: string;
+  event: string;
+  details?: string;
+  severity?: 'INFO' | 'WARNING' | 'CRITICAL';
+}
+
+export interface DevicePassport extends UserDevice {
+  device_id?: string;
+  last_active_at?: string;
+  device_type: 'laptop' | 'phone' | 'tablet' | 'desktop' | 'terminal' | string;
+  os: string;
+  browser: string;
+  browser_version?: string;
+  model?: string;
+  credential_id: string;
+  credential_type: 'WebAuthn' | 'Passkey' | 'ECDSA_P256' | string;
+  registered_at: string;
+  last_authenticated_at: string;
+  risk_state: 'TRUSTED' | 'REVIEW' | 'RESTRICTED' | 'REVOKED';
+  registration_region: string;
+  position?: string;
+  user_name?: string;
+  user_email?: string;
+  timeline: DeviceTimelineEvent[];
+}
+
+export interface PositionPermissions {
+  identity: {
+    register: boolean;
+    suspend: boolean;
+    revoke: boolean;
+  };
+  users: {
+    create: boolean;
+    suspend: boolean;
+  };
+  assets: {
+    view: boolean;
+    allocate: boolean;
+    transfer: boolean;
+    delete: boolean;
+  };
+  access: {
+    approve: boolean;
+    revoke: boolean;
+  };
+  audit: {
+    view: boolean;
+    export: boolean;
+  };
+  security: {
+    view_alerts: boolean;
+    manage_devices: boolean;
+  };
+}
+
+export interface StoredPosition {
+  id: string;
+  name: string;
+  description: string;
+  privilege_level: 'STANDARD' | 'ELEVATED' | 'ADMINISTRATIVE';
+  permissions: PositionPermissions;
+  is_predefined: boolean;
+  created_at: string;
+  created_by?: string;
 }
 
 export interface DeviceEnrollment {
   code: string;
   user_id: string;
   expires_at: string;
+  created_at: string;
+}
+
+export interface StoredEnrollmentCapability {
+  id: string;
+  code_hash: string;
+  user_id: string;
+  user_name?: string;
+  user_email?: string;
+  position_id: string;
+  position_name: string;
+  duration_minutes: number;
+  max_devices: number;
+  devices_enrolled: number;
+  created_by: string;
+  created_at: string;
+  expires_at: string;
+  status: 'ACTIVE' | 'CONSUMED' | 'EXPIRED' | 'REVOKED';
+  used_at?: string | null;
+  target_device_type?: string;
+}
+
+export interface StoredDeviceSession {
+  session_id: string;
+  user_id: string;
+  user_name?: string;
+  user_email?: string;
+  device_id: string;
+  device_name?: string;
+  position: string;
+  created_at: string;
+  last_activity_at: string;
+  expires_at: string;
+  authentication_level: 'PASSKEY' | 'WEBAUTHN' | 'P256';
+  status: 'ACTIVE' | 'REVOKED' | 'EXPIRED';
+}
+
+export interface StoredAuditEvent {
+  id: string;
+  event_type: string;
+  description: string;
+  target_id?: string;
+  target?: string;
+  before?: any;
+  after?: any;
+  performed_by?: string;
+  user_email?: string;
+  user_name?: string;
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  event_hash: string;
+  block_number?: number;
   created_at: string;
 }
 
