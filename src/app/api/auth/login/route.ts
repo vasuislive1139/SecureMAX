@@ -302,11 +302,18 @@ export async function POST(req: Request) {
     let device = null;
 
     if (user.role === UserRole.ADMIN) {
-      if (body.publicKey || deviceId === 'dev_admin_primary' || (deviceId && deviceId.includes('admin'))) {
-        // ADMIN SINGLE-DEVICE POLICY: strictly bound to primary admin workstation
-        let adminDev = userDevices.find(d => d.is_admin_device && d.status === 'ACTIVE') || userDevices.find(d => d.is_admin_device);
-        const bodyPublicKey = body.publicKey || (body.deviceInfo && body.deviceInfo.publicKeySpki);
+      let adminDev = userDevices.find(d => d.is_admin_device && d.status === 'ACTIVE') || userDevices.find(d => d.is_admin_device);
+      const bodyPublicKey = body.publicKey || (body.deviceInfo && body.deviceInfo.publicKeySpki);
 
+      // Check single-device policy: only the primary admin workstation device is allowed
+      if (deviceId && adminDev && deviceId !== adminDev.id && deviceId !== adminDev.device_id) {
+        return NextResponse.json(
+          { error: 'Non-primary device attempted administrative login. Access denied.' },
+          { status: 403 }
+        );
+      }
+
+      if (body.publicKey || deviceId === 'dev_admin_primary' || (deviceId && deviceId === adminDev?.id)) {
         if (!adminDev) {
           adminDev = deviceStore.registerDevice({
             userId: user.id,
@@ -315,8 +322,8 @@ export async function POST(req: Request) {
             isAdminDevice: true,
             customDeviceId: 'dev_admin_primary',
           });
-        } else if (bodyPublicKey && adminDev.public_key !== bodyPublicKey) {
-          // Physical browser hardware key anchor to the Admin workstation
+        } else if (bodyPublicKey && (adminDev.public_key === 'admin_terminal_key' || !adminDev.public_key)) {
+          // Initial anchor of physical browser hardware key to the Admin workstation placeholder
           adminDev.public_key = bodyPublicKey;
           if (deviceName) adminDev.device_name = deviceName;
           adminDev.last_authenticated_at = new Date().toISOString();
@@ -328,15 +335,6 @@ export async function POST(req: Request) {
             passport.last_authenticated_at = new Date().toISOString();
             deviceStore.devicePassports.set(adminDev.id, passport);
           }
-          deviceStore.recordAuditEvent({
-            eventType: 'ADMIN_HARDWARE_TERMINAL_BOUND',
-            description: `Admin hardware terminal anchored with P-256 passkey for ${user.name}`,
-            targetId: adminDev.id,
-            userName: user.name,
-            userEmail: user.email,
-            performedBy: user.name,
-            severity: 'INFO',
-          });
           deviceStore.saveToDisk();
         }
 
