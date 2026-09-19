@@ -17,6 +17,12 @@ export async function POST(req: Request) {
     
     const file = formData.get('file') as File | null;
     const plaintextOpt = formData.get('plaintext') as string | null;
+    
+    // Extracted additional fields for TS compliance
+    const fileType = formData.get('fileType') as string | null;
+    const canDecryptShared = formData.get('canDecryptShared') !== 'false';
+    const canDownloadShared = formData.get('canDownloadShared') !== 'false';
+    const expiresAt = formData.get('expiresAt') as string | null;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json({ error: 'File name is required' }, { status: 400 });

@@ -79,6 +79,23 @@ export function VaultUploadModal({
     }
   }, [availableUsers, targetUserId]);
 
+  const finishUpload = React.useCallback(() => {
+    setName('');
+    setDescription('');
+    setContent('');
+    setSelectedFile(null);
+    resetTx();
+    setLoading(false);
+    onUploadSuccess();
+    onClose();
+  }, [resetTx, onUploadSuccess, onClose]);
+
+  React.useEffect(() => {
+    if (txState === 'CONFIRMED') {
+      finishUpload();
+    }
+  }, [txState, finishUpload]);
+
   if (!isOpen) return null;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,23 +183,6 @@ export function VaultUploadModal({
       setLoading(false);
     } 
   };
-
-  const finishUpload = () => {
-    setName('');
-    setDescription('');
-    setContent('');
-    setSelectedFile(null);
-    resetTx();
-    setLoading(false);
-    onUploadSuccess();
-    onClose();
-  };
-
-  React.useEffect(() => {
-    if (txState === 'CONFIRMED') {
-      finishUpload();
-    }
-  }, [txState]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
