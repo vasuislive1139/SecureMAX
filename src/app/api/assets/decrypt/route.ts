@@ -3,6 +3,7 @@ import { getVerifiedSession } from '@/lib/auth/session';
 import { authorizeAssetAccess, prepareDecryptionStream } from '@/lib/api/access-flow';
 import { Readable } from 'stream';
 import { deviceStore } from '@/lib/auth/deviceStore';
+import { UserRole } from '@/types';
 
 export async function POST(req: Request) {
   
@@ -30,6 +31,23 @@ export async function POST(req: Request) {
       await deviceStore.lastSyncPromise;
     }
     return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+    }
+
+    // Strict Access Control:
+    // Only the Administrator can decrypt directly without prior access request.
+    // All other users require an approved access request and active assignment.
+    const isAdmin = session.role === UserRole.ADMIN || session.userId === 'usr_admin_001' || session.userId?.startsWith('admin');
+    if (!isAdmin) {
+      const assignment = deviceStore.getAssignment(session.userId, assetId);
+      if (!assignment || assignment.status !== 'ACTIVE' || !assignment.can_decrypt) {
+        if (deviceStore?.lastSyncPromise) {
+          await deviceStore.lastSyncPromise;
+        }
+        return NextResponse.json(
+          { error: 'Access Denied: You must request access from an administrator and receive approval before opening or downloading this asset.' },
+          { status: 403 }
+        );
+      }
     }
 
     // 1. Authorize access via 10-step flow

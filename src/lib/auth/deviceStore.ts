@@ -3830,7 +3830,7 @@ class SecureMaxStore {
         continue;
       }
 
-      let canRead = false;
+      let canRead = true; // Can view metadata in vault
       let canDecrypt = false;
       let canDownload = false;
       let canEdit = false;
@@ -3839,47 +3839,44 @@ class SecureMaxStore {
       let expiresAt: string | null = null;
       let sharedBy: string | undefined = undefined;
 
-      if (userAssignment) {
+      if (isCallerAdmin) {
+        // Root administrator has universal permission to read, decrypt, and download without access requests
+        canRead = true;
+        canDecrypt = true;
+        canDownload = true;
+        canEdit = true;
+        canDelete = true;
+        effectiveStatus = 'ACTIVE';
+      } else if (userAssignment) {
+        // User has an explicit assignment
         const isExpired = userAssignment.expires_at ? (new Date(userAssignment.expires_at).getTime() < Date.now()) : false;
         effectiveStatus = isExpired ? 'EXPIRED' : userAssignment.status;
         canRead = userAssignment.can_read;
-        canDecrypt = effectiveStatus === 'ACTIVE' && userAssignment.can_decrypt;
-        canDownload = effectiveStatus === 'ACTIVE' && (userAssignment.can_download ?? canDecrypt);
-        canEdit = effectiveStatus === 'ACTIVE' && Boolean(userAssignment.can_edit);
-        canDelete = effectiveStatus === 'ACTIVE' && Boolean(userAssignment.can_delete);
+        canDecrypt = !isExpired && userAssignment.status === 'ACTIVE' && userAssignment.can_decrypt;
+        canDownload = !isExpired && userAssignment.status === 'ACTIVE' && (userAssignment.can_download ?? canDecrypt);
+        canEdit = !isExpired && userAssignment.status === 'ACTIVE' && Boolean(userAssignment.can_edit);
+        canDelete = !isExpired && userAssignment.status === 'ACTIVE' && Boolean(userAssignment.can_delete);
         expiresAt = userAssignment.expires_at;
         sharedBy = userAssignment.shared_by;
-      } else if (isOwner) {
-        canRead = true;
-        canDecrypt = true;
-        canDownload = true;
-        canEdit = true;
-        canDelete = true;
-        effectiveStatus = 'ACTIVE';
-      } else if (isSharedWithAll && allAssignment) {
+      } else if (allAssignment) {
+        // Org-wide assignment
         const isExpired = allAssignment.expires_at ? (new Date(allAssignment.expires_at).getTime() < Date.now()) : false;
         effectiveStatus = isExpired ? 'EXPIRED' : allAssignment.status;
         canRead = allAssignment.can_read;
-        canDecrypt = effectiveStatus === 'ACTIVE' && allAssignment.can_decrypt;
-        canDownload = effectiveStatus === 'ACTIVE' && (allAssignment.can_download ?? canDecrypt);
-        canEdit = effectiveStatus === 'ACTIVE' && Boolean(allAssignment.can_edit);
+        canDecrypt = !isExpired && allAssignment.status === 'ACTIVE' && allAssignment.can_decrypt;
+        canDownload = !isExpired && allAssignment.status === 'ACTIVE' && (allAssignment.can_download ?? canDecrypt);
+        canEdit = false;
         canDelete = false;
         expiresAt = allAssignment.expires_at;
         sharedBy = allAssignment.shared_by;
-      } else if (showAllDataForAdmin || isCallerAdmin) {
+      } else {
+        // Non-admin without explicit or org-wide assignment:
+        // Must request access from admin before decrypting or downloading!
         canRead = true;
-        canDecrypt = true;
-        canDownload = true;
-        canEdit = true;
-        canDelete = true;
-        effectiveStatus = 'ACTIVE';
-      }
-
-      // Root administrator exemption: Admin can always decrypt, read, and download all assets without needing explicit access assignment
-      if (isCallerAdmin) {
-        canRead = true;
-        canDecrypt = true;
-        canDownload = true;
+        canDecrypt = false;
+        canDownload = false;
+        canEdit = false;
+        canDelete = false;
         effectiveStatus = 'ACTIVE';
       }
 

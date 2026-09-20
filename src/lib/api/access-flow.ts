@@ -100,7 +100,7 @@ export async function authorizeAssetAccess(
         targetId: assetId,
         details: { reason: 'No active asset assignment found' }
       });
-      throw new Error('Access Denied: You do not have an active assignment for this asset.');
+      throw new Error('Access Denied: You must request access from an administrator and receive approval before opening or downloading this asset.');
     }
 
     if (!assignment.can_decrypt) {
@@ -111,7 +111,7 @@ export async function authorizeAssetAccess(
         targetId: assetId,
         details: { reason: 'Asset permission is READ-ONLY (no decrypt permission)' }
       });
-      throw new Error('Access Denied: You are assigned to this asset as READ-ONLY. Decryption is prohibited.');
+      throw new Error('Access Denied: You must request access from an administrator and receive approval before opening or downloading this asset.');
     }
   }
 

@@ -10,10 +10,10 @@ export async function GET(req: Request) {
   try {
     const session = await getVerifiedSession();
     const url = new URL(req.url);
-    const targetUserId = url.searchParams.get('userId') || session.userId;
+    const targetUserId = session.userId;
     const scope = (url.searchParams.get('scope') as 'MY_DATA' | 'ALL_DATA') || 'MY_DATA';
-    const targetUser = await deviceStore.getUserById(targetUserId);
-    const isAdminCaller = session.role === UserRole.ADMIN || targetUser?.role === UserRole.ADMIN || targetUserId === 'usr_admin_001';
+    const isAdminCaller = session.role === UserRole.ADMIN || session.userId === 'usr_admin_001';
+    const targetUser = deviceStore.getUserById(targetUserId);
 
     const assetsWithPermissions = deviceStore.getAssetsForUser(targetUserId, { scope });
 
@@ -24,11 +24,11 @@ export async function GET(req: Request) {
       classification: item.asset.classification,
       status: item.status,
       description: item.asset.description,
-      canRead: isAdminCaller || item.can_read,
-      canDecrypt: item.can_decrypt,
-      canDownload: isAdminCaller || item.can_download,
-      canEdit: item.can_edit,
-      canDelete: item.can_delete,
+      canRead: isAdminCaller ? true : item.can_read,
+      canDecrypt: isAdminCaller ? true : item.can_decrypt,
+      canDownload: isAdminCaller ? true : item.can_download,
+      canEdit: isAdminCaller ? true : item.can_edit,
+      canDelete: isAdminCaller ? true : item.can_delete,
       expiresAt: item.expires_at,
       sharedBy: item.shared_by,
       folder: item.asset.folder,
@@ -168,12 +168,19 @@ export async function POST(req: Request) {
     }
 
     if (action === 'assign') {
+      const isCallerAdmin = session.role === UserRole.ADMIN || session.userId === 'usr_admin_001' || session.userId?.startsWith('admin');
+      if (!isCallerAdmin) {
+        if (deviceStore?.lastSyncPromise) {
+          await deviceStore.lastSyncPromise;
+        }
+        return NextResponse.json({ error: 'Only administrators can approve access and assign cryptographic clearances.' }, { status: 403 });
+      }
       deviceStore.setAssignment(assetId, effectiveTargetUserId, Boolean(canRead), Boolean(canDecrypt));
       
-    if (deviceStore?.lastSyncPromise) {
-      await deviceStore.lastSyncPromise;
-    }
-    return NextResponse.json({ success: true, message: `Access updated for user ${effectiveTargetUserId}.` });
+      if (deviceStore?.lastSyncPromise) {
+        await deviceStore.lastSyncPromise;
+      }
+      return NextResponse.json({ success: true, message: `Access updated for user ${effectiveTargetUserId}.` });
     }
 
     

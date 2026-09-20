@@ -118,6 +118,7 @@ export default function AssetsPage() {
   const [shareModalAsset, setShareModalAsset] = React.useState<{ id: string; name: string } | null>(null);
   const [detailsAsset, setDetailsAsset] = React.useState<AssetRecord | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
+  const hasLoadedOnceRef = React.useRef(false);
 
   // Decryption Preview State
   const [previewState, setPreviewState] = React.useState<{
@@ -136,7 +137,9 @@ export default function AssetsPage() {
 
   const fetchAssets = React.useCallback(async (isBackground = false) => {
     try {
-      if (!isBackground && assets.length === 0) setLoading(true);
+      if (!isBackground && !hasLoadedOnceRef.current) {
+        setLoading(true);
+      }
       const res = await fetch(`/api/assets/list?scope=${vaultScope}`);
       const data = await res.json();
       if (data.success) {
@@ -153,7 +156,8 @@ export default function AssetsPage() {
     } catch (err) {
       console.error('Failed to load assets:', err);
     } finally {
-      if (!isBackground) setLoading(false);
+      hasLoadedOnceRef.current = true;
+      setLoading(false);
     }
   }, [vaultScope]);
 
@@ -185,12 +189,19 @@ export default function AssetsPage() {
 
   // Decrypt Action
   const handleDecryptAsset = async (asset: AssetRecord) => {
+    if (userRole !== 'ADMIN' && !asset.canDecrypt) {
+      setRequestNotice(`Access Denied: You must request access from an administrator and receive approval before opening or downloading ${asset.name}.`);
+      return;
+    }
+
+    const isDownloadAllowed = userRole === 'ADMIN' ? true : Boolean(asset.canDownload && asset.canDecrypt);
+
     setPreviewState({
       isOpen: true,
       loading: true,
       error: null,
       result: null,
-      canDownload: asset.canDownload ?? true,
+      canDownload: isDownloadAllowed,
     });
 
     try {
@@ -210,7 +221,7 @@ export default function AssetsPage() {
         loading: false,
         error: null,
         result: data,
-        canDownload: asset.canDownload ?? true,
+        canDownload: isDownloadAllowed,
       });
 
       // Refresh list to update access logs in the background without blinking
@@ -739,15 +750,6 @@ export default function AssetsPage() {
                           <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
                           Pending Permit
                         </span>
-                      ) : asset.isOwner ? (
-                        <Button
-                          size="sm"
-                          onClick={() => handleAdminToggleRevoke(asset.id, false)}
-                          className="text-xs font-mono font-bold bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/40"
-                        >
-                          <Unlock className="h-3.5 w-3.5 mr-1.5" />
-                          Restore Access
-                        </Button>
                       ) : (
                         <Button
                           size="sm"
