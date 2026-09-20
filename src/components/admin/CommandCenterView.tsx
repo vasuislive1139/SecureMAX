@@ -110,6 +110,16 @@ export function CommandCenterView() {
   const [verifyingChain, setVerifyingChain] = React.useState(false);
   const [chainVerifiedNotice, setChainVerifiedNotice] = React.useState(false);
 
+  // Action Notice for live approvals/revocations
+  const [actionNotice, setActionNotice] = React.useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const showNotice = (type: 'success' | 'error', message: string) => {
+    setActionNotice({ type, message });
+    setTimeout(() => {
+      setActionNotice(prev => (prev?.message === message ? null : prev));
+    }, 4000);
+  };
+
   // Action Handlers with 0ms Instant Optimistic Feedback + Broadcast
   
   const handleApprove = async (id: string) => {
@@ -131,6 +141,7 @@ export function CommandCenterView() {
               ...(prev || []).filter(g => g && g.id !== res.grant.id && g.assetCode !== res.grant.assetCode),
             ]);
           }
+          showNotice('success', `Access request for ${req.assetCode} approved & permit minted.`);
           if (typeof broadcastUpdate === 'function') {
             broadcastUpdate('REQUEST_APPROVED', { requestId: id, ttlMinutes, grant: res.grant });
           } else {
@@ -138,12 +149,13 @@ export function CommandCenterView() {
           }
         } else {
           console.error('Failed to approve request:', res?.error);
-          alert(res?.error || 'Failed to approve request');
+          showNotice('error', res?.error || 'Failed to approve request');
           refetch();
         }
       }
     } catch (err: any) {
       console.error('Crash in handleApprove:', err);
+      showNotice('error', err?.message || 'Unexpected error approving request');
       refetch();
     }
   };
@@ -155,6 +167,7 @@ export function CommandCenterView() {
     try {
       const res = await rejectAccessRequestAction({ requestId: id, reason: 'Security policy restriction' });
       if (res?.success) {
+        showNotice('success', 'Access request rejected.');
         if (typeof broadcastUpdate === 'function') {
           broadcastUpdate('REQUEST_REJECTED', { requestId: id });
         } else {
@@ -162,11 +175,12 @@ export function CommandCenterView() {
         }
       } else {
         console.error('Failed to deny request:', res?.error);
-        alert(res?.error || 'Failed to deny request');
+        showNotice('error', res?.error || 'Failed to deny request');
         refetch();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to deny request:', err);
+      showNotice('error', err?.message || 'Unexpected error denying request');
       refetch();
     }
   };
@@ -179,6 +193,7 @@ export function CommandCenterView() {
     try {
       const res = await revokeLiveGrantAction({ grantId: id });
       if (res?.success) {
+        showNotice('success', `Live grant for ${grantToRevoke?.assetCode || id} revoked & access blocked.`);
         if (typeof broadcastUpdate === 'function') {
           broadcastUpdate('GRANT_REVOKED', { grantId: id, assetCode: grantToRevoke?.assetCode });
         } else {
@@ -186,11 +201,12 @@ export function CommandCenterView() {
         }
       } else {
         console.error('Failed to revoke grant:', res?.error);
-        alert(res?.error || 'Failed to revoke live grant');
+        showNotice('error', res?.error || 'Failed to revoke live grant');
         refetch();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to revoke grant:', err);
+      showNotice('error', err?.message || 'Unexpected error revoking grant');
       refetch();
     }
   };
@@ -419,6 +435,30 @@ export function CommandCenterView() {
                 </h2>
                 <span className="text-[10px] font-mono text-zinc-400">Approve signs on Chain-1</span>
               </div>
+
+              {/* Action Feedback Notice */}
+              {actionNotice && (
+                <div className={`p-3 rounded-xl text-xs font-mono flex items-center justify-between transition-all ${
+                  actionNotice.type === 'success' 
+                    ? 'bg-emerald-950/50 border border-emerald-500/40 text-emerald-300' 
+                    : 'bg-red-950/50 border border-red-500/40 text-red-300'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    {actionNotice.type === 'success' ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                    )}
+                    <span>{actionNotice.message}</span>
+                  </div>
+                  <button 
+                    onClick={() => setActionNotice(null)}
+                    className="text-zinc-400 hover:text-white text-xs ml-2"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
 
               {/* Pending Requests List */}
               <div className="space-y-3">
