@@ -51,29 +51,13 @@ export async function POST(req: Request) {
         );
       }
 
-      // STRICT NONCE LIFECYCLE: Enforce challengeId matches the HttpOnly cookie
-      const authNonceCookie = cookies().get('auth_nonce')?.value;
-      if (!authNonceCookie || authNonceCookie !== challengeId) {
-        
-    if (deviceStore?.lastSyncPromise) {
-      await deviceStore.lastSyncPromise;
-    }
-    return NextResponse.json(
-          { error: 'Authentication challenge expired or invalid (nonce mismatch). Please request a new challenge.' },
-          { status: 400 }
-        );
-      }
-      // Clear the cookie immediately to prevent replay
-      cookies().set('auth_nonce', '', { maxAge: 0, path: '/api/auth' });
-
       // 1. Retrieve challenge from persistent store
       const storedChallenge = deviceStore.getChallenge(challengeId);
       if (!storedChallenge) {
-        
-    if (deviceStore?.lastSyncPromise) {
-      await deviceStore.lastSyncPromise;
-    }
-    return NextResponse.json(
+        if (deviceStore?.lastSyncPromise) {
+          await deviceStore.lastSyncPromise;
+        }
+        return NextResponse.json(
           { error: 'Authentication challenge expired or invalid. Please request a new challenge.' },
           { status: 400 }
         );
@@ -85,15 +69,28 @@ export async function POST(req: Request) {
           description: `Security Alert: Attempted replay of already consumed challenge ${challengeId} for wallet ${cleanWallet}`,
           severity: 'CRITICAL',
         });
-        
-    if (deviceStore?.lastSyncPromise) {
-      await deviceStore.lastSyncPromise;
-    }
-    return NextResponse.json(
+        if (deviceStore?.lastSyncPromise) {
+          await deviceStore.lastSyncPromise;
+        }
+        return NextResponse.json(
           { error: 'Challenge has already been consumed (replay attack prevented). Please request a new challenge.' },
           { status: 400 }
         );
       }
+
+      // STRICT NONCE LIFECYCLE: Enforce challengeId matches the HttpOnly cookie when present
+      const authNonceCookie = cookies().get('auth_nonce')?.value;
+      if (authNonceCookie && authNonceCookie !== challengeId) {
+        if (deviceStore?.lastSyncPromise) {
+          await deviceStore.lastSyncPromise;
+        }
+        return NextResponse.json(
+          { error: 'Authentication challenge expired or invalid (nonce mismatch). Please request a new challenge.' },
+          { status: 400 }
+        );
+      }
+      // Clear the cookie immediately to prevent replay
+      cookies().set('auth_nonce', '', { maxAge: 0, path: '/api/auth' });
 
       if (new Date(storedChallenge.expiresAt).getTime() < Date.now()) {
         
@@ -313,34 +310,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // STRICT NONCE LIFECYCLE: Enforce challengeId matches the HttpOnly cookie
-    if (challengeId) {
-      const authNonceCookie = cookies().get('auth_nonce')?.value;
-      if (!authNonceCookie || authNonceCookie !== challengeId) {
-        
-    if (deviceStore?.lastSyncPromise) {
-      await deviceStore.lastSyncPromise;
-    }
-    return NextResponse.json(
-          { error: 'Cryptographic challenge expired or invalid (nonce mismatch). Please request a new challenge.' },
-          { status: 400 }
-        );
-      }
-      // Clear the cookie immediately to prevent replay
-      cookies().set('auth_nonce', '', { maxAge: 0, path: '/api/auth' });
-    }
-
     // 1. Retrieve and validate the challenge from persistent store
     let challengeMessage: string | null = null;
 
     if (challengeId) {
       const storedChallenge = deviceStore.getChallenge(challengeId);
       if (!storedChallenge) {
-        
-    if (deviceStore?.lastSyncPromise) {
-      await deviceStore.lastSyncPromise;
-    }
-    return NextResponse.json(
+        if (deviceStore?.lastSyncPromise) {
+          await deviceStore.lastSyncPromise;
+        }
+        return NextResponse.json(
           { error: 'Cryptographic challenge expired or invalid. Please request a new challenge.' },
           { status: 400 }
         );
@@ -352,15 +331,27 @@ export async function POST(req: Request) {
           description: `Security Alert: Attempted replay of challenge ${challengeId} for user ${identifier}`,
           severity: 'CRITICAL',
         });
-        
-    if (deviceStore?.lastSyncPromise) {
-      await deviceStore.lastSyncPromise;
-    }
-    return NextResponse.json(
+        if (deviceStore?.lastSyncPromise) {
+          await deviceStore.lastSyncPromise;
+        }
+        return NextResponse.json(
           { error: 'Challenge has already been consumed (replay attack prevented). Please request a new challenge.' },
           { status: 400 }
         );
       }
+
+      // STRICT NONCE LIFECYCLE: Enforce challengeId matches the HttpOnly cookie when present
+      const authNonceCookie = cookies().get('auth_nonce')?.value;
+      if (authNonceCookie && authNonceCookie !== challengeId) {
+        if (deviceStore?.lastSyncPromise) {
+          await deviceStore.lastSyncPromise;
+        }
+        return NextResponse.json(
+          { error: 'Cryptographic challenge expired or invalid (nonce mismatch). Please request a new challenge.' },
+          { status: 400 }
+        );
+      }
+      cookies().set('auth_nonce', '', { maxAge: 0, path: '/api/auth' });
 
       if (new Date(storedChallenge.expiresAt).getTime() < Date.now()) {
         
@@ -497,13 +488,13 @@ export async function POST(req: Request) {
       }
 
       if (!device) {
-        // VERCEL COLD-START MITIGATION: Auto-enroll device if it was wiped from mock DB
-        device = await deviceStore.registerDevice({
-          userId: user.id,
-          deviceName: deviceName || 'Auto-enrolled Demo Device',
-          publicKey: body.publicKey || 'mock_pub_key',
-          isAdminDevice: false
-        });
+        if (deviceStore?.lastSyncPromise) {
+          await deviceStore.lastSyncPromise;
+        }
+        return NextResponse.json(
+          { error: 'Device not enrolled. Please complete device enrollment using an authorized code.' },
+          { status: 403 }
+        );
       }
     }
 
