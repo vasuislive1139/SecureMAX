@@ -295,11 +295,14 @@ export function MyAccessView() {
       const myPending = realtimeData.pendingRequests.filter((r: any) => 
         !userIdentifier || r.actor === userName || r.userId === userIdentifier
       );
-      if (myPending.length > 0) {
+      if (myPending.length > 0 || realtimeData.liveGrants.length > 0) {
         fetchRequestsData();
+        fetchAssetsData();
       }
+    } else {
+      fetchAssetsData(); // Fallback if pendingRequests is missing
     }
-  }, [realtimeData, currentUser, currentSession, activeGrant, fetchRequestsData]);
+  }, [realtimeData, currentUser, currentSession, activeGrant, fetchRequestsData, fetchAssetsData]);
 
   // Decrypt content for active grant automatically
   React.useEffect(() => {

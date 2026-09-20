@@ -94,12 +94,31 @@ export async function POST(req: Request) {
       'Streaming AES-256-GCM decryption started'
     );
 
-    return new NextResponse(finalWebStream, {
-      headers: {
-        'Content-Type': asset.mime_type || 'application/octet-stream',
-        'Content-Disposition': `attachment; filename="${asset.name.replace(/"/g, '')}"`,
-        'X-SecureMAX-Standard': 'AES-256-GCM • Streaming Decryption'
-      }
+    // Convert stream to text to satisfy the frontend's JSON expectation
+    const reader = finalWebStream.getReader();
+    let result = '';
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      result += decoder.decode(value, { stream: true });
+    }
+    result += decoder.decode();
+
+    return NextResponse.json({
+      success: true,
+      assetId: asset.id,
+      assetName: asset.name,
+      classification: asset.classification,
+      folder: asset.folder,
+      fileType: asset.file_type,
+      mimeType: asset.mime_type,
+      fileSizeBytes: asset.file_size_bytes,
+      decryptedData: result,
+      decryptedAt: new Date().toISOString(),
+      keyVersion: asset.key_version || 'v1',
+      encryptionStandard: 'AES-256-GCM',
+      authorizedBy: 'Sentinel Zero-Trust Engine'
     });
   } catch (error: any) {
     console.error('[Decryption API Error]:', error);

@@ -297,7 +297,7 @@
       "shared_with_all": true,
       "default_access_policy": "ORGANIZATION",
       "created_at": "2026-09-19T23:23:57.816Z",
-      "last_accessed_at": "2026-09-20T00:23:06.890Z",
+      "last_accessed_at": "2026-09-20T00:30:28.265Z",
       "key_version": "v1",
       "versions": [
         {
@@ -309,6 +309,198 @@
         }
       ],
       "access_history": [
+        {
+          "id": "log_efe44680",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:30:28.265Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_3fe19f10",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:30:05.617Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_5ca1c6f6",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:30:05.489Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_4c6f7d10",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:30:05.358Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_f66beb92",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:29:54.253Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_435e3fb1",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:29:50.793Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_488e7598",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:29:48.299Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_20bcfd0d",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:29:47.427Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_3086d168",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:29:41.952Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_828c2ceb",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:29:37.217Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_4ce79f03",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:29:33.430Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_33cf8d8a",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:29:20.402Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_51df47b2",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:29:16.840Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_55768cb5",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:26:53.837Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_7f3c6891",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:26:26.871Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_e5d99d52",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:26:23.155Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_86b85b6e",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:26:20.109Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_bfa4f416",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:26:20.007Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_4ac0d8bc",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:26:09.950Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_75384f91",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:25:58.069Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_26cac890",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:25:52.616Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_3a9bccc3",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:25:52.418Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_96f2f26b",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:25:47.192Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_9777dc02",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:25:41.208Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
         {
           "id": "log_ecbdc599",
           "action": "DECRYPT",
@@ -1035,6 +1227,204 @@
     }
   ],
   "auditEvents": [
+    {
+      "id": "aud_b1df14eb",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x2e050d40134e195f58f18e64411462d149ced7e806674c481cc3a906b83e1d09",
+      "block_number": 6849423,
+      "created_at": "2026-09-20T00:30:27.773Z"
+    },
+    {
+      "id": "aud_a1825de5",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xa9f33ff5af51f774add4fa51dfe5cf8da1d1b7ea922ce879276acb0ff26025d4",
+      "block_number": 6849475,
+      "created_at": "2026-09-20T00:29:58.509Z"
+    },
+    {
+      "id": "aud_8797048b",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xe26ced6c928645c75443f9e99c11f48e25f23967db3bdc8ac7c76de6e3fa63c0",
+      "block_number": 6849338,
+      "created_at": "2026-09-20T00:29:53.867Z"
+    },
+    {
+      "id": "aud_3b673538",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xb91fb19607a0376af1306d944fa0209c08fe05f4724a4713178e3fd0be844a82",
+      "block_number": 6849488,
+      "created_at": "2026-09-20T00:29:47.376Z"
+    },
+    {
+      "id": "aud_fa83aecb",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x693a6e2ec052e97d252e50dc472b3b6bcb97e2c33062ab1fd5f55989b027f057",
+      "block_number": 6849414,
+      "created_at": "2026-09-20T00:29:41.597Z"
+    },
+    {
+      "id": "aud_e1f3f948",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x3f8a9329d39a2efb9ac41c1db138e804ff614f3471e889ff855e109bf4babe9f",
+      "block_number": 6849561,
+      "created_at": "2026-09-20T00:29:36.804Z"
+    },
+    {
+      "id": "aud_d44b875b",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x71c126b3d3574ffc28316f2c14abead1fc74d65219e359b5732eba599d2f19d1",
+      "block_number": 6849462,
+      "created_at": "2026-09-20T00:29:29.067Z"
+    },
+    {
+      "id": "aud_5301a771",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x6b9b6ca9b10af8efefd6adfcd22261a69a7e722bcc96d20e724f39136721d1c2",
+      "block_number": 6849269,
+      "created_at": "2026-09-20T00:29:26.026Z"
+    },
+    {
+      "id": "aud_f89037ec",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x45a7788071418e115bc405830f711ac96a08f7600151a101dc5f219f28928d70",
+      "block_number": 6849262,
+      "created_at": "2026-09-20T00:29:19.892Z"
+    },
+    {
+      "id": "aud_fd905553",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xfbdeb2edaa2756f461f97a79491c9d7d1d43d6c8d169ad81f0dc03c07bf1249c",
+      "block_number": 6849567,
+      "created_at": "2026-09-20T00:26:53.368Z"
+    },
+    {
+      "id": "aud_b6384f12",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xbef60cf5387d17b8ca9e948e532f4fa3ed616a45d7267c522a8983f2161bb5d5",
+      "block_number": 6849302,
+      "created_at": "2026-09-20T00:26:30.408Z"
+    },
+    {
+      "id": "aud_05c56ce5",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xeb60e79089a9d6c134dfa1735882935e92446fe918c8a6001b9b54e0da911adf",
+      "block_number": 6849406,
+      "created_at": "2026-09-20T00:26:22.698Z"
+    },
+    {
+      "id": "aud_52800336",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x7c0dd2abbcf4b6f79f2a21b6585253bf6ed829509c20c60e001e285f101ab2de",
+      "block_number": 6849278,
+      "created_at": "2026-09-20T00:26:19.752Z"
+    },
+    {
+      "id": "aud_a82f71f4",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xbeccf9dc98a670c6d5b3b2933b6e7b2558c50cc17c41ddf1e14d795df62a02f4",
+      "block_number": 6849488,
+      "created_at": "2026-09-20T00:26:14.682Z"
+    },
+    {
+      "id": "aud_035f1767",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x864d1357d7caa76cae46d2f2938bbc3b9aa3606c7521037e74d586306228e2c7",
+      "block_number": 6849272,
+      "created_at": "2026-09-20T00:26:02.683Z"
+    },
+    {
+      "id": "aud_f1d365ce",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x31218d0e111a804bfb0f5cd2194f47ccb4c16b3d5627c7b93d92ab09695d7be8",
+      "block_number": 6849288,
+      "created_at": "2026-09-20T00:25:52.135Z"
+    },
+    {
+      "id": "aud_01e8cf8a",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x2617566458cdd843dcd1a4962656fd801f18e2179978c789d404ee1d1c821872",
+      "block_number": 6849540,
+      "created_at": "2026-09-20T00:25:46.646Z"
+    },
+    {
+      "id": "aud_4317cc1e",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x538662f98488dffd4053dc3b0ab62ffb195ad22e6bb8b3f6b1e5666ce68d402d",
+      "block_number": 6849201,
+      "created_at": "2026-09-20T00:25:40.714Z"
+    },
     {
       "id": "aud_e1490946",
       "event_type": "ACCESS_DENIED",
@@ -3488,5 +3878,5 @@
   "adminWallet": "0x7ffdbb7868c127152f2007a6025ff15a5723ce08",
   "sessions": [],
   "challenges": [],
-  "updatedAt": "2026-09-20T00:23:15.529Z"
+  "updatedAt": "2026-09-20T00:30:31.988Z"
 }
