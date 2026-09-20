@@ -26,7 +26,27 @@ export function useSecureMaxRealtime(initialSync: boolean = true) {
       if (res.ok) {
         const json = await res.json();
         if (json.success) {
-          setData(json);
+          setData(prev => {
+            if (!prev) return json;
+            const p = {
+              pendingRequests: prev.pendingRequests,
+              liveGrants: prev.liveGrants,
+              notifications: prev.notifications,
+              auditEvents: prev.auditEvents,
+              stats: prev.stats,
+            };
+            const n = {
+              pendingRequests: json.pendingRequests,
+              liveGrants: json.liveGrants,
+              notifications: json.notifications,
+              auditEvents: json.auditEvents,
+              stats: json.stats,
+            };
+            if (JSON.stringify(p) === JSON.stringify(n)) {
+              return prev; // Retain reference to prevent re-renders & blinking
+            }
+            return json;
+          });
         }
       }
     } catch (err) {

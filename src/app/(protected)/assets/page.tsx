@@ -136,26 +136,26 @@ export default function AssetsPage() {
 
   const fetchAssets = React.useCallback(async (isBackground = false) => {
     try {
-      if (!isBackground) setLoading(true);
+      if (!isBackground && assets.length === 0) setLoading(true);
       const res = await fetch(`/api/assets/list?scope=${vaultScope}`);
       const data = await res.json();
       if (data.success) {
-        setAssets(data.assets || []);
+        setAssets(prev => (JSON.stringify(prev) === JSON.stringify(data.assets) ? prev : (data.assets || [])));
         setUserRole(data.role || 'USER');
         if (data.userId) setCurrentUserId(data.userId);
         if (data.userName) setUserName(data.userName);
-        if (data.storage) setStorage(data.storage);
-        if (data.users) setUsers(data.users);
+        if (data.storage) setStorage(prev => (JSON.stringify(prev) === JSON.stringify(data.storage) ? prev : data.storage));
+        if (data.users) setUsers(prev => (JSON.stringify(prev) === JSON.stringify(data.users) ? prev : data.users));
         if (data.defaultAccessPolicy) setDefaultAccessPolicy(data.defaultAccessPolicy);
-        if (Array.isArray(data.pendingAssetIds)) setServerPendingAssetIds(data.pendingAssetIds);
-        if (Array.isArray(data.rejectedAssetIds)) setServerRejectedAssetIds(data.rejectedAssetIds);
+        if (Array.isArray(data.pendingAssetIds)) setServerPendingAssetIds(prev => (JSON.stringify(prev) === JSON.stringify(data.pendingAssetIds) ? prev : data.pendingAssetIds));
+        if (Array.isArray(data.rejectedAssetIds)) setServerRejectedAssetIds(prev => (JSON.stringify(prev) === JSON.stringify(data.rejectedAssetIds) ? prev : data.rejectedAssetIds));
       }
     } catch (err) {
       console.error('Failed to load assets:', err);
     } finally {
-      if (!isBackground) setLoading(false);
+      setLoading(false);
     }
-  }, [vaultScope]);
+  }, [vaultScope, assets.length]);
 
   React.useEffect(() => {
     fetchAssets();
@@ -213,8 +213,8 @@ export default function AssetsPage() {
         canDownload: asset.canDownload ?? true,
       });
 
-      // Refresh list to update access logs in the background
-      fetchAssets();
+      // Refresh list to update access logs in the background without blinking
+      fetchAssets(true);
     } catch (err: any) {
       setPreviewState({
         isOpen: true,
@@ -552,7 +552,12 @@ export default function AssetsPage() {
       )}
 
       {/* 6. Assets Display: Table or Grid */}
-      {assets.length === 0 ? (
+      {loading && assets.length === 0 ? (
+        <div className="p-16 rounded-2xl border border-zinc-800 bg-[#0a0a0c] text-center font-mono text-xs text-zinc-500 flex items-center justify-center gap-2 max-w-2xl mx-auto my-8">
+          <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
+          <span>Loading encrypted vault assets...</span>
+        </div>
+      ) : assets.length === 0 ? (
         <div className="p-16 rounded-2xl border border-dashed border-cyan-500/30 bg-[#0a0a0c]/80 text-center space-y-4 max-w-2xl mx-auto my-8">
           <div className="w-16 h-16 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 flex items-center justify-center mx-auto text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
             <HardDrive className="w-8 h-8" />
@@ -720,7 +725,7 @@ export default function AssetsPage() {
 
                     {/* Actions */}
                     <td className="px-5 py-4 text-right space-x-2 whitespace-nowrap">
-                      {asset.canDecrypt ? (
+                      {asset.canDecrypt || userRole === 'ADMIN' ? (
                         <Button
                           size="sm"
                           onClick={() => handleDecryptAsset(asset)}
@@ -902,7 +907,7 @@ export default function AssetsPage() {
                   </div>
 
                   <div>
-                    {asset.canDecrypt ? (
+                    {asset.canDecrypt || userRole === 'ADMIN' ? (
                       <Button
                         size="sm"
                         onClick={() => handleDecryptAsset(asset)}

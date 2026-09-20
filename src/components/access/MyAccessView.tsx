@@ -180,17 +180,17 @@ export function MyAccessView() {
     }
   }, []);
 
-  const fetchAssetsData = React.useCallback(async () => {
-    setLoadingAssets(true);
+  const fetchAssetsData = React.useCallback(async (isBackground = false) => {
+    if (!isBackground) setLoadingAssets(true);
     try {
       const res = await fetch('/api/assets/list', { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         if (json.assets) {
-          setAssets(json.assets);
+          setAssets(prev => (JSON.stringify(prev) === JSON.stringify(json.assets) ? prev : json.assets));
         }
         if (json.pendingAssetIds) {
-          setPendingAssetIds(json.pendingAssetIds);
+          setPendingAssetIds(prev => (JSON.stringify(prev) === JSON.stringify(json.pendingAssetIds) ? prev : json.pendingAssetIds));
         }
         if (!currentUser && json.userName) {
           setCurrentUser(prev => prev || ({
@@ -207,7 +207,7 @@ export function MyAccessView() {
     } catch (err) {
       console.error('Failed to load assets:', err);
     } finally {
-      setLoadingAssets(false);
+      if (!isBackground) setLoadingAssets(false);
     }
   }, [currentUser]);
 
@@ -297,10 +297,10 @@ export function MyAccessView() {
       );
       if (myPending.length > 0 || realtimeData.liveGrants.length > 0) {
         fetchRequestsData();
-        fetchAssetsData();
+        fetchAssetsData(true);
       }
     } else {
-      fetchAssetsData(); // Fallback if pendingRequests is missing
+      fetchAssetsData(true); // Fallback in background
     }
   }, [realtimeData, currentUser, currentSession, activeGrant, fetchRequestsData, fetchAssetsData]);
 
@@ -511,8 +511,9 @@ export function MyAccessView() {
   };
 
   // Helper values
-  const clearedAssets = assets.filter(a => a.canDecrypt);
-  const requestableAssets = assets.filter(a => !a.canDecrypt);
+  const isAdmin = currentUser?.role === 'ADMIN' || currentSession?.role === 'ADMIN' || currentUser?.id === 'usr_admin_001';
+  const clearedAssets = assets.filter(a => a.canDecrypt || isAdmin);
+  const requestableAssets = assets.filter(a => !a.canDecrypt && !isAdmin);
   const pendingRequestsCount = requests.filter(r => r.status === 'PENDING').length;
 
   const displayUser = currentUser || {
@@ -875,7 +876,7 @@ export function MyAccessView() {
                 </span>
               </div>
 
-              {loadingAssets ? (
+              {loadingAssets && assets.length === 0 ? (
                 <div className="p-8 rounded-xl border border-zinc-800 bg-[#0a0a0d] text-center font-mono text-xs text-zinc-500 flex items-center justify-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
                   <span>Loading vault assets...</span>
@@ -913,10 +914,10 @@ export function MyAccessView() {
                         </div>
 
                         <div className="flex items-center gap-3">
-                          {asset.canDecrypt ? (
+                          {asset.canDecrypt || isAdmin ? (
                             <>
                               <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">
-                                cleared
+                                {isAdmin ? 'admin' : 'cleared'}
                               </Badge>
                               <Button
                                 size="sm"

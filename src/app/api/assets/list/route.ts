@@ -13,6 +13,7 @@ export async function GET(req: Request) {
     const targetUserId = url.searchParams.get('userId') || session.userId;
     const scope = (url.searchParams.get('scope') as 'MY_DATA' | 'ALL_DATA') || 'MY_DATA';
     const targetUser = await deviceStore.getUserById(targetUserId);
+    const isAdminCaller = session.role === UserRole.ADMIN || targetUser?.role === UserRole.ADMIN || targetUserId === 'usr_admin_001';
 
     const assetsWithPermissions = deviceStore.getAssetsForUser(targetUserId, { scope });
 
@@ -23,9 +24,9 @@ export async function GET(req: Request) {
       classification: item.asset.classification,
       status: item.status,
       description: item.asset.description,
-      canRead: item.can_read,
-      canDecrypt: item.can_decrypt,
-      canDownload: item.can_download,
+      canRead: isAdminCaller || item.can_read,
+      canDecrypt: isAdminCaller || item.can_decrypt,
+      canDownload: isAdminCaller || item.can_download,
       canEdit: item.can_edit,
       canDelete: item.can_delete,
       expiresAt: item.expires_at,

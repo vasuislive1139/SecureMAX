@@ -251,4 +251,33 @@ describe('Secure Data Vault Core Features & Lifecycle Flow', () => {
     deviceStore.setUserDefaultAccessPolicy(vasuId, 'PRIVATE');
     expect(deviceStore.getUserDefaultAccessPolicy(vasuId)).toBe('PRIVATE');
   });
+
+  it('11. Administrator can decrypt any asset without prior access request or explicit assignment', async () => {
+    // Create an unassigned private asset owned by Vasu
+    const unassignedAsset = deviceStore.createAsset({
+      name: 'Unassigned_Sensitive_Doc.pdf',
+      folder: 'Finance',
+      classification: 'RESTRICTED',
+      description: 'Strictly restricted document with no admin assignment',
+      plaintext: 'SUPER SECRET ADMIN BYPASS TEST DATA',
+      ownerId: vasuId,
+      ownerName: 'Vasu (Lead Engineer)',
+      shareScope: 'PRIVATE',
+    });
+
+    // Verify Admin has no explicit assignment in assignments array
+    const directAssignment = deviceStore.assignments.find(a => a.asset_id === unassignedAsset.id && a.user_id === adminId);
+    expect(directAssignment).toBeUndefined();
+
+    // Admin should see it with can_decrypt === true in getAssetsForUser
+    const adminAssets = deviceStore.getAssetsForUser(adminId);
+    const assetInAdminView = adminAssets.find(a => a.asset.id === unassignedAsset.id);
+    expect(assetInAdminView).toBeDefined();
+    expect(assetInAdminView?.can_decrypt).toBe(true);
+
+    // Admin can authorize decryption directly without throws
+    const authResult = await authorizeAssetAccess(adminId, unassignedAsset.id, 'admin-session');
+    expect(authResult.authorized).toBe(true);
+    expect(authResult.tempToken).toBeDefined();
+  });
 });
