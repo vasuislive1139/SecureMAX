@@ -97,11 +97,12 @@ export async function approveAccessRequestAction(params: { requestId: string; tt
     }
 
     const approved = deviceStore.approveAccessRequest(params.requestId, adminUserId, params.ttlMinutes || 30);
+    const liveGrant = (approved as any).liveGrant;
     
     if (deviceStore?.lastSyncPromise) {
       await deviceStore.lastSyncPromise;
     }
-    return { success: true, request: approved };
+    return { success: true, request: approved, grant: liveGrant };
   } catch (err: any) {
     
     if (deviceStore?.lastSyncPromise) {
@@ -162,6 +163,9 @@ export async function revokeLiveGrantAction(params: { grantId: string }) {
     } catch {}
 
     const revoked = deviceStore.revokeLiveGrant(params.grantId, adminName);
+    if (!revoked) {
+      return { success: false, error: 'Live grant not found or already revoked' };
+    }
     
     if (deviceStore?.lastSyncPromise) {
       await deviceStore.lastSyncPromise;

@@ -77,4 +77,40 @@ describe('End-to-End Decrypt and Revoke Flow', () => {
 
     expect(decrypted.toString('utf8')).toContain('TOP SECRET // CONFIDENTIAL DEFENSE INTEL');
   });
+
+  it('4. Admin can approve access request and revoke live grant end-to-end', async () => {
+    const { approveAccessRequestAction, revokeLiveGrantAction, submitAccessRequestAction } = await import('../../src/app/actions/accessRequests');
+
+    // 1. Submit request
+    const submitRes = await submitAccessRequestAction({
+      assetId,
+      reason: 'Operational mission inspection',
+      ttlMinutes: 45,
+    });
+    expect(submitRes.success).toBe(true);
+    expect(submitRes.request).toBeDefined();
+    const requestId = submitRes.request!.id;
+
+    // 2. Approve request as Admin
+    const approveRes = await approveAccessRequestAction({ requestId, ttlMinutes: 45 });
+    expect(approveRes.success).toBe(true);
+    expect(approveRes.request?.status).toBe('APPROVED');
+    expect(approveRes.grant).toBeDefined();
+    expect(approveRes.grant?.status).toBe('ACTIVE');
+    const grantId = approveRes.grant!.id;
+
+    // 3. Verify user can decrypt
+    const authRes = await authorizeAssetAccess(vasuId, assetId, sessionId, deviceId);
+    expect(authRes.authorized).toBe(true);
+
+    // 4. Revoke live grant
+    const revokeRes = await revokeLiveGrantAction({ grantId });
+    expect(revokeRes.success).toBe(true);
+    expect(revokeRes.grant?.status).toBe('REVOKED');
+
+    // 5. Verify user can no longer decrypt
+    await expect(authorizeAssetAccess(vasuId, assetId, sessionId, deviceId)).rejects.toThrow(
+      'Access Denied'
+    );
+  });
 });

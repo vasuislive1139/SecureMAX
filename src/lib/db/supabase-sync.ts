@@ -57,7 +57,8 @@ export async function fetchLedgerFromSupabase(): Promise<any | null> {
       return null;
     }
 
-    const response = await fetch(urlData.signedUrl, { cache: 'no-store' });
+    const cacheBustedUrl = `${urlData.signedUrl}&_t=${Date.now()}`;
+    const response = await fetch(cacheBustedUrl, { cache: 'no-store' });
     if (!response.ok) return null;
     return await response.json();
   } catch (err: any) {

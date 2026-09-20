@@ -118,52 +118,53 @@ export function CommandCenterView() {
       if (!req) return;
       const ttlMinutes = req.ttlMinutes || 30;
 
-      // Ensure primitive types
-      const actorStr = String(req.actor || 'Unknown');
-      const assetCodeStr = String(req.assetCode || 'SMX-AST');
-      const sessionIdStr = Math.random().toString(16).slice(2, 10);
-      const ipStr = '10.42.7.' + Math.floor(Math.random() * 200 + 1);
-      const remainingSecondsNum = Number(ttlMinutes) * 60;
-
-      // 0ms Optimistic UI update
+      // 0ms Optimistic UI update: remove pending request immediately
       setPendingRequests(prev => (prev || []).filter(r => r.id !== id));
-      setLiveGrants(prev => [
-        {
-          id: 'grant-' + Date.now(),
-          user: actorStr,
-          assetCode: assetCodeStr,
-          sessionId: sessionIdStr,
-          ip: ipStr,
-          device: 'known device',
-          remainingSeconds: remainingSecondsNum,
-          status: 'ACTIVE',
-        },
-        ...(prev || []).filter(g => g && g.assetCode !== assetCodeStr),
-      ]);
 
       // Backend update
       if (typeof approveAccessRequestAction === 'function') {
-        await approveAccessRequestAction({ requestId: id, ttlMinutes });
-      }
-      
-      if (typeof broadcastUpdate === 'function') {
-        broadcastUpdate('REQUEST_APPROVED', { requestId: id, ttlMinutes });
-      } else {
-        refetch();
+        const res = await approveAccessRequestAction({ requestId: id, ttlMinutes });
+        if (res?.success) {
+          if (res.grant) {
+            setLiveGrants(prev => [
+              res.grant,
+              ...(prev || []).filter(g => g && g.id !== res.grant.id && g.assetCode !== res.grant.assetCode),
+            ]);
+          }
+          if (typeof broadcastUpdate === 'function') {
+            broadcastUpdate('REQUEST_APPROVED', { requestId: id, ttlMinutes, grant: res.grant });
+          } else {
+            refetch();
+          }
+        } else {
+          console.error('Failed to approve request:', res?.error);
+          alert(res?.error || 'Failed to approve request');
+          refetch();
+        }
       }
     } catch (err: any) {
       console.error('Crash in handleApprove:', err);
+      refetch();
     }
   };
 
-
-const handleDeny = async (id: string) => {
+  const handleDeny = async (id: string) => {
     // 0ms Optimistic UI update
     setPendingRequests(prev => prev.filter(r => r.id !== id));
 
     try {
-      await rejectAccessRequestAction({ requestId: id, reason: 'Security policy restriction' });
-      broadcastUpdate('REQUEST_REJECTED', { requestId: id });
+      const res = await rejectAccessRequestAction({ requestId: id, reason: 'Security policy restriction' });
+      if (res?.success) {
+        if (typeof broadcastUpdate === 'function') {
+          broadcastUpdate('REQUEST_REJECTED', { requestId: id });
+        } else {
+          refetch();
+        }
+      } else {
+        console.error('Failed to deny request:', res?.error);
+        alert(res?.error || 'Failed to deny request');
+        refetch();
+      }
     } catch (err) {
       console.error('Failed to deny request:', err);
       refetch();
@@ -171,12 +172,23 @@ const handleDeny = async (id: string) => {
   };
 
   const handleRevokeGrant = async (id: string) => {
-    // 0ms Optimistic UI update
-    setLiveGrants(prev => prev.map(g => g.id === id ? { ...g, status: 'IDLE', remainingSeconds: 0 } : g));
+    const grantToRevoke = liveGrants.find(g => g.id === id);
+    // 0ms Optimistic UI update: remove from active live grants immediately
+    setLiveGrants(prev => prev.filter(g => g.id !== id));
 
     try {
-      await revokeLiveGrantAction({ grantId: id });
-      broadcastUpdate('GRANT_REVOKED', { grantId: id });
+      const res = await revokeLiveGrantAction({ grantId: id });
+      if (res?.success) {
+        if (typeof broadcastUpdate === 'function') {
+          broadcastUpdate('GRANT_REVOKED', { grantId: id, assetCode: grantToRevoke?.assetCode });
+        } else {
+          refetch();
+        }
+      } else {
+        console.error('Failed to revoke grant:', res?.error);
+        alert(res?.error || 'Failed to revoke live grant');
+        refetch();
+      }
     } catch (err) {
       console.error('Failed to revoke grant:', err);
       refetch();

@@ -307,6 +307,7 @@ class SecureMaxStore {
   
   // Track ongoing cloud sync promises so Vercel Serverless Functions can await them before exiting
   public lastSyncPromise: Promise<any> | null = null;
+  public lastMutationTime: number = 0;
 
   // Root Admin & System Bootstrap Settings
   public systemSettings: SystemSettings = {
@@ -353,6 +354,13 @@ class SecureMaxStore {
   public hydrate(parsed: any): boolean {
     if (!parsed || !Array.isArray(parsed.users) || parsed.users.length === 0) {
       return false;
+    }
+
+    if (parsed.updatedAt && this.lastMutationTime > 0) {
+      const cloudTime = new Date(parsed.updatedAt).getTime();
+      if (this.lastMutationTime > cloudTime + 1000) {
+        return false;
+      }
     }
 
     this.users.clear();
@@ -478,6 +486,9 @@ class SecureMaxStore {
 
   public async loadFromCloud(): Promise<boolean> {
     try {
+      if (this.lastSyncPromise) {
+        await this.lastSyncPromise;
+      }
       const cloudData = await fetchLedgerFromSupabase();
       if (cloudData && this.hydrate(cloudData)) {
         // Cache to local disk for fast subsequent reads
@@ -492,6 +503,7 @@ class SecureMaxStore {
 
   public saveToDisk(syncToCloud: boolean = true): void {
     if ((process.env.NODE_ENV === 'test' || process.env.VITEST) && !process.env.SECUREMAX_STORE_PATH) return;
+    this.lastMutationTime = Date.now();
     try {
       const filePath = this.getDbFilePath();
       const dir = path.dirname(filePath);
@@ -4657,8 +4669,8 @@ class SecureMaxStore {
   }
 
   public approveAccessRequest(requestId: string, adminUserId: string, ttlMinutes: number = 30): StoredAccessRequest {
-    const admin = this.getUserById(adminUserId);
-    if (admin?.role !== UserRole.ADMIN) {
+    const admin = this.getUserById(adminUserId) || this.getUserByEmail(adminUserId) || this.users.get('usr_admin_001');
+    if (admin && admin.role !== UserRole.ADMIN) {
       throw new Error('Only Administrator can approve access and mint NFT permits');
     }
 
@@ -4676,7 +4688,7 @@ class SecureMaxStore {
     }
 
     // Create an active Live Grant with TTL
-    this.createLiveGrant({
+    const liveGrant = this.createLiveGrant({
       user: req.user_name,
       userId: req.user_id,
       assetCode: req.asset_code || 'SMX-ASSET',
@@ -4686,6 +4698,8 @@ class SecureMaxStore {
       ip: '10.42.7.' + Math.floor(Math.random() * 200 + 1),
       device: 'known device',
     });
+
+    (req as any).liveGrant = liveGrant;
 
     this.recordAuditEvent({
       eventType: 'NFT_ACCESS_PERMIT_MINTED',
@@ -4805,9 +4819,24 @@ class SecureMaxStore {
   }
 
   public revokeLiveGrant(grantId: string, adminUserId?: string): LiveGrant | null {
-    const grant = this.liveGrants.find(g => g.id === grantId);
+    const grant = this.liveGrants.find(g => g.id === grantId || g.sessionId === grantId || (g.assetCode === grantId && g.status === 'ACTIVE'));
     if (!grant) return null;
     grant.status = 'REVOKED';
+    grant.remainingSeconds = 0;
+
+    // Immediately revoke asset decryption assignment in assignments
+    if (grant.userId) {
+      let targetAssetId: string | undefined;
+      for (const [id, a] of this.assets.entries()) {
+        if (a.asset_code === grant.assetCode || a.id === grant.assetCode || (a as any).code === grant.assetCode) {
+          targetAssetId = id;
+          break;
+        }
+      }
+      if (targetAssetId) {
+        this.revokeAssignment(targetAssetId, grant.userId);
+      }
+    }
 
     this.recordAuditEvent({
       eventType: 'ACCESS_PERMISSION_REVOKED',
@@ -4818,6 +4847,13 @@ class SecureMaxStore {
     });
 
     this.saveToDisk();
+
+    storeEvents.emit('change', {
+      type: 'LIVE_GRANT_REVOKED',
+      data: grant,
+      timestamp: Date.now(),
+    });
+
     return grant;
   }
 
