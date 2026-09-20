@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function AuditTrailPage() {
+  if (typeof deviceStore !== 'undefined') { await deviceStore.loadFromCloud(); }
   const { data: auditEvents } = await supabaseAdmin
     .from('audit_events')
     .select('*')
@@ -25,7 +26,15 @@ export default async function AuditTrailPage() {
     details: { description: e.description },
   }));
 
-  const displayAudit = (auditEvents && auditEvents.length > 0) ? auditEvents : fallbackEvents;
+  
+  const allEvents = [...(fallbackEvents || []), ...(auditEvents || [])];
+  
+  // Deduplicate by ID just in case
+  const uniqueEvents = Array.from(new Map(allEvents.map(e => [e.id, e])).values());
+  
+  // Sort by created_at descending (newest first)
+  const displayAudit = uniqueEvents.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
 
   return (
     <div className="space-y-6 font-sans selection:bg-cyan-500/30 pb-12">

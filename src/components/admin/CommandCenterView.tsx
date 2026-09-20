@@ -111,38 +111,53 @@ export function CommandCenterView() {
   const [chainVerifiedNotice, setChainVerifiedNotice] = React.useState(false);
 
   // Action Handlers with 0ms Instant Optimistic Feedback + Broadcast
+  
   const handleApprove = async (id: string) => {
-    const req = pendingRequests.find(r => r.id === id);
-    if (!req) return;
-    const ttlMinutes = req.ttlMinutes || 30;
-
-    // 0ms Optimistic UI update
-    setPendingRequests(prev => prev.filter(r => r.id !== id));
-    setLiveGrants(prev => [
-      {
-        id: 'grant-' + Date.now(),
-        user: req.actor,
-        assetCode: req.assetCode,
-        sessionId: Math.random().toString(16).slice(2, 10),
-        ip: '10.42.7.' + Math.floor(Math.random() * 200 + 1),
-        device: 'known device',
-        remainingSeconds: ttlMinutes * 60,
-        status: 'ACTIVE',
-      },
-      ...prev.filter(g => g.assetCode !== req.assetCode),
-    ]);
-
-    // Backend update & broadcast to user view instantly
     try {
-      await approveAccessRequestAction({ requestId: id, ttlMinutes });
-      broadcastUpdate('REQUEST_APPROVED', { requestId: id, ttlMinutes });
-    } catch (err) {
-      console.error('Failed to approve request:', err);
-      refetch();
+      const req = pendingRequests.find(r => r.id === id);
+      if (!req) return;
+      const ttlMinutes = req.ttlMinutes || 30;
+
+      // Ensure primitive types
+      const actorStr = String(req.actor || 'Unknown');
+      const assetCodeStr = String(req.assetCode || 'SMX-AST');
+      const sessionIdStr = Math.random().toString(16).slice(2, 10);
+      const ipStr = '10.42.7.' + Math.floor(Math.random() * 200 + 1);
+      const remainingSecondsNum = Number(ttlMinutes) * 60;
+
+      // 0ms Optimistic UI update
+      setPendingRequests(prev => (prev || []).filter(r => r.id !== id));
+      setLiveGrants(prev => [
+        {
+          id: 'grant-' + Date.now(),
+          user: actorStr,
+          assetCode: assetCodeStr,
+          sessionId: sessionIdStr,
+          ip: ipStr,
+          device: 'known device',
+          remainingSeconds: remainingSecondsNum,
+          status: 'ACTIVE',
+        },
+        ...(prev || []).filter(g => g && g.assetCode !== assetCodeStr),
+      ]);
+
+      // Backend update
+      if (typeof approveAccessRequestAction === 'function') {
+        await approveAccessRequestAction({ requestId: id, ttlMinutes });
+      }
+      
+      if (typeof broadcastUpdate === 'function') {
+        broadcastUpdate('REQUEST_APPROVED', { requestId: id, ttlMinutes });
+      } else {
+        refetch();
+      }
+    } catch (err: any) {
+      console.error('Crash in handleApprove:', err);
     }
   };
 
-  const handleDeny = async (id: string) => {
+
+const handleDeny = async (id: string) => {
     // 0ms Optimistic UI update
     setPendingRequests(prev => prev.filter(r => r.id !== id));
 
