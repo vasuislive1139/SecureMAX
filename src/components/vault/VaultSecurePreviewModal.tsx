@@ -140,7 +140,9 @@ export function VaultSecurePreviewModal({
             <div className="p-5 bg-red-950/30 border border-red-500/40 rounded-lg space-y-3">
               <div className="flex items-center gap-2.5 text-red-400 font-bold text-sm">
                 <ShieldAlert className="w-5 h-5" />
-                ACCESS DENIED: KMS &amp; RBAC Authorization Rejection
+                {error.toLowerCase().includes('integrity') || error.toLowerCase().includes('corrupted') || error.toLowerCase().includes('decryption failed')
+                  ? 'CRYPTOGRAPHIC DECRYPTION FAILURE'
+                  : 'ACCESS DENIED: KMS & RBAC Authorization Rejection'}
               </div>
               <p className="text-xs font-mono text-zinc-300 leading-relaxed bg-black/60 p-3 rounded border border-red-900/50">
                 {error}

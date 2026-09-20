@@ -364,7 +364,7 @@
       "shared_with_all": true,
       "default_access_policy": "ORGANIZATION",
       "created_at": "2026-09-19T23:23:57.816Z",
-      "last_accessed_at": "2026-09-20T03:10:02.890Z",
+      "last_accessed_at": "2026-09-20T03:11:13.431Z",
       "key_version": "v1",
       "versions": [
         {
@@ -376,6 +376,14 @@
         }
       ],
       "access_history": [
+        {
+          "id": "log_0592bfb7",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T03:11:13.431Z",
+          "status": "SUCCESS",
+          "details": "Streaming AES-256-GCM decryption started"
+        },
         {
           "id": "log_fc98f325",
           "action": "DECRYPT",
@@ -2626,6 +2634,43 @@
     }
   ],
   "auditEvents": [
+    {
+      "id": "aud_eb3e6de8",
+      "event_type": "USER_LOGOUT",
+      "description": "User Vasu (Administrator) logged out",
+      "target_id": "SES-E9E99E81",
+      "target": "SES-E9E99E81",
+      "performed_by": "Vasu (Administrator)",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x321c0fd6922cdb989e1a8943bca9bf9553e0dc3438c5bf3aaf836fe485e613b1",
+      "block_number": 6849458,
+      "created_at": "2026-09-20T03:12:53.894Z"
+    },
+    {
+      "id": "aud_f1d5625d",
+      "event_type": "SESSION_REVOKED",
+      "description": "Session SES-E9E99E81 revoked for user Vasu (Administrator)",
+      "target_id": "SES-E9E99E81",
+      "target": "SES-E9E99E81",
+      "performed_by": "usr_admin_001",
+      "severity": "INFO",
+      "event_hash": "0xae263a92218493978d0a88c7cf252d02d77c708a5f4c400c874e110762bc58ea",
+      "block_number": 6849238,
+      "created_at": "2026-09-20T03:12:53.872Z"
+    },
+    {
+      "id": "aud_9c049312",
+      "event_type": "TEMPORARY_KEY_AUTHORIZED",
+      "description": "Audit Event: TEMPORARY_KEY_AUTHORIZED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "INFO",
+      "event_hash": "0xf7fd0c443c01ee79c129a5226ebca02514a08b5f9ba1a8b58039956f46e1fcdb",
+      "block_number": 6849229,
+      "created_at": "2026-09-20T03:11:11.801Z"
+    },
     {
       "id": "aud_f44b3d60",
       "event_type": "TEMPORARY_KEY_AUTHORIZED",
@@ -7794,9 +7839,32 @@
       "last_activity_at": "2026-09-20T02:48:37.981Z",
       "expires_at": "2026-09-20T10:48:37.981Z",
       "authentication_level": "METAMASK",
-      "status": "ACTIVE"
+      "status": "REVOKED"
     }
   ],
-  "challenges": [],
-  "updatedAt": "2026-09-20T03:10:35.905Z"
+  "challenges": [
+    {
+      "challengeId": "chal_4899deb9046641a68f58a41165c57bfd",
+      "identifier": "starvasuop0509@gmail.com",
+      "nonce": "8da83c402725bd8e131fc76c428855dce62def1a89f6a0c91c452640f291b181",
+      "message": "SecureMAX Zero-Trust Challenge\nIdentifier: starvasuop0509@gmail.com\nNonce: 8da83c402725bd8e131fc76c428855dce62def1a89f6a0c91c452640f291b181\nIssued At: 2026-09-20T03:13:10.162Z\nExpires At: 2026-09-20T03:15:10.162Z",
+      "type": "P256",
+      "deviceId": "dev_d10a7234-30f",
+      "expiresAt": "2026-09-20T03:15:10.162Z",
+      "consumed": false,
+      "createdAt": "2026-09-20T03:13:10.162Z"
+    },
+    {
+      "challengeId": "chal_cc0d62de5fda4828a282c4c1600a71ca",
+      "identifier": "starvasuop0509@gmail.com",
+      "nonce": "b4db7a86f5fea1c4c6d27c8e4d7d2f58723cecf81660b96c6fad1712c1119416",
+      "message": "SecureMAX Zero-Trust Challenge\nIdentifier: starvasuop0509@gmail.com\nNonce: b4db7a86f5fea1c4c6d27c8e4d7d2f58723cecf81660b96c6fad1712c1119416\nIssued At: 2026-09-20T03:14:41.610Z\nExpires At: 2026-09-20T03:16:41.610Z",
+      "type": "P256",
+      "deviceId": "dev_d10a7234-30f",
+      "expiresAt": "2026-09-20T03:16:41.610Z",
+      "consumed": false,
+      "createdAt": "2026-09-20T03:14:41.610Z"
+    }
+  ],
+  "updatedAt": "2026-09-20T03:14:47.608Z"
 }

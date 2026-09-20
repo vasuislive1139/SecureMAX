@@ -351,12 +351,12 @@ class SecureMaxStore {
     return path.join(process.cwd(), '.securemax_db', 'vault_ledger.json');
   }
 
-  public hydrate(parsed: any, checkMutationTime: boolean = false): boolean {
+  public hydrate(parsed: any): boolean {
     if (!parsed || !Array.isArray(parsed.users) || parsed.users.length === 0) {
       return false;
     }
 
-    if (checkMutationTime && parsed.updatedAt && this.lastMutationTime > 0) {
+    if (parsed.updatedAt && this.lastMutationTime > 0) {
       const cloudTime = new Date(parsed.updatedAt).getTime();
       if (this.lastMutationTime > cloudTime + 1000) {
         return false;
@@ -490,17 +490,13 @@ class SecureMaxStore {
         await this.lastSyncPromise;
       }
       const cloudData = await fetchLedgerFromSupabase();
-      if (cloudData && this.hydrate(cloudData, true)) {
+      if (cloudData && this.hydrate(cloudData)) {
         // Cache to local disk for fast subsequent reads
         this.saveToDisk(false);
         return true;
       }
     } catch (e) {
       console.warn('[SecureMaxStore] Cloud load error:', e);
-    }
-    const isTest = process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST);
-    if (!isTest) {
-      this.loadFromDisk();
     }
     return false;
   }
@@ -4340,9 +4336,9 @@ class SecureMaxStore {
     const asset = this.assets.get(assetId);
     if (!asset) throw new Error('Asset not found');
 
-    const caller = this.getUserById(callerUserId) || this.getUserByEmail(callerUserId) || this.users.get('usr_admin_001');
+    const caller = this.getUserById(callerUserId);
     const callerAssignment = this.getAssignment(callerUserId, assetId);
-    const isCallerAdmin = caller?.role === UserRole.ADMIN || callerUserId === 'usr_admin_001' || callerUserId?.startsWith('admin');
+    const isCallerAdmin = caller?.role === UserRole.ADMIN;
     const isOwner = asset.owner_id === callerUserId || asset.owner_name === caller?.name;
 
     if (!isCallerAdmin && !isOwner && (!callerAssignment || !callerAssignment.can_edit)) {
@@ -4757,8 +4753,8 @@ class SecureMaxStore {
   }
 
   public rejectAccessRequest(requestId: string, adminUserId: string, reason?: string): StoredAccessRequest {
-    const admin = this.getUserById(adminUserId) || this.getUserByEmail(adminUserId) || this.users.get('usr_admin_001');
-    if (admin && admin.role !== UserRole.ADMIN && process.env.NODE_ENV === 'production') {
+    const admin = this.getUserById(adminUserId);
+    if (admin?.role !== UserRole.ADMIN) {
       throw new Error('Only Administrator can reject access requests');
     }
 

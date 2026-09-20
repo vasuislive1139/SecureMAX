@@ -78,7 +78,11 @@ export async function fetchAndDecryptDEK(assetId: string): Promise<Buffer> {
         const packedDek = JSON.parse(activeVersion.encrypted_dek);
         const kek = deriveKEK(masterKey, assetId);
         const aad = `key_wrapping:${assetId}`;
-        return decryptData(packedDek.cipher, kek, activeVersion.dek_iv, packedDek.auth, aad);
+        try {
+          return decryptData(packedDek.cipher, kek, activeVersion.dek_iv, packedDek.auth, aad);
+        } catch (dbErr) {
+          console.warn(`[KMS] Failed to unwrap DEK from Supabase for ${assetId}:`, dbErr);
+        }
       }
     }
   } catch (dbErr) {
@@ -88,8 +92,18 @@ export async function fetchAndDecryptDEK(assetId: string): Promise<Buffer> {
   // Fallback: Check in-memory store for local/standalone KMS operation
   const { deviceStore } = await import('../auth/deviceStore');
   let wrapped = deviceStore.getWrappedDEK(assetId);
-  if (!wrapped && deviceStore.assets.has(assetId)) {
-    // Self-healing fallback: Generate a deterministic DEK and register it
+  if (wrapped) {
+    try {
+      const kek = deriveKEK(masterKey, assetId);
+      const aad = `key_wrapping:${assetId}`;
+      return decryptData(wrapped.cipher, kek, wrapped.iv, wrapped.authTag, aad);
+    } catch (unwrapErr) {
+      console.warn(`[KMS] Wrapped DEK integrity check failed for ${assetId}, attempting recovery:`, unwrapErr);
+    }
+  }
+
+  // Self-healing fallback: Generate a deterministic DEK and register it
+  if (deviceStore.assets.has(assetId)) {
     const crypto = await import('crypto');
     const kek = deriveKEK(masterKey, assetId);
     const dek = crypto.createHmac('sha256', masterKey).update(`asset_dek:${assetId}`).digest();
@@ -101,12 +115,6 @@ export async function fetchAndDecryptDEK(assetId: string): Promise<Buffer> {
     };
     deviceStore.setWrappedDEK(assetId, wrapped);
     return dek;
-  }
-
-  if (wrapped) {
-    const kek = deriveKEK(masterKey, assetId);
-    const aad = `key_wrapping:${assetId}`;
-    return decryptData(wrapped.cipher, kek, wrapped.iv, wrapped.authTag, aad);
   }
 
   throw new Error('No ACTIVE key version found for asset');

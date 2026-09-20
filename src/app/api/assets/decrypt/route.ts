@@ -95,15 +95,28 @@ export async function POST(req: Request) {
     );
 
     // Convert stream to text to satisfy the frontend's JSON expectation
-    const reader = finalWebStream.getReader();
     let result = '';
-    const decoder = new TextDecoder();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      result += decoder.decode(value, { stream: true });
+    try {
+      const reader = finalWebStream.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        result += decoder.decode(value, { stream: true });
+      }
+      result += decoder.decode();
+    } catch (streamErr: any) {
+      console.warn(`[Decryption Stream Warning] Stream decipher error for ${assetId}:`, streamErr.message);
+      const { decryptData } = await import('@/lib/crypto');
+      const { fetchAndDecryptDEK } = await import('@/lib/kms');
+      try {
+        const dek = await fetchAndDecryptDEK(assetId);
+        const pt = decryptData(asset.encrypted_content, dek, asset.iv, asset.auth_tag, asset.aad || `asset_data:${assetId}`);
+        result = pt.toString('utf8');
+      } catch (directErr: any) {
+        throw new Error(`Decryption failed: Integrity check (AAD/AuthTag) failed or corrupted data.`);
+      }
     }
-    result += decoder.decode();
 
     return NextResponse.json({
       success: true,

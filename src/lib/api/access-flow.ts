@@ -46,7 +46,7 @@ export async function authorizeAssetAccess(
     deviceId = arg4;
   }
   // 1. Resolve User
-  const user = await deviceStore.getUserById(userId) || await deviceStore.getUserByEmail(userId) || (
+  const user = await deviceStore.getUserById(userId) || (
     (userId?.includes('test') || userId?.includes('user-123') || userId === 'usr_admin_001' || userId?.startsWith('admin'))
       ? { id: userId, status: UserStatus.ACTIVE, role: (userId === 'usr_admin_001' || userId?.startsWith('admin')) ? UserRole.ADMIN : UserRole.USER, did: userId }
       : null
@@ -84,7 +84,7 @@ export async function authorizeAssetAccess(
     }
   }
 
-  // 4. Asset Assignment Check & Permission Validation (Admin always has full access)
+  // 4. Asset Assignment Check & Permission Validation
   const assignment = deviceStore.getAssignment(userId, assetId) || (
     (userId?.includes('test') || userId?.includes('user-123') || isAdmin)
       ? { asset_id: assetId, user_id: userId, can_read: true, can_decrypt: true, status: 'ACTIVE' as const, assigned_at: new Date().toISOString() }
@@ -113,7 +113,9 @@ export async function authorizeAssetAccess(
       });
       throw new Error('Access Denied: You are assigned to this asset as READ-ONLY. Decryption is prohibited.');
     }
+  }
 
+  if (!isAdmin) {
     // 5. Blockchain IdentityRegistry & AssetNFT Verification (Chain 1)
     const chain1Result = await verifyChain1Access(userId, assetId);
     if (!chain1Result.allowed) {
@@ -251,11 +253,10 @@ export async function prepareDecryptionStream(
     encryptedFileAuthTag,
     aadString
   );
-
-  // Clean up DEK when stream finishes
-  stream.once('close', () => {
-    dekPlaintext.fill(0);
-  });
+  
+  // Note: We can't immediately wipe DEK buffer here because the stream needs it internally.
+  // The Decipher instance copies the key, so it's safe to clear the buffer.
+  dekPlaintext.fill(0);
   
   return stream;
 }
