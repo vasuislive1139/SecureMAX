@@ -4,6 +4,9 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 import { UserRole } from '@/types';
 
 export async function GET(req: Request) {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   try {
     const session = await getVerifiedSession();
     const url = new URL(req.url);

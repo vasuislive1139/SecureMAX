@@ -16,6 +16,9 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'securemax
  * State-aware endpoint to query system initialization status.
  */
 export async function GET() {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   try {
     const isInitialized = deviceStore.isSystemInitialized();
     const adminCount = deviceStore.getAdminCount();

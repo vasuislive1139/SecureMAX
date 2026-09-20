@@ -297,7 +297,7 @@
       "shared_with_all": true,
       "default_access_policy": "ORGANIZATION",
       "created_at": "2026-09-19T23:23:57.816Z",
-      "last_accessed_at": "2026-09-19T23:40:29.406Z",
+      "last_accessed_at": "2026-09-20T00:23:06.890Z",
       "key_version": "v1",
       "versions": [
         {
@@ -309,6 +309,357 @@
         }
       ],
       "access_history": [
+        {
+          "id": "log_ecbdc599",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:23:06.890Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_d9c60577",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:23:02.844Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_32df71a6",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:57.547Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_9c243035",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:52.795Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_19889812",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:52.673Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_29dc4b5a",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:47.422Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_e6981dff",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:46.877Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_1a8bec35",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:46.702Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_0733b364",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:41.366Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_4b161cbe",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:27.593Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_3bd9fcea",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:27.526Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_b1ed7d10",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:27.445Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_7afa3755",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:22.316Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_10ff8bb3",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:21.773Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_700db62b",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:21.100Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_6c6d9828",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:09.342Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_ed59ef6c",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:03.779Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_3c686c69",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:22:03.636Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_f315b64a",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:21:57.966Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_259f5bec",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:21:57.239Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_57a52b18",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:21:56.982Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_35d1b731",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:21:51.424Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_66115b2b",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:21:51.303Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_48c74c73",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:21:47.562Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_5c90cd13",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:21:46.983Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_f8f86cd8",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:49.695Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_3d133be2",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:44.424Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_561d2656",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:44.148Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_11703bea",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:39.717Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_8fe4c7cd",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:34.570Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_6ff7a7ab",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:30.080Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_2c5bb2d7",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:26.993Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_e501fd99",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:22.366Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_39986073",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:21.859Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_637458f0",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:12.342Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_0d5395bb",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:20:04.669Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_a3c04bc3",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:19:58.143Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_9c85d896",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:18:19.782Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_ea3fac90",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:17:26.594Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_b6460c0f",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:17:26.216Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_8cf819c0",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:17:26.144Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_fef8b676",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:17:26.008Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_a7fe8a1e",
+          "action": "DECRYPT",
+          "user_name": "Vasu (Administrator)",
+          "timestamp": "2026-09-20T00:17:25.958Z",
+          "status": "DENIED",
+          "details": "Access Denied: Current device credential is invalid or revoked."
+        },
+        {
+          "id": "log_5f6319ee",
+          "action": "Access request denied: Security policy restriction",
+          "user_name": "vs",
+          "timestamp": "2026-09-20T00:17:04.692Z",
+          "status": "DENIED"
+        },
         {
           "id": "log_3687d871",
           "action": "DECRYPT",
@@ -362,7 +713,7 @@
       "can_edit": false,
       "can_delete": false,
       "status": "ACTIVE",
-      "assigned_at": "2026-09-19T23:41:31.014Z",
+      "assigned_at": "2026-09-20T00:12:21.092Z",
       "expires_at": null
     },
     {
@@ -378,6 +729,18 @@
       "expires_at": null,
       "shared_by": "Vasu (Administrator)",
       "shared_with_name": "All People (Organization-Wide)"
+    },
+    {
+      "asset_id": "ast_7050a002",
+      "user_id": "usr_d63e8d15",
+      "can_read": true,
+      "can_decrypt": true,
+      "can_download": true,
+      "can_edit": false,
+      "can_delete": false,
+      "status": "ACTIVE",
+      "assigned_at": "2026-09-20T00:17:09.343Z",
+      "expires_at": null
     }
   ],
   "accessRequests": [
@@ -392,8 +755,13 @@
       "asset_code": "SMX-PRO-224",
       "asset_name": "ChatGPT Image Sep 19, 2026, 04_07_00 PM.png",
       "reason": "Security review and operational maintenance",
-      "status": "PENDING",
-      "created_at": "2026-09-19T23:40:36.428Z"
+      "status": "APPROVED",
+      "created_at": "2026-09-19T23:40:36.428Z",
+      "approved_at": "2026-09-20T00:17:09.343Z",
+      "ttl_minutes": 30,
+      "nft_token_id": "NFT-SEPOLIA-#6371",
+      "rejected_at": "2026-09-20T00:17:04.692Z",
+      "rejected_reason": "Security policy restriction"
     },
     {
       "id": "req_da098001",
@@ -406,9 +774,11 @@
       "asset_code": "SMX-PRO-224",
       "asset_name": "ChatGPT Image Sep 19, 2026, 04_07_00 PM.png",
       "reason": "Security review and operational maintenance",
-      "status": "PENDING",
+      "status": "APPROVED",
       "created_at": "2026-09-19T23:37:16.472Z",
-      "ttl_minutes": 30
+      "ttl_minutes": 30,
+      "approved_at": "2026-09-20T00:12:21.092Z",
+      "nft_token_id": "NFT-SEPOLIA-#6072"
     },
     {
       "id": "req_98969403",
@@ -467,6 +837,90 @@
     }
   ],
   "liveGrants": [
+    {
+      "id": "grant-a57ecd67",
+      "user": "vs",
+      "userId": "usr_d63e8d15",
+      "assetCode": "SMX-PRO-224",
+      "assetName": "ChatGPT Image Sep 19, 2026, 04_07_00 PM.png",
+      "sessionId": "7df2dd41",
+      "ip": "10.42.7.63",
+      "device": "known device",
+      "expiresAt": "2026-09-20T00:47:09.383Z",
+      "remainingSeconds": 1800,
+      "status": "ACTIVE",
+      "createdAt": "2026-09-20T00:17:09.383Z"
+    },
+    {
+      "id": "grant-09cea112",
+      "user": "vs",
+      "userId": "usr_d63e8d15",
+      "assetCode": "SMX-PRO-224",
+      "assetName": "ChatGPT Image Sep 19, 2026, 04_07_00 PM.png",
+      "sessionId": "a438331a",
+      "ip": "10.42.7.64",
+      "device": "known device",
+      "expiresAt": "2026-09-20T00:46:59.750Z",
+      "remainingSeconds": 1800,
+      "status": "ACTIVE",
+      "createdAt": "2026-09-20T00:16:59.750Z"
+    },
+    {
+      "id": "grant-ed7b3b17",
+      "user": "vs",
+      "userId": "usr_d63e8d15",
+      "assetCode": "SMX-PRO-224",
+      "assetName": "ChatGPT Image Sep 19, 2026, 04_07_00 PM.png",
+      "sessionId": "04b33474",
+      "ip": "10.42.7.32",
+      "device": "known device",
+      "expiresAt": "2026-09-20T00:46:54.496Z",
+      "remainingSeconds": 1800,
+      "status": "ACTIVE",
+      "createdAt": "2026-09-20T00:16:54.496Z"
+    },
+    {
+      "id": "grant-e892267b",
+      "user": "vs",
+      "userId": "usr_d63e8d15",
+      "assetCode": "SMX-PRO-224",
+      "assetName": "ChatGPT Image Sep 19, 2026, 04_07_00 PM.png",
+      "sessionId": "355507b6",
+      "ip": "10.42.7.2",
+      "device": "known device",
+      "expiresAt": "2026-09-20T00:46:44.762Z",
+      "remainingSeconds": 1800,
+      "status": "ACTIVE",
+      "createdAt": "2026-09-20T00:16:44.762Z"
+    },
+    {
+      "id": "grant-3e5c41a5",
+      "user": "vs",
+      "userId": "usr_d63e8d15",
+      "assetCode": "SMX-PRO-224",
+      "assetName": "ChatGPT Image Sep 19, 2026, 04_07_00 PM.png",
+      "sessionId": "1b7602c8",
+      "ip": "10.42.7.131",
+      "device": "known device",
+      "expiresAt": "2026-09-20T00:46:39.221Z",
+      "remainingSeconds": 1800,
+      "status": "ACTIVE",
+      "createdAt": "2026-09-20T00:16:39.221Z"
+    },
+    {
+      "id": "grant-4ab54dbc",
+      "user": "Vasu (Administrator)",
+      "userId": "usr_admin_001",
+      "assetCode": "SMX-PRO-224",
+      "assetName": "ChatGPT Image Sep 19, 2026, 04_07_00 PM.png",
+      "sessionId": "2cf97a72",
+      "ip": "10.42.7.65",
+      "device": "known device",
+      "expiresAt": "2026-09-20T00:42:21.113Z",
+      "remainingSeconds": 1800,
+      "status": "ACTIVE",
+      "createdAt": "2026-09-20T00:12:21.113Z"
+    },
     {
       "id": "grant-bc01fd81",
       "user": "Vasu (Administrator)",
@@ -581,6 +1035,575 @@
     }
   ],
   "auditEvents": [
+    {
+      "id": "aud_e1490946",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xef5ad9c644e67bd6874745c20bad6b0bf94bd60ce0ff9dfe7dc7e65dc61ff7c5",
+      "block_number": 6849210,
+      "created_at": "2026-09-20T00:23:06.389Z"
+    },
+    {
+      "id": "aud_bda46ee7",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xd3c5d8f8f622bffb71dcdf6d8ae9fad90146109076cef495e54ccd10dd01b7a4",
+      "block_number": 6849285,
+      "created_at": "2026-09-20T00:23:02.347Z"
+    },
+    {
+      "id": "aud_87a1e9a2",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x22727fdeb10f76c8b4bdf51ee11739a6df475416e9902276d51dbda0aa36c93e",
+      "block_number": 6849643,
+      "created_at": "2026-09-20T00:22:57.161Z"
+    },
+    {
+      "id": "aud_c7ba5a50",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x7ea74b863b78dc0295c6208ad23de8ef60c5d302f23c0f664a6e5de4410f7e8f",
+      "block_number": 6849542,
+      "created_at": "2026-09-20T00:22:52.273Z"
+    },
+    {
+      "id": "aud_57232460",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xbcf6ae1258c71a5bf72d949222d7bfdf4e41afbf40d1d049bf8ca3bb51f92fc1",
+      "block_number": 6849435,
+      "created_at": "2026-09-20T00:22:46.196Z"
+    },
+    {
+      "id": "aud_4b2af9fd",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x85439fda5e0367562744c124270bd1d3a31868fd4c14b1ed1aa7ab1cd2690c2f",
+      "block_number": 6849672,
+      "created_at": "2026-09-20T00:22:40.881Z"
+    },
+    {
+      "id": "aud_2b5ab034",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xad1d78dc9bc8b95bc33fe32050843313e1eeb7c0240477fe297ff03a6fd6e83b",
+      "block_number": 6849215,
+      "created_at": "2026-09-20T00:22:36.691Z"
+    },
+    {
+      "id": "aud_c83d680c",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xaf72892ad766f187b9f159818576e28d3c42e95b7a6159dc37d948d772e69b8d",
+      "block_number": 6849302,
+      "created_at": "2026-09-20T00:22:32.848Z"
+    },
+    {
+      "id": "aud_7a6c8c3b",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x48e83b9e08a3e621cec7b0322d3429f6d7ee1c17350eb536edecd40d947ea159",
+      "block_number": 6849399,
+      "created_at": "2026-09-20T00:22:27.095Z"
+    },
+    {
+      "id": "aud_de75a759",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xbf6cdf8d019cc0c5b6cb5d1f848789f91857be076131a271f33e3973432af3a9",
+      "block_number": 6849614,
+      "created_at": "2026-09-20T00:22:20.981Z"
+    },
+    {
+      "id": "aud_e8329773",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x6e9cb9762e751fd10ea36e21a9115079889365e73120383f2ba7a9386a02ca78",
+      "block_number": 6849396,
+      "created_at": "2026-09-20T00:22:14.953Z"
+    },
+    {
+      "id": "aud_26aa15b4",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xddf02bc615fdd51cea4842d8388877b189c4bc49085aa020f87e86c84c1f8e22",
+      "block_number": 6849306,
+      "created_at": "2026-09-20T00:22:08.876Z"
+    },
+    {
+      "id": "aud_ed923e2d",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x1577a6b41f12c414d57ccaf96e7603a7f38de46ef69cbf2eee67e9c0bc2e0d9b",
+      "block_number": 6849229,
+      "created_at": "2026-09-20T00:22:03.281Z"
+    },
+    {
+      "id": "aud_1c8f6b12",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x69c8e7fe0ccba3e6f4586fc5871e3f7c528cac818023d523d8f610dd1f0f54fd",
+      "block_number": 6849247,
+      "created_at": "2026-09-20T00:21:56.731Z"
+    },
+    {
+      "id": "aud_26e06961",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xcf2a61e755332f94332f96481d8b8d318dd22a3ade85337d6842b579f08cb0bc",
+      "block_number": 6849462,
+      "created_at": "2026-09-20T00:21:50.925Z"
+    },
+    {
+      "id": "aud_6b5b777e",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x849fea379cb1b853b3ff07707783c8c5af5cea8eef860213a8e13d8a3f40fdf2",
+      "block_number": 6849376,
+      "created_at": "2026-09-20T00:21:46.641Z"
+    },
+    {
+      "id": "aud_83c20e0a",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x568dac50924f792ee996235b105c1066000cfa7b00b1833717c4b7321245e933",
+      "block_number": 6849426,
+      "created_at": "2026-09-20T00:21:42.320Z"
+    },
+    {
+      "id": "aud_fce51fd7",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x9f06f341b8f72ea859d1c273ffcd0d32479d68165ad4f2193d86b245bbd99ca7",
+      "block_number": 6849658,
+      "created_at": "2026-09-20T00:20:49.199Z"
+    },
+    {
+      "id": "aud_f2184ba0",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xed8a232a39073038db321544000f9b7a18fddc00fb7ba325bd44d94fab4c7485",
+      "block_number": 6849487,
+      "created_at": "2026-09-20T00:20:43.750Z"
+    },
+    {
+      "id": "aud_adc630d6",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xbbe8ae4b7a0ff769e2745bcc6cd3f2648c4a3e6ff7c4ee30ccc5b3fecd8e7204",
+      "block_number": 6849604,
+      "created_at": "2026-09-20T00:20:38.859Z"
+    },
+    {
+      "id": "aud_81aa7839",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xa88b0742c49c85acab153c6a21f4b2ed4dc60b9b9f85d198b8e3f093ea9797b7",
+      "block_number": 6849593,
+      "created_at": "2026-09-20T00:20:33.349Z"
+    },
+    {
+      "id": "aud_9134da6e",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xc74a28f79688123db86e2d0117be01dde7cf8846abbc8bd4c7d8b92e98abc956",
+      "block_number": 6849612,
+      "created_at": "2026-09-20T00:20:29.539Z"
+    },
+    {
+      "id": "aud_d006899d",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x13e0208ad78e79745c899cf6bb90595c1c1e2acf0334c4b6a56d25724d3e6c25",
+      "block_number": 6849385,
+      "created_at": "2026-09-20T00:20:26.455Z"
+    },
+    {
+      "id": "aud_1766ea3d",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x8155801fb3bcdeb3264e528d76c674c2efe7b08494db8755ebaec7feb3c9f15f",
+      "block_number": 6849676,
+      "created_at": "2026-09-20T00:20:21.443Z"
+    },
+    {
+      "id": "aud_b9879df3",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xaea76b11d8dc1f691d25588978fefd61f344faa7e22e7dc597d09cdcc1c59395",
+      "block_number": 6849537,
+      "created_at": "2026-09-20T00:20:16.236Z"
+    },
+    {
+      "id": "aud_3963d67d",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x2500b473615f8ce5aa7cbb9956d324a992f122eb418bd207f227fc62f37b4109",
+      "block_number": 6849212,
+      "created_at": "2026-09-20T00:20:10.959Z"
+    },
+    {
+      "id": "aud_6e7b0a3b",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0xd1ee4121b46a334412d5ac165247e2e4827b9bc78ff497be3b94516057535359",
+      "block_number": 6849347,
+      "created_at": "2026-09-20T00:20:04.270Z"
+    },
+    {
+      "id": "aud_d7139b70",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x56db3c6bca0ccc8b1f81f089848bb9080b48009cf11757755ce08208424ed34d",
+      "block_number": 6849613,
+      "created_at": "2026-09-20T00:19:57.596Z"
+    },
+    {
+      "id": "aud_75b25fdd",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x7286f53052d151d6cd0d3222a5dee7a6f98ae4889b8a4b780a2c3e8409e22507",
+      "block_number": 6849340,
+      "created_at": "2026-09-20T00:18:18.902Z"
+    },
+    {
+      "id": "aud_2072df6f",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x1c20511e55842c443200353850fb9f5168701c39ed4b50396bc8ada7dcb51d9c",
+      "block_number": 6849677,
+      "created_at": "2026-09-20T00:17:25.713Z"
+    },
+    {
+      "id": "aud_a48ba15c",
+      "event_type": "ACCESS_DENIED",
+      "description": "Audit Event: ACCESS_DENIED on ASSET:ast_7050a002",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "severity": "WARNING",
+      "event_hash": "0x38f4c84019316b386e3b5dbad1617e7e2f3d256088d52c82bd22e7d14dcb2414",
+      "block_number": 6849628,
+      "created_at": "2026-09-20T00:17:18.669Z"
+    },
+    {
+      "id": "aud_7e677ade",
+      "event_type": "NFT_ACCESS_PERMIT_MINTED",
+      "description": "Admin approved access for vs (30m TTL). NFT Permit: NFT-SEPOLIA-#6371",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "user_email": "vs@gmail.com",
+      "user_name": "vs",
+      "severity": "INFO",
+      "event_hash": "0x148721309ca1204cf03f931d1e698330be6c4547810d78e5d27bbc8591efde09",
+      "block_number": 6849552,
+      "created_at": "2026-09-20T00:17:09.419Z"
+    },
+    {
+      "id": "aud_49bb4d53",
+      "event_type": "PERMISSION_CHANGED",
+      "description": "Cryptographic access granted for asset ast_7050a002 (user: usr_d63e8d15).",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "before": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "after": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "performed_by": "Administrator",
+      "severity": "INFO",
+      "event_hash": "0xcf98a36d8ae6a5959fdc68a009657047ec507c0df6429405987b2a3ca441076e",
+      "block_number": 6849696,
+      "created_at": "2026-09-20T00:17:09.343Z"
+    },
+    {
+      "id": "aud_3253bff5",
+      "event_type": "ACCESS_REQUEST_REJECTED",
+      "description": "Admin rejected clearance for vs on ChatGPT Image Sep 19, 2026, 04_07_00 PM.png",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "user_email": "vs@gmail.com",
+      "user_name": "vs",
+      "severity": "WARNING",
+      "event_hash": "0x2e48f071df0091d240388c389fe9a28432ebc4e4adec3fbbc392d42dc7168055",
+      "block_number": 6849557,
+      "created_at": "2026-09-20T00:17:04.733Z"
+    },
+    {
+      "id": "aud_ff586647",
+      "event_type": "NFT_ACCESS_PERMIT_MINTED",
+      "description": "Admin approved access for vs (30m TTL). NFT Permit: NFT-SEPOLIA-#3682",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "user_email": "vs@gmail.com",
+      "user_name": "vs",
+      "severity": "INFO",
+      "event_hash": "0x07e7ed6c752699fb3e443bc73794e2c36103318fc6738e3e73210fa6b627c040",
+      "block_number": 6849634,
+      "created_at": "2026-09-20T00:16:59.773Z"
+    },
+    {
+      "id": "aud_a2bdaeb0",
+      "event_type": "PERMISSION_CHANGED",
+      "description": "Cryptographic access granted for asset ast_7050a002 (user: usr_d63e8d15).",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "before": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "after": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "performed_by": "Administrator",
+      "severity": "INFO",
+      "event_hash": "0xe8939eca2a08496264d37289ef60149a1e6a39be5a2d3f0ca592787a82e5cb94",
+      "block_number": 6849688,
+      "created_at": "2026-09-20T00:16:59.728Z"
+    },
+    {
+      "id": "aud_fb36ba65",
+      "event_type": "NFT_ACCESS_PERMIT_MINTED",
+      "description": "Admin approved access for vs (30m TTL). NFT Permit: NFT-SEPOLIA-#1272",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "user_email": "vs@gmail.com",
+      "user_name": "vs",
+      "severity": "INFO",
+      "event_hash": "0xc2a61387540450f4fce7a2567a55b7ec68bfa4514eaa4acd936b10902066f579",
+      "block_number": 6849544,
+      "created_at": "2026-09-20T00:16:54.518Z"
+    },
+    {
+      "id": "aud_fbf9a07e",
+      "event_type": "PERMISSION_CHANGED",
+      "description": "Cryptographic access granted for asset ast_7050a002 (user: usr_d63e8d15).",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "before": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "after": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "performed_by": "Administrator",
+      "severity": "INFO",
+      "event_hash": "0xfa29e3e49a82fec1a25389d6c40436b6aeb00b16e07badbaad91d3dbe99c1cd5",
+      "block_number": 6849326,
+      "created_at": "2026-09-20T00:16:54.473Z"
+    },
+    {
+      "id": "aud_20fd67a5",
+      "event_type": "PERMISSION_CHANGED",
+      "description": "Cryptographic access granted for asset ast_7050a002 (user: usr_d63e8d15).",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "before": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "after": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "performed_by": "Administrator",
+      "severity": "INFO",
+      "event_hash": "0xf771d0fa09493fec1501956c06808313283849d255b23f9fa985af775fc82209",
+      "block_number": 6849356,
+      "created_at": "2026-09-20T00:16:49.435Z"
+    },
+    {
+      "id": "aud_d2d66027",
+      "event_type": "PERMISSION_CHANGED",
+      "description": "Cryptographic access granted for asset ast_7050a002 (user: usr_d63e8d15).",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "before": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "after": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "performed_by": "Administrator",
+      "severity": "INFO",
+      "event_hash": "0x67a3818976a04442e902d38ce2462933b30912798c87e344373e0d1bfccabed7",
+      "block_number": 6849598,
+      "created_at": "2026-09-20T00:16:44.734Z"
+    },
+    {
+      "id": "aud_7acdeafc",
+      "event_type": "NFT_ACCESS_PERMIT_MINTED",
+      "description": "Admin approved access for vs (30m TTL). NFT Permit: NFT-SEPOLIA-#7991",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "user_email": "vs@gmail.com",
+      "user_name": "vs",
+      "severity": "INFO",
+      "event_hash": "0xad7f587e50552c1af89855d2004728d10dafc26d2254f1020e86da5322ef0c49",
+      "block_number": 6849688,
+      "created_at": "2026-09-20T00:16:39.245Z"
+    },
+    {
+      "id": "aud_2c4e4170",
+      "event_type": "PERMISSION_CHANGED",
+      "description": "Cryptographic access granted for asset ast_7050a002 (user: usr_d63e8d15).",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "before": [],
+      "after": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "performed_by": "Administrator",
+      "severity": "INFO",
+      "event_hash": "0x3ea2180ea04363e9ef987ae600ba6ee0e5baf30bf330aea5bd34aa21680c8b9e",
+      "block_number": 6849552,
+      "created_at": "2026-09-20T00:16:39.196Z"
+    },
+    {
+      "id": "aud_42ade855",
+      "event_type": "NFT_ACCESS_PERMIT_MINTED",
+      "description": "Admin approved access for Vasu (Administrator) (30m TTL). NFT Permit: NFT-SEPOLIA-#6072",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "user_email": "admin@securemax.mil",
+      "user_name": "Vasu (Administrator)",
+      "severity": "INFO",
+      "event_hash": "0x1c4d66f54da052edf366b3b3a1f358d5de7fc29537c7827d9e2dcda317851ac9",
+      "block_number": 6849355,
+      "created_at": "2026-09-20T00:12:21.134Z"
+    },
+    {
+      "id": "aud_dcfd5aaf",
+      "event_type": "PERMISSION_CHANGED",
+      "description": "Cryptographic access granted for asset ast_7050a002 (user: usr_admin_001).",
+      "target_id": "ast_7050a002",
+      "target": "ast_7050a002",
+      "before": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "after": [
+        "READ",
+        "DECRYPT",
+        "DOWNLOAD"
+      ],
+      "performed_by": "Administrator",
+      "severity": "INFO",
+      "event_hash": "0x094a58e5247b4dd1a7335beaebd9513f369fe095cf799613115a3ade8d6c2268",
+      "block_number": 6849382,
+      "created_at": "2026-09-20T00:12:21.092Z"
+    },
     {
       "id": "aud_6747e3cd",
       "event_type": "NFT_ACCESS_PERMIT_MINTED",
@@ -1872,6 +2895,33 @@
   ],
   "notifications": [
     {
+      "id": "notif_4e182c85",
+      "type": "ACCESS_APPROVED",
+      "title": "Access Request Approved",
+      "message": "Access granted for ChatGPT Image Sep 19, 2026, 04_07_00 PM.png. On-chain permit NFT-SEPOLIA-#6371 minted.",
+      "timestamp": "Just now",
+      "read": false,
+      "target_id": "ast_7050a002"
+    },
+    {
+      "id": "notif_b781b3ed",
+      "type": "ACCESS_APPROVED",
+      "title": "Access Request Approved",
+      "message": "Access granted for ChatGPT Image Sep 19, 2026, 04_07_00 PM.png. On-chain permit NFT-SEPOLIA-#3682 minted.",
+      "timestamp": "Just now",
+      "read": false,
+      "target_id": "ast_7050a002"
+    },
+    {
+      "id": "notif_ce92654d",
+      "type": "ACCESS_APPROVED",
+      "title": "Access Request Approved",
+      "message": "Access granted for ChatGPT Image Sep 19, 2026, 04_07_00 PM.png. On-chain permit NFT-SEPOLIA-#6072 minted.",
+      "timestamp": "Just now",
+      "read": false,
+      "target_id": "ast_7050a002"
+    },
+    {
       "id": "notif_c8a31677",
       "type": "ACCESS_APPROVED",
       "title": "Access Request Approved",
@@ -2438,5 +3488,5 @@
   "adminWallet": "0x7ffdbb7868c127152f2007a6025ff15a5723ce08",
   "sessions": [],
   "challenges": [],
-  "updatedAt": "2026-09-20T00:11:49.592Z"
+  "updatedAt": "2026-09-20T00:23:15.529Z"
 }

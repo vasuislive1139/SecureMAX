@@ -9,6 +9,9 @@ import { AuditAnchorABI } from '@/lib/blockchain/abis';
 import deployedAddresses from '../../../../../deployed-addresses.json';
 
 export async function GET(req: Request) {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   
   if (deviceStore) {
     await deviceStore.loadFromCloud();

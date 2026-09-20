@@ -13,6 +13,9 @@ function formatRelative(iso: string): string {
 }
 
 export async function GET() {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   try {
     const pending = deviceStore.getAccessRequests().filter(r => r.status === 'PENDING');
     const liveGrants = deviceStore.getLiveGrants();

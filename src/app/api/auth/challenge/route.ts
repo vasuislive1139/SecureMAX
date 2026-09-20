@@ -62,6 +62,9 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   try {
     const { searchParams } = new URL(req.url);
     const typeParam = searchParams.get('type')?.toUpperCase();

@@ -17,6 +17,9 @@ import { UserRole } from '@/types';
  * - Admin device timeline
  */
 export async function GET() {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   
   
   if (typeof deviceStore !== 'undefined') {

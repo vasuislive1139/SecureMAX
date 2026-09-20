@@ -4,6 +4,9 @@ import { successResponse, errorResponse } from '@/lib/api-response';
 import { supabaseAdmin } from '@/lib/db/client';
 
 export async function GET(req: NextRequest) {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   
   if (deviceStore) {
     await deviceStore.loadFromCloud();

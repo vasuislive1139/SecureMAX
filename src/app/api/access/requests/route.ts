@@ -6,6 +6,9 @@ import { UserRole } from '@/types';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   try {
     const session = await getVerifiedSession().catch(() => null);
     const allRequests = deviceStore.getAccessRequests();

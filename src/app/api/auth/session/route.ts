@@ -3,6 +3,9 @@ import { getVerifiedSession } from '@/lib/auth/session';
 import { deviceStore } from '@/lib/auth/deviceStore';
 
 export async function GET() {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   
   
   if (typeof deviceStore !== 'undefined') {

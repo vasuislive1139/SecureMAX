@@ -4,6 +4,9 @@ import { deviceStore } from '@/lib/auth/deviceStore';
 import { UserRole } from '@/types';
 
 export async function GET() {
+  if (typeof deviceStore !== 'undefined') {
+    await deviceStore.loadFromCloud();
+  }
   try {
     const positions = deviceStore.getPositions();
     
