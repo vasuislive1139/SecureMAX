@@ -322,22 +322,29 @@ class SecureMaxStore {
   public loginHistory: LoginHistoryRecord[] = [];
 
   constructor() {
-    if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
+    const isTest = process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST);
+    if (!isTest) {
       const loaded = this.loadFromDisk();
       if (!loaded) {
         // Attempt to load from Supabase cloud storage (e.g. on Vercel cold starts)
         this.readyPromise = this.loadFromCloud().then(cloudLoaded => {
           if (!cloudLoaded && this.users.size === 0) {
             this.seedInitialData();
+            this.seedTestDataForTesting(false);
             this.saveToDisk();
           }
         }).catch(() => {
           if (this.users.size === 0) {
             this.seedInitialData();
+            this.seedTestDataForTesting(false);
             this.saveToDisk();
           }
         });
       } else {
+        if (!this.assets.has('ast_kms')) {
+          this.seedTestDataForTesting(false);
+          this.saveToDisk();
+        }
         // Background check if cloud has newer state
         this.loadFromCloud().catch(() => {});
       }
@@ -481,6 +488,11 @@ class SecureMaxStore {
       }
     }
 
+    const isTest = process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST);
+    if (!isTest && !this.assets.has('ast_kms')) {
+      this.seedTestDataForTesting(false);
+    }
+
     return true;
   }
 
@@ -533,6 +545,13 @@ class SecureMaxStore {
             for (const a of onDisk.assets) {
               if (!this.assets.has(a.id)) {
                 this.assets.set(a.id, a);
+              }
+            }
+          }
+          if (Array.isArray(onDisk.wrappedDEKs)) {
+            for (const [assetId, dek] of onDisk.wrappedDEKs) {
+              if (!this.wrappedDEKs.has(assetId)) {
+                this.wrappedDEKs.set(assetId, dek);
               }
             }
           }
@@ -589,13 +608,6 @@ class SecureMaxStore {
             for (const ae of onDisk.auditEvents) {
               if (!this.auditEvents.some(evt => evt.id === ae.id)) {
                 this.auditEvents.push(ae);
-              }
-            }
-          }
-          if (Array.isArray(onDisk.wrappedDEKs)) {
-            for (const [assetId, dek] of onDisk.wrappedDEKs) {
-              if (!this.wrappedDEKs.has(assetId)) {
-                this.wrappedDEKs.set(assetId, dek);
               }
             }
           }
@@ -721,11 +733,6 @@ class SecureMaxStore {
 
   public getWrappedDEK(assetId: string) {
     return this.wrappedDEKs.get(assetId);
-  }
-
-  public setWrappedDEK(assetId: string, dek: { cipher: string; iv: string; authTag: string }): void {
-    this.wrappedDEKs.set(assetId, dek);
-    this.saveToDisk();
   }
 
   public seedInitialData(): void {

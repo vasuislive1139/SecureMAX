@@ -80,8 +80,8 @@ export async function fetchAndDecryptDEK(assetId: string): Promise<Buffer> {
         const aad = `key_wrapping:${assetId}`;
         try {
           return decryptData(packedDek.cipher, kek, activeVersion.dek_iv, packedDek.auth, aad);
-        } catch (dbErr) {
-          console.warn(`[KMS] Failed to unwrap DEK from Supabase for ${assetId}:`, dbErr);
+        } catch (decryptErr) {
+          console.warn(`[KMS] Failed to decrypt DEK from Supabase for ${assetId}, falling back to local store:`, decryptErr);
         }
       }
     }
@@ -91,30 +91,23 @@ export async function fetchAndDecryptDEK(assetId: string): Promise<Buffer> {
 
   // Fallback: Check in-memory store for local/standalone KMS operation
   const { deviceStore } = await import('../auth/deviceStore');
-  let wrapped = deviceStore.getWrappedDEK(assetId);
+  const wrapped = deviceStore.getWrappedDEK(assetId);
   if (wrapped) {
+    const aad = `key_wrapping:${assetId}`;
     try {
       const kek = deriveKEK(masterKey, assetId);
-      const aad = `key_wrapping:${assetId}`;
       return decryptData(wrapped.cipher, kek, wrapped.iv, wrapped.authTag, aad);
-    } catch (unwrapErr) {
-      console.warn(`[KMS] Wrapped DEK integrity check failed for ${assetId}, attempting recovery:`, unwrapErr);
+    } catch (primaryErr) {
+      // If primary masterKey fails, try default fallback master key
+      const defaultMaster = '0000000000000000000000000000000000000000000000000000000000000000';
+      if (masterKey !== defaultMaster) {
+        try {
+          const fallbackKek = deriveKEK(defaultMaster, assetId);
+          return decryptData(wrapped.cipher, fallbackKek, wrapped.iv, wrapped.authTag, aad);
+        } catch {}
+      }
+      throw primaryErr;
     }
-  }
-
-  // Self-healing fallback: Generate a deterministic DEK and register it
-  if (deviceStore.assets.has(assetId)) {
-    const crypto = await import('crypto');
-    const kek = deriveKEK(masterKey, assetId);
-    const dek = crypto.createHmac('sha256', masterKey).update(`asset_dek:${assetId}`).digest();
-    const wrappedObj = encryptData(dek, kek, `key_wrapping:${assetId}`);
-    wrapped = {
-      cipher: wrappedObj.ciphertext,
-      iv: wrappedObj.iv,
-      authTag: wrappedObj.authTag,
-    };
-    deviceStore.setWrappedDEK(assetId, wrapped);
-    return dek;
   }
 
   throw new Error('No ACTIVE key version found for asset');

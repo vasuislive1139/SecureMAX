@@ -211,21 +211,21 @@ export function MyAccessView() {
     }
   }, [currentUser]);
 
-  const fetchDevicesData = React.useCallback(async () => {
-    setLoadingDevices(true);
+  const fetchDevicesData = React.useCallback(async (isBackground = false) => {
+    if (!isBackground && devices.length === 0) setLoadingDevices(true);
     try {
       const res = await fetch('/api/devices', { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
-        if (json.devices) setDevices(json.devices);
-        if (json.personnel) setPersonnel(json.personnel);
+        if (json.devices) setDevices(prev => (JSON.stringify(prev) === JSON.stringify(json.devices) ? prev : json.devices));
+        if (json.personnel) setPersonnel(prev => (JSON.stringify(prev) === JSON.stringify(json.personnel) ? prev : json.personnel));
       }
     } catch (err) {
       console.error('Failed to load devices:', err);
     } finally {
-      setLoadingDevices(false);
+      if (!isBackground) setLoadingDevices(false);
     }
-  }, []);
+  }, [devices.length]);
 
   const fetchRequestsData = React.useCallback(async () => {
     try {

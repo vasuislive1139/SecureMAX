@@ -115,8 +115,8 @@ export async function authorizeAssetAccess(
     }
   }
 
+  // 5. Blockchain IdentityRegistry & AssetNFT Verification (Chain 1)
   if (!isAdmin) {
-    // 5. Blockchain IdentityRegistry & AssetNFT Verification (Chain 1)
     const chain1Result = await verifyChain1Access(userId, assetId);
     if (!chain1Result.allowed) {
       await logAuditEvent({

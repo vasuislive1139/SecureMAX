@@ -135,28 +135,27 @@ export default function AssetsPage() {
   });
 
   const fetchAssets = React.useCallback(async (isBackground = false) => {
-    const shouldShowSpinner = !isBackground && assets.length === 0;
     try {
-      if (shouldShowSpinner) setLoading(true);
+      if (!isBackground && assets.length === 0) setLoading(true);
       const res = await fetch(`/api/assets/list?scope=${vaultScope}`);
       const data = await res.json();
       if (data.success) {
         setAssets(prev => (JSON.stringify(prev) === JSON.stringify(data.assets) ? prev : (data.assets || [])));
-        setUserRole(data.role || 'USER');
-        if (data.userId) setCurrentUserId(data.userId);
-        if (data.userName) setUserName(data.userName);
+        setUserRole(prev => (prev === (data.role || 'USER') ? prev : (data.role || 'USER')));
+        if (data.userId) setCurrentUserId(prev => (prev === data.userId ? prev : data.userId));
+        if (data.userName) setUserName(prev => (prev === data.userName ? prev : data.userName));
         if (data.storage) setStorage(prev => (JSON.stringify(prev) === JSON.stringify(data.storage) ? prev : data.storage));
         if (data.users) setUsers(prev => (JSON.stringify(prev) === JSON.stringify(data.users) ? prev : data.users));
-        if (data.defaultAccessPolicy) setDefaultAccessPolicy(data.defaultAccessPolicy);
+        if (data.defaultAccessPolicy) setDefaultAccessPolicy(prev => (prev === data.defaultAccessPolicy ? prev : data.defaultAccessPolicy));
         if (Array.isArray(data.pendingAssetIds)) setServerPendingAssetIds(prev => (JSON.stringify(prev) === JSON.stringify(data.pendingAssetIds) ? prev : data.pendingAssetIds));
         if (Array.isArray(data.rejectedAssetIds)) setServerRejectedAssetIds(prev => (JSON.stringify(prev) === JSON.stringify(data.rejectedAssetIds) ? prev : data.rejectedAssetIds));
       }
     } catch (err) {
       console.error('Failed to load assets:', err);
     } finally {
-      if (shouldShowSpinner) setLoading(false);
+      if (!isBackground) setLoading(false);
     }
-  }, [vaultScope, assets.length]);
+  }, [vaultScope]);
 
   React.useEffect(() => {
     fetchAssets();
