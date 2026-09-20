@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Shield, Sparkles, Volume2, VolumeX, ArrowRight, X } from 'lucide-react';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { Shield, ArrowRight } from 'lucide-react';
 
 interface SecureMaxChainIntroProps {
   onComplete?: () => void;
@@ -9,454 +9,613 @@ interface SecureMaxChainIntroProps {
   onClose: () => void;
 }
 
+// ============================================================
+// CHAIN LINK RENDERER — Realistic interlocking metal chain
+// ============================================================
+
+interface ChainLink {
+  x: number;
+  y: number;
+  angle: number;
+  isVertical: boolean; // alternates: flat vs upright
+  alpha: number;
+  meltProgress: number; // 0 = solid, 1 = fully melted
+}
+
+interface Particle {
+  x: number; y: number;
+  tx: number; ty: number; // target
+  vx: number; vy: number;
+  size: number;
+  alpha: number;
+  color: string;
+  life: number;
+  maxLife: number;
+  delay: number;
+}
+
+// Easing
+function easeInOutCubic(t: number) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+function easeOutQuart(t: number) { return 1 - Math.pow(1 - t, 4); }
+function easeInQuart(t: number) { return t * t * t * t; }
+function easeOutBack(t: number) { const c = 2.70158; return 1 + (c+1)*Math.pow(t-1,3) + c*Math.pow(t-1,2); }
+function clamp(v: number, lo = 0, hi = 1) { return Math.max(lo, Math.min(hi, v)); }
+function lerp(a: number, b: number, t: number) { return a + (b-a) * t; }
+
+// Draw a single chain link (capsule/stadium shape)
+function drawLink(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number,
+  w: number, h: number,
+  angle: number,
+  alpha: number,
+  melt: number,
+) {
+  if (alpha < 0.005) return;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.globalAlpha = alpha * (1 - melt * 0.8);
+
+  const r = h / 2;
+  const thick = 5;
+
+  // Distort slightly when melting
+  const wobble = melt > 0 ? Math.sin(Date.now() * 0.01 + x) * melt * 3 : 0;
+  const scaleY = 1 + melt * 0.3;
+
+  ctx.scale(1, scaleY);
+
+  // Main link outline (rounded rectangle / stadium)
+  ctx.beginPath();
+  ctx.moveTo(-w + r, -h + wobble);
+  ctx.lineTo(w - r, -h - wobble);
+  ctx.arc(w - r, wobble, h, -Math.PI / 2, Math.PI / 2);
+  ctx.lineTo(-w + r, h + wobble);
+  ctx.arc(-w + r, wobble, h, Math.PI / 2, -Math.PI / 2);
+  ctx.closePath();
+
+  // Metallic gradient (top-to-bottom for 3D cylinder look)
+  const grad = ctx.createLinearGradient(0, -h - 4, 0, h + 4);
+  // Chrome/silver palette
+  grad.addColorStop(0, '#e2e8f0');    // bright top edge
+  grad.addColorStop(0.15, '#cbd5e1');  // light shoulder
+  grad.addColorStop(0.4, '#64748b');   // mid shadow
+  grad.addColorStop(0.5, '#475569');   // core shadow
+  grad.addColorStop(0.6, '#64748b');   // bottom bounce
+  grad.addColorStop(0.85, '#94a3b8');  // bottom shoulder
+  grad.addColorStop(1, '#cbd5e1');     // bottom edge
+
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = thick;
+  ctx.stroke();
+
+  // Specular highlight (thin bright line near top)
+  ctx.beginPath();
+  ctx.moveTo(-w + r + 4, -h + 2 + wobble);
+  ctx.lineTo(w - r - 4, -h + 2 - wobble);
+  ctx.strokeStyle = `rgba(255,255,255,${0.55 * (1 - melt)})`;
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Bottom edge shadow
+  ctx.beginPath();
+  ctx.moveTo(-w + r + 4, h - 1.5 + wobble);
+  ctx.lineTo(w - r - 4, h - 1.5 + wobble);
+  ctx.strokeStyle = `rgba(0,0,0,${0.35 * (1 - melt)})`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Melt glow
+  if (melt > 0.1) {
+    ctx.beginPath();
+    ctx.arc(0, 0, w * 0.6, 0, Math.PI * 2);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, w * 0.6);
+    g.addColorStop(0, `rgba(34,211,238,${melt * 0.5})`);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// Generate chain link positions
+function generateChain(
+  count: number,
+  startX: number,
+  centerX: number,
+  centerY: number,
+  slideProgress: number,     // 0→1 how far the chain has slid in
+  direction: 'left' | 'right',
+  linkW: number,
+  linkH: number,
+): ChainLink[] {
+  const links: ChainLink[] = [];
+  const spacing = linkW * 1.75;
+
+  for (let i = 0; i < count; i++) {
+    const isVertical = i % 2 === 1;
+
+    // Chain starts off-screen, slides toward center
+    const chainEnd = direction === 'left' ? centerX - 40 : centerX + 40;
+    const restX = direction === 'left'
+      ? chainEnd - (count - 1 - i) * spacing
+      : chainEnd + (count - 1 - i) * spacing;
+
+    const offscreenX = direction === 'left'
+      ? restX - startX
+      : restX + startX;
+
+    const eased = easeOutQuart(slideProgress);
+    const x = lerp(offscreenX, restX, eased);
+
+    // Slight vertical wave for organic feel
+    const wave = Math.sin(i * 0.8 + slideProgress * 4) * 3 * (1 - slideProgress * 0.5);
+
+    links.push({
+      x,
+      y: centerY + wave,
+      angle: isVertical ? Math.PI / 2 : 0,
+      isVertical,
+      alpha: clamp(slideProgress * 3 - (i / count) * 0.5),
+      meltProgress: 0,
+    });
+  }
+
+  return links;
+}
+
 export default function SecureMaxChainIntro({ onComplete, isOpen, onClose }: SecureMaxChainIntroProps) {
-  const [stage, setStage] = useState<0 | 1 | 2 | 3 | 4>(0);
-  const [sfxEnabled, setSfxEnabled] = useState(true);
-  const audioCtxRef = useRef<AudioContext | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
+  const startRef = useRef<number>(0);
+  const particlesRef = useRef<Particle[]>([]);
+  const spawnedRef = useRef(false);
+  const stageRef = useRef(0);
 
-  // Sound Synthesizer via Web Audio API
-  const playSound = (type: 'whoosh' | 'chain' | 'lock') => {
-    if (!sfxEnabled) return;
-    try {
-      if (!audioCtxRef.current) {
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-        if (AudioContextClass) audioCtxRef.current = new AudioContextClass();
-      }
-      const ctx = audioCtxRef.current;
-      if (!ctx) return;
-      if (ctx.state === 'suspended') ctx.resume();
-
-      const now = ctx.currentTime;
-
-      if (type === 'whoosh') {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(80, now);
-        osc.frequency.exponentialRampToValueAtTime(360, now + 0.45);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.45);
-      } else if (type === 'chain') {
-        for (let i = 0; i < 3; i++) {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(220 + i * 120, now + i * 0.08);
-          osc.frequency.exponentialRampToValueAtTime(70, now + 0.3 + i * 0.08);
-          gain.gain.setValueAtTime(0.2, now + i * 0.08);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35 + i * 0.08);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now + i * 0.08);
-          osc.stop(now + 0.4 + i * 0.08);
-        }
-      } else if (type === 'lock') {
-        const osc = ctx.createOscillator();
-        const sub = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const subGain = ctx.createGain();
-
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(450, now);
-        osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-
-        sub.type = 'sine';
-        sub.frequency.setValueAtTime(110, now);
-        sub.frequency.exponentialRampToValueAtTime(30, now + 0.4);
-        subGain.gain.setValueAtTime(0.5, now);
-        subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        sub.connect(subGain);
-        subGain.connect(ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.3);
-        sub.start(now);
-        sub.stop(now + 0.5);
-      }
-    } catch (e) {
-      console.warn('Web Audio synthesis error:', e);
-    }
-  };
+  const dismiss = useCallback(() => {
+    if (onComplete) onComplete();
+    onClose();
+  }, [onComplete, onClose]);
 
   useEffect(() => {
     if (!isOpen) {
-      setStage(0);
+      stageRef.current = 0;
+      spawnedRef.current = false;
+      particlesRef.current = [];
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       return;
     }
 
-    setStage(0);
+    // Reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      stageRef.current = 5;
+      return;
+    }
 
-    // Timeline:
-    // 0.3s -> Stage 1 (Title Surge)
-    const t1 = setTimeout(() => {
-      setStage(1);
-      playSound('whoosh');
-    }, 300);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    // 1.2s -> Stage 2 (Dual Chains Inward from Left and Right)
-    const t2 = setTimeout(() => {
-      setStage(2);
-      playSound('chain');
-    }, 1200);
+    let W: number, H: number;
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
 
-    // 2.1s -> Stage 3 (Master Lock Drops)
-    const t3 = setTimeout(() => {
-      setStage(3);
-    }, 2100);
+    startRef.current = 0;
+    spawnedRef.current = false;
+    particlesRef.current = [];
 
-    // 2.7s -> Shackle Snaps
-    const t4 = setTimeout(() => {
-      playSound('lock');
-    }, 2700);
+    // Chain config
+    const LINK_COUNT = 12;
+    const LINK_W = 18;
+    const LINK_H = 8;
 
-    // 3.2s -> Stage 4 (Security Sign Armed)
-    const t5 = setTimeout(() => {
-      setStage(4);
-    }, 3200);
+    // Timeline (seconds)
+    const T = {
+      darkIn:    [0.0, 0.8],
+      slideIn:   [0.6, 2.4],
+      hold:      [2.4, 3.0],
+      melt:      [3.0, 4.2],
+      lockIn:    [4.0, 5.2],
+      final:     [5.2, 6.0],
+      autoDone:  7.0,
+    };
 
-    // 4.8s -> Auto dismiss
-    const t6 = setTimeout(() => {
-      if (onComplete) onComplete();
-      onClose();
-    }, 5200);
+    function phaseProg(t: number, phase: number[]): number {
+      return clamp((t - phase[0]) / (phase[1] - phase[0]));
+    }
+
+    // Spawn particles from chain positions
+    function spawnParticles(links: ChainLink[]) {
+      const pts: Particle[] = [];
+      const cx = W / 2, cy = H / 2;
+      for (const link of links) {
+        const count = 6 + Math.floor(Math.random() * 4);
+        for (let j = 0; j < count; j++) {
+          const isCyan = Math.random() > 0.4;
+          pts.push({
+            x: link.x + (Math.random() - 0.5) * LINK_W * 2,
+            y: link.y + (Math.random() - 0.5) * LINK_H * 2,
+            tx: cx + (Math.random() - 0.5) * 30,
+            ty: cy + (Math.random() - 0.5) * 30,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            size: 1.5 + Math.random() * 2.5,
+            alpha: 0.8 + Math.random() * 0.2,
+            color: isCyan ? '#22d3ee' : '#cbd5e1',
+            life: 0,
+            maxLife: 0.6 + Math.random() * 0.6,
+            delay: Math.random() * 0.5,
+          });
+        }
+      }
+      particlesRef.current = pts;
+    }
+
+    // Draw subtle grid
+    function drawGrid(alpha: number) {
+      if (alpha < 0.005) return;
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.04;
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 0.5;
+      const step = 50;
+      for (let x = 0; x < W; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+      }
+      for (let y = 0; y < H; y += step) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // Draw lock icon
+    function drawLock(cx: number, cy: number, scale: number, alpha: number) {
+      if (alpha < 0.005) return;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = alpha;
+
+      // HUD ring
+      ctx.beginPath();
+      ctx.arc(0, 8, 55, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(34,211,238,0.12)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Shackle
+      ctx.beginPath();
+      ctx.arc(0, -10, 18, Math.PI, 0);
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = '#22d3ee';
+      ctx.shadowBlur = 15;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Body
+      const bw = 46, bh = 38, br = 8;
+      ctx.beginPath();
+      ctx.moveTo(-bw/2 + br, 4);
+      ctx.lineTo(bw/2 - br, 4);
+      ctx.arcTo(bw/2, 4, bw/2, 4 + br, br);
+      ctx.lineTo(bw/2, 4 + bh - br);
+      ctx.arcTo(bw/2, 4 + bh, bw/2 - br, 4 + bh, br);
+      ctx.lineTo(-bw/2 + br, 4 + bh);
+      ctx.arcTo(-bw/2, 4 + bh, -bw/2, 4 + bh - br, br);
+      ctx.lineTo(-bw/2, 4 + br);
+      ctx.arcTo(-bw/2, 4, -bw/2 + br, 4, br);
+      ctx.closePath();
+
+      const bodyGrad = ctx.createLinearGradient(0, 4, 0, 4 + bh);
+      bodyGrad.addColorStop(0, 'rgba(10,20,35,0.95)');
+      bodyGrad.addColorStop(1, 'rgba(5,10,18,0.98)');
+      ctx.fillStyle = bodyGrad;
+      ctx.fill();
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#22d3ee';
+      ctx.shadowBlur = 20;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Inner border
+      ctx.beginPath();
+      ctx.roundRect(-bw/2 + 4, 8, bw - 8, bh - 8, 5);
+      ctx.strokeStyle = 'rgba(34,211,238,0.2)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Hexagonal shield
+      const hexR = 10;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i - Math.PI / 2;
+        const hx = Math.cos(a) * hexR;
+        const hy = 17 + Math.sin(a) * hexR;
+        i === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(34,211,238,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(34,211,238,0.1)';
+      ctx.fill();
+
+      // Center dot
+      ctx.beginPath();
+      ctx.arc(0, 17, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#22d3ee';
+      ctx.shadowColor = '#22d3ee';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Keyhole
+      ctx.beginPath();
+      ctx.moveTo(-2, 24);
+      ctx.lineTo(2, 24);
+      ctx.lineTo(1.5, 32);
+      ctx.lineTo(-1.5, 32);
+      ctx.closePath();
+      ctx.fillStyle = '#22d3ee';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // Main loop
+    function frame(ts: number) {
+      if (!startRef.current) startRef.current = ts;
+      const elapsed = (ts - startRef.current) / 1000;
+
+      // Clear
+      ctx.fillStyle = '#030508';
+      ctx.fillRect(0, 0, W, H);
+
+      const cx = W / 2;
+      const cy = H / 2;
+
+      // Phase progress
+      const pDark = phaseProg(elapsed, T.darkIn);
+      const pSlide = phaseProg(elapsed, T.slideIn);
+      const pMelt = phaseProg(elapsed, T.melt);
+      const pLock = phaseProg(elapsed, T.lockIn);
+      const pFinal = phaseProg(elapsed, T.final);
+
+      // Grid
+      drawGrid(easeOutQuart(pDark));
+
+      // Generate chains
+      const leftChain = generateChain(LINK_COUNT, W * 0.8, cx, cy, pSlide, 'left', LINK_W, LINK_H);
+      const rightChain = generateChain(LINK_COUNT, W * 0.8, cx, cy, pSlide, 'right', LINK_W, LINK_H);
+
+      // Apply melt
+      const allLinks = [...leftChain, ...rightChain];
+      if (pMelt > 0) {
+        for (let i = 0; i < allLinks.length; i++) {
+          // Stagger melt from center outward
+          const link = allLinks[i];
+          const distFromCenter = Math.abs(link.x - cx) / (W * 0.4);
+          const meltDelay = distFromCenter * 0.4;
+          link.meltProgress = clamp((pMelt - meltDelay) * 2);
+        }
+      }
+
+      // Spawn particles at melt start
+      if (pMelt > 0.05 && !spawnedRef.current) {
+        spawnedRef.current = true;
+        spawnParticles(allLinks);
+      }
+
+      // Draw chains (back links first, then front)
+      if (pSlide > 0 && pMelt < 1) {
+        // Sort: draw vertical (back) links first, then horizontal (front)
+        const backLinks = allLinks.filter(l => l.isVertical);
+        const frontLinks = allLinks.filter(l => !l.isVertical);
+
+        for (const link of backLinks) {
+          if (link.meltProgress < 0.95) {
+            drawLink(ctx, link.x, link.y, LINK_W, LINK_H, link.angle, link.alpha, link.meltProgress);
+          }
+        }
+        for (const link of frontLinks) {
+          if (link.meltProgress < 0.95) {
+            drawLink(ctx, link.x, link.y, LINK_W, LINK_H, link.angle, link.alpha, link.meltProgress);
+          }
+        }
+      }
+
+      // Draw particles
+      if (particlesRef.current.length > 0 && pMelt > 0) {
+        const meltEased = easeInOutCubic(pMelt);
+        for (const p of particlesRef.current) {
+          const t = clamp((meltEased - p.delay) / (1 - p.delay));
+          const et = easeInQuart(t);
+
+          const px = lerp(p.x, p.tx, et) + Math.sin(t * 8 + p.x) * 2 * (1 - et);
+          const py = lerp(p.y, p.ty, et) + Math.cos(t * 6 + p.y) * 2 * (1 - et);
+          const a = p.alpha * (1 - et * 0.7);
+          const s = p.size * (1 - et * 0.4);
+
+          if (a < 0.01 || s < 0.2) continue;
+
+          // Glow
+          ctx.beginPath();
+          ctx.arc(px, py, s * 3, 0, Math.PI * 2);
+          const glow = ctx.createRadialGradient(px, py, 0, px, py, s * 3);
+          const isC = p.color === '#22d3ee';
+          glow.addColorStop(0, isC ? `rgba(34,211,238,${a * 0.35})` : `rgba(203,213,225,${a * 0.2})`);
+          glow.addColorStop(1, 'transparent');
+          ctx.fillStyle = glow;
+          ctx.fill();
+
+          // Dot
+          ctx.beginPath();
+          ctx.arc(px, py, s, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = a;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      // Pulse ring at melt peak
+      if (pMelt > 0.4 && pMelt < 0.9) {
+        const ringProgress = (pMelt - 0.4) / 0.5;
+        const ringRadius = ringProgress * Math.min(W, H) * 0.25;
+        const ringAlpha = (1 - ringProgress) * 0.4;
+        ctx.beginPath();
+        ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = '#22d3ee';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = ringAlpha;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      // Lock
+      if (pLock > 0) {
+        const lockScale = easeOutBack(clamp(pLock));
+        const lockAlpha = easeOutQuart(clamp(pLock * 1.3));
+        drawLock(cx, cy, lerp(0.3, 1, lockScale), lockAlpha);
+      }
+
+      // Update stage for DOM
+      if (pFinal > 0 && stageRef.current < 5) stageRef.current = 5;
+      else if (pLock > 0.3 && stageRef.current < 4) stageRef.current = 4;
+      else if (pMelt > 0 && stageRef.current < 3) stageRef.current = 3;
+      else if (pSlide > 0 && stageRef.current < 2) stageRef.current = 2;
+      else if (pDark > 0 && stageRef.current < 1) stageRef.current = 1;
+
+      // Force DOM updates for text overlays
+      const wordEl = document.getElementById('sm-wordmark');
+      const bannerEl = document.getElementById('sm-banner');
+      const btnEl = document.getElementById('sm-enter-btn');
+
+      if (wordEl) {
+        const wordAlpha = pSlide > 0 ? easeOutQuart(pSlide) : easeOutQuart(pDark * 2);
+        const wordFade = pMelt > 0.3 ? 1 - easeInQuart(clamp((pMelt - 0.3) / 0.5)) : 1;
+        const wordReappear = pFinal > 0 ? easeOutQuart(pFinal) : 0;
+        const finalAlpha = Math.max(wordAlpha * wordFade, wordReappear);
+        wordEl.style.opacity = String(finalAlpha);
+        if (pFinal > 0) {
+          wordEl.style.transform = `translateY(-50px) scale(0.7)`;
+        } else {
+          wordEl.style.transform = `scale(1)`;
+        }
+      }
+
+      if (bannerEl) {
+        bannerEl.style.opacity = String(pFinal > 0 ? easeOutQuart(pFinal) : 0);
+        bannerEl.style.transform = pFinal > 0 ? `translateY(0) scale(1)` : `translateY(20px) scale(0.9)`;
+      }
+
+      if (btnEl) {
+        btnEl.style.opacity = String(pFinal > 0.3 ? easeOutQuart(clamp((pFinal - 0.3) / 0.7)) : 0);
+      }
+
+      // Auto-dismiss
+      if (elapsed > T.autoDone) {
+        dismiss();
+        return;
+      }
+
+      rafRef.current = requestAnimationFrame(frame);
+    }
+
+    rafRef.current = requestAnimationFrame(frame);
 
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
-      clearTimeout(t5);
-      clearTimeout(t6);
+      window.removeEventListener('resize', resize);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isOpen]);
+  }, [isOpen, dismiss]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#05070c] flex flex-col items-center justify-center select-none overflow-hidden font-sans">
-      
-      {/* Background Cyber Grid */}
-      <div 
-        className="absolute inset-0 opacity-25 pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(6, 182, 212, 0.15) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(6, 182, 212, 0.15) 1px, transparent 1px)
-          `,
-          backgroundSize: '48px 48px',
-          perspective: '500px',
-          transform: 'rotateX(55deg) translateY(-80px)',
-          animation: 'pulse 5s ease-in-out infinite'
-        }}
+    <div className="fixed inset-0 z-[9999] bg-[#030508] flex flex-col items-center justify-center select-none overflow-hidden">
+
+      {/* Canvas layer for chains + lock */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 z-0"
       />
-      <div className="absolute inset-0 bg-radial from-transparent via-[#05070c]/70 to-[#05070c] pointer-events-none" />
 
-      {/* Top Controls Bar */}
-      <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-50">
-        <div className="flex items-center gap-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 shadow-[0_0_12px_#06b6d4] animate-pulse" />
-          <span className="text-[11px] font-mono tracking-widest text-cyan-300 font-bold uppercase">
-            SECUREMAX CYBER ENCLAVE // LAUNCH
-          </span>
+      {/* Wordmark */}
+      <div
+        id="sm-wordmark"
+        className="relative z-10 text-center opacity-0 transition-none"
+      >
+        <div className="text-[10px] font-mono tracking-[0.45em] text-cyan-400/80 uppercase font-bold mb-2 flex items-center justify-center gap-2">
+          <span className="w-6 h-px bg-cyan-400/50" />
+          ZERO-TRUST FORTRESS
+          <span className="w-6 h-px bg-cyan-400/50" />
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setSfxEnabled(!sfxEnabled)}
-            className="p-2 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-            title={sfxEnabled ? "Mute SFX" : "Unmute SFX"}
-          >
-            {sfxEnabled ? <Volume2 className="w-4 h-4 text-cyan-400" /> : <VolumeX className="w-4 h-4" />}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (onComplete) onComplete();
-              onClose();
-            }}
-            className="px-3.5 py-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-xs font-mono text-zinc-300 hover:text-white hover:border-cyan-500/40 transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <span>Skip</span>
-            <X className="w-3.5 h-3.5" />
-          </button>
+        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white uppercase">
+          SECURE<span className="text-cyan-400">MAX</span>
+        </h1>
+        <div className="text-[10px] font-mono text-zinc-500 tracking-[0.3em] uppercase mt-2">
+          PEOPLE • DATA • TRUST • SIH 2026
         </div>
       </div>
 
-      {/* Center Dynamic Stage Viewport */}
-      <div className="relative w-full max-w-5xl h-[520px] flex items-center justify-center">
-        
-        {/* Shockwave Ring (Triggers on lock snap) */}
-        {stage >= 3 && (
-          <div 
-            className="absolute w-56 h-56 rounded-full border-4 border-cyan-400 pointer-events-none z-40 animate-ping opacity-75"
-            style={{ animationDuration: '0.8s' }}
-          />
-        )}
-
-        {/* ============================================================== */}
-        {/* 1. TITLE: SECUREMAX IN CENTRE                                  */}
-        {/* ============================================================== */}
-        <div 
-          className={`relative z-10 flex flex-col items-center justify-center text-center transition-all duration-700 ${
-            stage >= 1 
-              ? 'opacity-100 scale-100 filter-none' 
-              : 'opacity-0 scale-50 blur-xl'
-          }`}
-        >
-          <div className="text-[11px] font-mono tracking-[0.45em] text-cyan-400 uppercase font-bold mb-2 drop-shadow-[0_0_10px_rgba(6,182,212,0.9)] flex items-center gap-2">
-            <span className="w-8 h-px bg-cyan-400" />
-            ZERO-TRUST FORTRESS
-            <span className="w-8 h-px bg-cyan-400" />
+      {/* Bottom banner */}
+      <div
+        id="sm-banner"
+        className="absolute bottom-8 z-10 flex flex-col items-center text-center opacity-0 transition-none"
+      >
+        <div className="px-5 py-2.5 rounded-2xl border border-cyan-400/70 bg-[#06101e]/90 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.4)] flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-cyan-950 border border-cyan-400/60 flex items-center justify-center">
+            <Shield className="w-4 h-4 text-cyan-400" />
           </div>
-
-          <h1 className="text-6xl sm:text-8xl font-black tracking-tight text-white uppercase drop-shadow-[0_0_50px_rgba(6,182,212,0.6)]">
-            SECURE<span className="text-cyan-400 drop-shadow-[0_0_30px_#06b6d4]">MAX</span>
-          </h1>
-
-          <div className="text-xs font-mono text-zinc-400 tracking-[0.3em] uppercase mt-2">
-            PEOPLE • DATA • TRUST • SIH 2026
-          </div>
-        </div>
-
-        {/* ============================================================== */}
-        {/* 2. DUAL CHAINS FROM BEHIND (LEFT & RIGHT)                      */}
-        {/* ============================================================== */}
-        
-        {/* Left Chain */}
-        <div 
-          className={`absolute left-0 top-1/2 -translate-y-1/2 z-20 pointer-events-none transition-all duration-900 ease-out ${
-            stage >= 2 
-              ? 'translate-x-0 opacity-100 rotate-0 scale-100' 
-              : '-translate-x-[120%] opacity-0 -rotate-45 scale-50'
-          }`}
-        >
-          <svg width="520" height="140" viewBox="0 0 520 140" fill="none" className="drop-shadow-[0_0_20px_rgba(6,182,212,0.5)]">
-            <defs>
-              <linearGradient id="metalVertL" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#c8d6e5"/>
-                <stop offset="30%" stopColor="#8395a7"/>
-                <stop offset="50%" stopColor="#576574"/>
-                <stop offset="70%" stopColor="#8395a7"/>
-                <stop offset="100%" stopColor="#dfe6e9"/>
-              </linearGradient>
-              <linearGradient id="metalHorizL" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#dfe6e9"/>
-                <stop offset="25%" stopColor="#a4b0be"/>
-                <stop offset="50%" stopColor="#576574"/>
-                <stop offset="75%" stopColor="#a4b0be"/>
-                <stop offset="100%" stopColor="#c8d6e5"/>
-              </linearGradient>
-              <linearGradient id="highlightL" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.5)"/>
-                <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
-              </linearGradient>
-            </defs>
-            {/* Layer 1: Back halves of horizontal (flat) links */}
-            <g stroke="url(#metalHorizL)" strokeWidth="8" fill="none" strokeLinecap="round">
-              <path d="M 8,70 A 30,16 0 0,1 68,70" />
-              <path d="M 72,70 A 30,16 0 0,1 132,70" />
-              <path d="M 136,70 A 30,16 0 0,1 196,70" />
-              <path d="M 200,70 A 30,16 0 0,1 260,70" />
-              <path d="M 264,70 A 30,16 0 0,1 324,70" />
-              <path d="M 328,70 A 30,16 0 0,1 388,70" />
-              <path d="M 392,70 A 30,16 0 0,1 452,70" />
-              <path d="M 456,70 A 30,16 0 0,1 516,70" />
-            </g>
-            {/* Layer 2: Vertical (upright) connector links */}
-            <g stroke="url(#metalVertL)" strokeWidth="8" fill="none" strokeLinecap="round">
-              <ellipse cx="38" cy="70" rx="10" ry="26"/>
-              <ellipse cx="102" cy="70" rx="10" ry="26"/>
-              <ellipse cx="166" cy="70" rx="10" ry="26"/>
-              <ellipse cx="230" cy="70" rx="10" ry="26"/>
-              <ellipse cx="294" cy="70" rx="10" ry="26"/>
-              <ellipse cx="358" cy="70" rx="10" ry="26"/>
-              <ellipse cx="422" cy="70" rx="10" ry="26"/>
-              <ellipse cx="486" cy="70" rx="10" ry="26"/>
-            </g>
-            {/* Layer 3: Front halves of horizontal (flat) links */}
-            <g stroke="url(#metalHorizL)" strokeWidth="8" fill="none" strokeLinecap="round">
-              <path d="M 8,70 A 30,16 0 0,0 68,70" />
-              <path d="M 72,70 A 30,16 0 0,0 132,70" />
-              <path d="M 136,70 A 30,16 0 0,0 196,70" />
-              <path d="M 200,70 A 30,16 0 0,0 260,70" />
-              <path d="M 264,70 A 30,16 0 0,0 324,70" />
-              <path d="M 328,70 A 30,16 0 0,0 388,70" />
-              <path d="M 392,70 A 30,16 0 0,0 452,70" />
-              <path d="M 456,70 A 30,16 0 0,0 516,70" />
-            </g>
-            {/* Specular highlight line */}
-            <line x1="20" y1="55" x2="500" y2="55" stroke="url(#highlightL)" strokeWidth="1.5" opacity="0.6"/>
-          </svg>
-        </div>
-
-        {/* Right Chain */}
-        <div 
-          className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 pointer-events-none transition-all duration-900 ease-out ${
-            stage >= 2 
-              ? 'translate-x-0 opacity-100 rotate-0 scale-100' 
-              : 'translate-x-[120%] opacity-0 rotate-45 scale-50'
-          }`}
-        >
-          <svg width="520" height="140" viewBox="0 0 520 140" fill="none" className="drop-shadow-[0_0_20px_rgba(6,182,212,0.5)]">
-            <defs>
-              <linearGradient id="metalVertR" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#c8d6e5"/>
-                <stop offset="30%" stopColor="#8395a7"/>
-                <stop offset="50%" stopColor="#576574"/>
-                <stop offset="70%" stopColor="#8395a7"/>
-                <stop offset="100%" stopColor="#dfe6e9"/>
-              </linearGradient>
-              <linearGradient id="metalHorizR" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#dfe6e9"/>
-                <stop offset="25%" stopColor="#a4b0be"/>
-                <stop offset="50%" stopColor="#576574"/>
-                <stop offset="75%" stopColor="#a4b0be"/>
-                <stop offset="100%" stopColor="#c8d6e5"/>
-              </linearGradient>
-              <linearGradient id="highlightR" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.5)"/>
-                <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
-              </linearGradient>
-            </defs>
-            {/* Layer 1: Back halves of horizontal (flat) links */}
-            <g stroke="url(#metalHorizR)" strokeWidth="8" fill="none" strokeLinecap="round">
-              <path d="M 8,70 A 30,16 0 0,1 68,70" />
-              <path d="M 72,70 A 30,16 0 0,1 132,70" />
-              <path d="M 136,70 A 30,16 0 0,1 196,70" />
-              <path d="M 200,70 A 30,16 0 0,1 260,70" />
-              <path d="M 264,70 A 30,16 0 0,1 324,70" />
-              <path d="M 328,70 A 30,16 0 0,1 388,70" />
-              <path d="M 392,70 A 30,16 0 0,1 452,70" />
-              <path d="M 456,70 A 30,16 0 0,1 516,70" />
-            </g>
-            {/* Layer 2: Vertical (upright) connector links */}
-            <g stroke="url(#metalVertR)" strokeWidth="8" fill="none" strokeLinecap="round">
-              <ellipse cx="38" cy="70" rx="10" ry="26"/>
-              <ellipse cx="102" cy="70" rx="10" ry="26"/>
-              <ellipse cx="166" cy="70" rx="10" ry="26"/>
-              <ellipse cx="230" cy="70" rx="10" ry="26"/>
-              <ellipse cx="294" cy="70" rx="10" ry="26"/>
-              <ellipse cx="358" cy="70" rx="10" ry="26"/>
-              <ellipse cx="422" cy="70" rx="10" ry="26"/>
-              <ellipse cx="486" cy="70" rx="10" ry="26"/>
-            </g>
-            {/* Layer 3: Front halves of horizontal (flat) links */}
-            <g stroke="url(#metalHorizR)" strokeWidth="8" fill="none" strokeLinecap="round">
-              <path d="M 8,70 A 30,16 0 0,0 68,70" />
-              <path d="M 72,70 A 30,16 0 0,0 132,70" />
-              <path d="M 136,70 A 30,16 0 0,0 196,70" />
-              <path d="M 200,70 A 30,16 0 0,0 260,70" />
-              <path d="M 264,70 A 30,16 0 0,0 324,70" />
-              <path d="M 328,70 A 30,16 0 0,0 388,70" />
-              <path d="M 392,70 A 30,16 0 0,0 452,70" />
-              <path d="M 456,70 A 30,16 0 0,0 516,70" />
-            </g>
-            {/* Specular highlight line */}
-            <line x1="20" y1="55" x2="500" y2="55" stroke="url(#highlightR)" strokeWidth="1.5" opacity="0.6"/>
-          </svg>
-        </div>
-
-        {/* ============================================================== */}
-        {/* 3. MASTER PADLOCK & SECURITY SIGN                              */}
-        {/* ============================================================== */}
-        <div 
-          className={`absolute z-30 flex flex-col items-center justify-center transition-all duration-600 ease-out ${
-            stage >= 3 
-              ? 'opacity-100 translate-y-0 scale-100' 
-              : 'opacity-0 -translate-y-28 scale-50'
-          }`}
-          style={{ filter: 'drop-shadow(0 0 35px rgba(6,182,212,0.7))' }}
-        >
-          {/* Shackle with Snap Animation */}
-          <div 
-            className={`relative w-28 h-24 border-[12px] border-cyan-400 rounded-t-full border-b-0 -mb-4 shadow-[0_0_25px_#06b6d4] transition-transform duration-200 ${
-              stage >= 3 ? 'translate-y-0' : '-translate-y-6'
-            }`}
-          >
-            <div className="absolute -left-3 bottom-0 w-3 h-5 bg-cyan-300 rounded-sm" />
-            <div className="absolute -right-3 bottom-0 w-3 h-5 bg-cyan-300 rounded-sm" />
-          </div>
-
-          {/* Heavy Lock Body */}
-          <div className="relative w-44 h-40 bg-gradient-to-b from-[#0e1726] via-[#09101c] to-[#04070d] border-2 border-cyan-400 rounded-2xl p-4 flex flex-col items-center justify-between shadow-[0_0_45px_rgba(6,182,212,0.4)]">
-            <div className="absolute inset-1.5 rounded-xl border border-cyan-500/30 bg-zinc-950/70 pointer-events-none" />
-
-            {/* Hexagonal Shield Hologram */}
-            <div className="relative z-10 mt-1">
-              <svg width="48" height="48" viewBox="0 0 44 44" fill="none">
-                <polygon points="22,3 40,13 40,31 22,41 4,31 4,13" stroke="#06b6d4" strokeWidth="2.5" fill="rgba(6,182,212,0.2)"/>
-                <circle cx="22" cy="22" r="7" fill="#06b6d4" className="animate-pulse" />
-              </svg>
+          <div className="text-left">
+            <div className="text-[11px] sm:text-xs font-black tracking-wide text-white uppercase flex items-center gap-2">
+              ZERO-TRUST SECURITY ENCLAVE ARMED
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
             </div>
-
-            {/* Keyhole & Security Text */}
-            <div className="relative z-10 flex flex-col items-center -mt-1">
-              <div className="w-4 h-7 bg-cyan-400 rounded-full shadow-[0_0_15px_#06b6d4] flex flex-col items-center justify-end pb-0.5">
-                <div className="w-2 h-2.5 bg-black rounded-full" />
-              </div>
-              <span className="text-[9px] font-mono text-cyan-300 font-bold tracking-widest uppercase mt-2">
-                AES-256-GCM LOCKED
-              </span>
-            </div>
-
-            {/* Corner Rivets */}
-            <div className="absolute top-2.5 left-2.5 w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <div className="absolute bottom-2.5 left-2.5 w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <div className="absolute bottom-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-cyan-400" />
-          </div>
-        </div>
-
-        {/* ============================================================== */}
-        {/* 4. GLOWING SECURITY SIGN BANNER                                */}
-        {/* ============================================================== */}
-        <div 
-          className={`absolute bottom-6 z-40 flex flex-col items-center text-center transition-all duration-700 ease-out ${
-            stage >= 4 
-              ? 'opacity-100 translate-y-0 scale-100' 
-              : 'opacity-0 translate-y-8 scale-90'
-          }`}
-        >
-          <div className="px-6 py-3 rounded-2xl border border-cyan-400/80 bg-[#06101e]/95 backdrop-blur-xl shadow-[0_0_40px_rgba(6,182,212,0.55)] flex items-center gap-4">
-            <div className="w-9 h-9 rounded-xl bg-cyan-950 border border-cyan-400 flex items-center justify-center text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.5)]">
-              <Shield className="w-5 h-5 text-cyan-400" />
-            </div>
-            <div className="text-left">
-              <div className="text-xs sm:text-sm font-black tracking-wide text-white uppercase flex items-center gap-2">
-                <span>ZERO-TRUST SECURITY ENCLAVE ARMED</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
-              </div>
-              <div className="text-[10px] font-mono text-cyan-400 tracking-wider">
-                DUAL-CHAIN VALIDATED • DEVICE PASSPORT ACTIVE • SERVER-SIDE KMS LOCKED
-              </div>
+            <div className="text-[9px] font-mono text-cyan-400/80 tracking-wider">
+              DUAL-CHAIN VALIDATED • DEVICE PASSPORT • KMS LOCKED
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (onComplete) onComplete();
-              onClose();
-            }}
-            className="mt-4 px-6 py-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-black font-mono font-bold text-xs tracking-wider shadow-[0_0_25px_rgba(6,182,212,0.45)] cursor-pointer transition-all flex items-center gap-2 active:scale-95"
-          >
-            <span>ENTER SECURE VAULT</span>
-            <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
-          </button>
         </div>
 
+        <button
+          id="sm-enter-btn"
+          type="button"
+          onClick={dismiss}
+          className="mt-3 px-5 py-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-black font-mono font-bold text-[11px] tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.35)] cursor-pointer transition-all flex items-center gap-2 active:scale-95 opacity-0"
+        >
+          ENTER SECURE VAULT
+          <ArrowRight className="w-3 h-3 stroke-[2.5]" />
+        </button>
       </div>
+
+      {/* Skip */}
+      <button
+        type="button"
+        onClick={dismiss}
+        className="fixed top-5 right-5 z-50 px-3 py-1.5 rounded-lg bg-zinc-900/70 border border-zinc-700/50 text-[10px] font-mono text-zinc-400 hover:text-white hover:border-cyan-500/40 transition-all cursor-pointer tracking-wider uppercase"
+      >
+        Skip ›
+      </button>
 
     </div>
   );
