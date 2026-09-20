@@ -49,16 +49,17 @@ export async function syncLedgerToSupabase(payload: any): Promise<boolean> {
 export async function fetchLedgerFromSupabase(): Promise<any | null> {
   if (!isSupabaseConfigured()) return null;
   try {
-    const { data, error } = await supabaseAdmin.storage
+    const { data: urlData, error: urlError } = await supabaseAdmin.storage
       .from('securemax-vault')
-      .download('vault_ledger.json');
+      .createSignedUrl('vault_ledger.json', 60);
 
-    if (error || !data) {
+    if (urlError || !urlData?.signedUrl) {
       return null;
     }
 
-    const text = await data.text();
-    return JSON.parse(text);
+    const response = await fetch(urlData.signedUrl, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return await response.json();
   } catch (err: any) {
     console.warn('[SupabaseSync] Could not download ledger from Supabase:', err.message);
     return null;

@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       const { data, error } = await supabaseAdmin.storage.from('securemax-vault').createSignedUrl(`assets/${assetId}`, 60);
       if (error || !data?.signedUrl) throw new Error('Failed to generate secure download URL');
 
-      const response = await fetch(data.signedUrl);
+      const response = await fetch(data.signedUrl, { cache: 'no-store' });
       if (!response.ok || !response.body) throw new Error('Failed to fetch encrypted asset stream');
 
       const nodeReadable = Readable.fromWeb(response.body as any);

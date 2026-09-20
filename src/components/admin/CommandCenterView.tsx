@@ -465,7 +465,7 @@ const handleDeny = async (id: string) => {
                   LIVE GRANTS
                 </div>
 
-                {liveGrants.map(grant => (
+                {liveGrants.filter(g => g.status === 'ACTIVE').map(grant => (
                   <div key={grant.id} className="p-3 rounded-xl border border-zinc-800/60 bg-black/40 flex items-center justify-between font-mono text-xs">
                     <div className="space-y-0.5">
                       <div className="font-bold text-zinc-200">
