@@ -242,13 +242,22 @@ export default function SecureMaxChainIntro({ onComplete, isOpen, onClose }: Sec
           }`}
         >
           <svg width="460" height="180" viewBox="0 0 460 180" fill="none" className="drop-shadow-[0_0_25px_rgba(6,182,212,0.6)]">
-            <g stroke="url(#chainGradLeft)" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round">
-              <ellipse cx="60" cy="90" rx="38" ry="24" transform="rotate(-15 60 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="130" cy="90" rx="38" ry="24" transform="rotate(15 130 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="200" cy="90" rx="38" ry="24" transform="rotate(-15 200 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="270" cy="90" rx="38" ry="24" transform="rotate(15 270 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="340" cy="90" rx="38" ry="24" transform="rotate(-15 340 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="410" cy="90" rx="38" ry="24" transform="rotate(15 410 90)" fill="rgba(8,18,30,0.85)"/>
+            <g stroke="url(#chainGradLeft)" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" fill="none">
+              {/* Back halves of flat links */}
+              <path d="M 5,90 A 55,22 0 0,1 115,90" />
+              <path d="M 145,90 A 55,22 0 0,1 255,90" />
+              <path d="M 285,90 A 55,22 0 0,1 395,90" />
+
+              {/* Edge links (connectors) */}
+              <ellipse cx="-10" cy="90" rx="18" ry="32" />
+              <ellipse cx="130" cy="90" rx="18" ry="32" />
+              <ellipse cx="270" cy="90" rx="18" ry="32" />
+              <ellipse cx="410" cy="90" rx="18" ry="32" />
+
+              {/* Front halves of flat links */}
+              <path d="M 5,90 A 55,22 0 0,0 115,90" />
+              <path d="M 145,90 A 55,22 0 0,0 255,90" />
+              <path d="M 285,90 A 55,22 0 0,0 395,90" />
             </g>
             <path d="M 30 90 Q 230 70 440 90" stroke="#06b6d4" strokeWidth="3.5" strokeDasharray="10 8" opacity="0.95" />
             <defs>
@@ -270,13 +279,22 @@ export default function SecureMaxChainIntro({ onComplete, isOpen, onClose }: Sec
           }`}
         >
           <svg width="460" height="180" viewBox="0 0 460 180" fill="none" className="drop-shadow-[0_0_25px_rgba(6,182,212,0.6)]">
-            <g stroke="url(#chainGradRight)" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round">
-              <ellipse cx="400" cy="90" rx="38" ry="24" transform="rotate(15 400 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="330" cy="90" rx="38" ry="24" transform="rotate(-15 330 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="260" cy="90" rx="38" ry="24" transform="rotate(15 260 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="190" cy="90" rx="38" ry="24" transform="rotate(-15 190 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="120" cy="90" rx="38" ry="24" transform="rotate(15 120 90)" fill="rgba(8,18,30,0.85)"/>
-              <ellipse cx="50" cy="90" rx="38" ry="24" transform="rotate(-15 50 90)" fill="rgba(8,18,30,0.85)"/>
+            <g stroke="url(#chainGradRight)" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" fill="none">
+              {/* Back halves of flat links */}
+              <path d="M 65,90 A 55,22 0 0,1 175,90" />
+              <path d="M 205,90 A 55,22 0 0,1 315,90" />
+              <path d="M 345,90 A 55,22 0 0,1 455,90" />
+
+              {/* Edge links (connectors) */}
+              <ellipse cx="50" cy="90" rx="18" ry="32" />
+              <ellipse cx="190" cy="90" rx="18" ry="32" />
+              <ellipse cx="330" cy="90" rx="18" ry="32" />
+              <ellipse cx="470" cy="90" rx="18" ry="32" />
+
+              {/* Front halves of flat links */}
+              <path d="M 65,90 A 55,22 0 0,0 175,90" />
+              <path d="M 205,90 A 55,22 0 0,0 315,90" />
+              <path d="M 345,90 A 55,22 0 0,0 455,90" />
             </g>
             <path d="M 430 90 Q 230 110 30 90" stroke="#06b6d4" strokeWidth="3.5" strokeDasharray="10 8" opacity="0.95" />
             <defs>
