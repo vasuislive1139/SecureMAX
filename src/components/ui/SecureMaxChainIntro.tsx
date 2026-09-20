@@ -241,32 +241,62 @@ export default function SecureMaxChainIntro({ onComplete, isOpen, onClose }: Sec
               : '-translate-x-[120%] opacity-0 -rotate-45 scale-50'
           }`}
         >
-          <svg width="460" height="180" viewBox="0 0 460 180" fill="none" className="drop-shadow-[0_0_25px_rgba(6,182,212,0.6)]">
-            <g stroke="url(#chainGradLeft)" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" fill="none">
-              {/* Back halves of flat links */}
-              <path d="M 5,90 A 55,22 0 0,1 115,90" />
-              <path d="M 145,90 A 55,22 0 0,1 255,90" />
-              <path d="M 285,90 A 55,22 0 0,1 395,90" />
-
-              {/* Edge links (connectors) */}
-              <ellipse cx="-10" cy="90" rx="18" ry="32" />
-              <ellipse cx="130" cy="90" rx="18" ry="32" />
-              <ellipse cx="270" cy="90" rx="18" ry="32" />
-              <ellipse cx="410" cy="90" rx="18" ry="32" />
-
-              {/* Front halves of flat links */}
-              <path d="M 5,90 A 55,22 0 0,0 115,90" />
-              <path d="M 145,90 A 55,22 0 0,0 255,90" />
-              <path d="M 285,90 A 55,22 0 0,0 395,90" />
-            </g>
-            <path d="M 30 90 Q 230 70 440 90" stroke="#06b6d4" strokeWidth="3.5" strokeDasharray="10 8" opacity="0.95" />
+          <svg width="520" height="140" viewBox="0 0 520 140" fill="none" className="drop-shadow-[0_0_20px_rgba(6,182,212,0.5)]">
             <defs>
-              <linearGradient id="chainGradLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#38bdf8"/>
-                <stop offset="50%" stopColor="#0284c7"/>
-                <stop offset="100%" stopColor="#0f172a"/>
+              <linearGradient id="metalVertL" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#c8d6e5"/>
+                <stop offset="30%" stopColor="#8395a7"/>
+                <stop offset="50%" stopColor="#576574"/>
+                <stop offset="70%" stopColor="#8395a7"/>
+                <stop offset="100%" stopColor="#dfe6e9"/>
+              </linearGradient>
+              <linearGradient id="metalHorizL" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#dfe6e9"/>
+                <stop offset="25%" stopColor="#a4b0be"/>
+                <stop offset="50%" stopColor="#576574"/>
+                <stop offset="75%" stopColor="#a4b0be"/>
+                <stop offset="100%" stopColor="#c8d6e5"/>
+              </linearGradient>
+              <linearGradient id="highlightL" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.5)"/>
+                <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
               </linearGradient>
             </defs>
+            {/* Layer 1: Back halves of horizontal (flat) links */}
+            <g stroke="url(#metalHorizL)" strokeWidth="8" fill="none" strokeLinecap="round">
+              <path d="M 8,70 A 30,16 0 0,1 68,70" />
+              <path d="M 72,70 A 30,16 0 0,1 132,70" />
+              <path d="M 136,70 A 30,16 0 0,1 196,70" />
+              <path d="M 200,70 A 30,16 0 0,1 260,70" />
+              <path d="M 264,70 A 30,16 0 0,1 324,70" />
+              <path d="M 328,70 A 30,16 0 0,1 388,70" />
+              <path d="M 392,70 A 30,16 0 0,1 452,70" />
+              <path d="M 456,70 A 30,16 0 0,1 516,70" />
+            </g>
+            {/* Layer 2: Vertical (upright) connector links */}
+            <g stroke="url(#metalVertL)" strokeWidth="8" fill="none" strokeLinecap="round">
+              <ellipse cx="38" cy="70" rx="10" ry="26"/>
+              <ellipse cx="102" cy="70" rx="10" ry="26"/>
+              <ellipse cx="166" cy="70" rx="10" ry="26"/>
+              <ellipse cx="230" cy="70" rx="10" ry="26"/>
+              <ellipse cx="294" cy="70" rx="10" ry="26"/>
+              <ellipse cx="358" cy="70" rx="10" ry="26"/>
+              <ellipse cx="422" cy="70" rx="10" ry="26"/>
+              <ellipse cx="486" cy="70" rx="10" ry="26"/>
+            </g>
+            {/* Layer 3: Front halves of horizontal (flat) links */}
+            <g stroke="url(#metalHorizL)" strokeWidth="8" fill="none" strokeLinecap="round">
+              <path d="M 8,70 A 30,16 0 0,0 68,70" />
+              <path d="M 72,70 A 30,16 0 0,0 132,70" />
+              <path d="M 136,70 A 30,16 0 0,0 196,70" />
+              <path d="M 200,70 A 30,16 0 0,0 260,70" />
+              <path d="M 264,70 A 30,16 0 0,0 324,70" />
+              <path d="M 328,70 A 30,16 0 0,0 388,70" />
+              <path d="M 392,70 A 30,16 0 0,0 452,70" />
+              <path d="M 456,70 A 30,16 0 0,0 516,70" />
+            </g>
+            {/* Specular highlight line */}
+            <line x1="20" y1="55" x2="500" y2="55" stroke="url(#highlightL)" strokeWidth="1.5" opacity="0.6"/>
           </svg>
         </div>
 
@@ -278,32 +308,62 @@ export default function SecureMaxChainIntro({ onComplete, isOpen, onClose }: Sec
               : 'translate-x-[120%] opacity-0 rotate-45 scale-50'
           }`}
         >
-          <svg width="460" height="180" viewBox="0 0 460 180" fill="none" className="drop-shadow-[0_0_25px_rgba(6,182,212,0.6)]">
-            <g stroke="url(#chainGradRight)" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" fill="none">
-              {/* Back halves of flat links */}
-              <path d="M 65,90 A 55,22 0 0,1 175,90" />
-              <path d="M 205,90 A 55,22 0 0,1 315,90" />
-              <path d="M 345,90 A 55,22 0 0,1 455,90" />
-
-              {/* Edge links (connectors) */}
-              <ellipse cx="50" cy="90" rx="18" ry="32" />
-              <ellipse cx="190" cy="90" rx="18" ry="32" />
-              <ellipse cx="330" cy="90" rx="18" ry="32" />
-              <ellipse cx="470" cy="90" rx="18" ry="32" />
-
-              {/* Front halves of flat links */}
-              <path d="M 65,90 A 55,22 0 0,0 175,90" />
-              <path d="M 205,90 A 55,22 0 0,0 315,90" />
-              <path d="M 345,90 A 55,22 0 0,0 455,90" />
-            </g>
-            <path d="M 430 90 Q 230 110 30 90" stroke="#06b6d4" strokeWidth="3.5" strokeDasharray="10 8" opacity="0.95" />
+          <svg width="520" height="140" viewBox="0 0 520 140" fill="none" className="drop-shadow-[0_0_20px_rgba(6,182,212,0.5)]">
             <defs>
-              <linearGradient id="chainGradRight" x1="100%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#38bdf8"/>
-                <stop offset="50%" stopColor="#0284c7"/>
-                <stop offset="100%" stopColor="#0f172a"/>
+              <linearGradient id="metalVertR" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#c8d6e5"/>
+                <stop offset="30%" stopColor="#8395a7"/>
+                <stop offset="50%" stopColor="#576574"/>
+                <stop offset="70%" stopColor="#8395a7"/>
+                <stop offset="100%" stopColor="#dfe6e9"/>
+              </linearGradient>
+              <linearGradient id="metalHorizR" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#dfe6e9"/>
+                <stop offset="25%" stopColor="#a4b0be"/>
+                <stop offset="50%" stopColor="#576574"/>
+                <stop offset="75%" stopColor="#a4b0be"/>
+                <stop offset="100%" stopColor="#c8d6e5"/>
+              </linearGradient>
+              <linearGradient id="highlightR" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.5)"/>
+                <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
               </linearGradient>
             </defs>
+            {/* Layer 1: Back halves of horizontal (flat) links */}
+            <g stroke="url(#metalHorizR)" strokeWidth="8" fill="none" strokeLinecap="round">
+              <path d="M 8,70 A 30,16 0 0,1 68,70" />
+              <path d="M 72,70 A 30,16 0 0,1 132,70" />
+              <path d="M 136,70 A 30,16 0 0,1 196,70" />
+              <path d="M 200,70 A 30,16 0 0,1 260,70" />
+              <path d="M 264,70 A 30,16 0 0,1 324,70" />
+              <path d="M 328,70 A 30,16 0 0,1 388,70" />
+              <path d="M 392,70 A 30,16 0 0,1 452,70" />
+              <path d="M 456,70 A 30,16 0 0,1 516,70" />
+            </g>
+            {/* Layer 2: Vertical (upright) connector links */}
+            <g stroke="url(#metalVertR)" strokeWidth="8" fill="none" strokeLinecap="round">
+              <ellipse cx="38" cy="70" rx="10" ry="26"/>
+              <ellipse cx="102" cy="70" rx="10" ry="26"/>
+              <ellipse cx="166" cy="70" rx="10" ry="26"/>
+              <ellipse cx="230" cy="70" rx="10" ry="26"/>
+              <ellipse cx="294" cy="70" rx="10" ry="26"/>
+              <ellipse cx="358" cy="70" rx="10" ry="26"/>
+              <ellipse cx="422" cy="70" rx="10" ry="26"/>
+              <ellipse cx="486" cy="70" rx="10" ry="26"/>
+            </g>
+            {/* Layer 3: Front halves of horizontal (flat) links */}
+            <g stroke="url(#metalHorizR)" strokeWidth="8" fill="none" strokeLinecap="round">
+              <path d="M 8,70 A 30,16 0 0,0 68,70" />
+              <path d="M 72,70 A 30,16 0 0,0 132,70" />
+              <path d="M 136,70 A 30,16 0 0,0 196,70" />
+              <path d="M 200,70 A 30,16 0 0,0 260,70" />
+              <path d="M 264,70 A 30,16 0 0,0 324,70" />
+              <path d="M 328,70 A 30,16 0 0,0 388,70" />
+              <path d="M 392,70 A 30,16 0 0,0 452,70" />
+              <path d="M 456,70 A 30,16 0 0,0 516,70" />
+            </g>
+            {/* Specular highlight line */}
+            <line x1="20" y1="55" x2="500" y2="55" stroke="url(#highlightR)" strokeWidth="1.5" opacity="0.6"/>
           </svg>
         </div>
 
