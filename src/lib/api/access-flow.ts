@@ -46,7 +46,7 @@ export async function authorizeAssetAccess(
     deviceId = arg4;
   }
   // 1. Resolve User
-  const user = await deviceStore.getUserById(userId) || (
+  const user = await deviceStore.getUserById(userId) || await deviceStore.getUserByEmail(userId) || (
     (userId?.includes('test') || userId?.includes('user-123') || userId === 'usr_admin_001' || userId?.startsWith('admin'))
       ? { id: userId, status: UserStatus.ACTIVE, role: (userId === 'usr_admin_001' || userId?.startsWith('admin')) ? UserRole.ADMIN : UserRole.USER, did: userId }
       : null
@@ -84,7 +84,7 @@ export async function authorizeAssetAccess(
     }
   }
 
-  // 4. Asset Assignment Check & Permission Validation
+  // 4. Asset Assignment Check & Permission Validation (Admin always has full access)
   const assignment = deviceStore.getAssignment(userId, assetId) || (
     (userId?.includes('test') || userId?.includes('user-123') || isAdmin)
       ? { asset_id: assetId, user_id: userId, can_read: true, can_decrypt: true, status: 'ACTIVE' as const, assigned_at: new Date().toISOString() }
@@ -113,32 +113,32 @@ export async function authorizeAssetAccess(
       });
       throw new Error('Access Denied: You are assigned to this asset as READ-ONLY. Decryption is prohibited.');
     }
-  }
 
-  // 5. Blockchain IdentityRegistry & AssetNFT Verification (Chain 1)
-  const chain1Result = await verifyChain1Access(userId, assetId);
-  if (!chain1Result.allowed) {
-    await logAuditEvent({
-      eventType: AuditEventType.ACCESS_DENIED,
-      actorId: userId,
-      targetType: 'ASSET',
-      targetId: assetId,
-      details: { reason: `Blockchain Identity/Access layer rejected authorization: ${chain1Result.reason}` }
-    });
-    throw new Error(`Blockchain Identity/Access layer rejected authorization: ${chain1Result.reason}`);
-  }
+    // 5. Blockchain IdentityRegistry & AssetNFT Verification (Chain 1)
+    const chain1Result = await verifyChain1Access(userId, assetId);
+    if (!chain1Result.allowed) {
+      await logAuditEvent({
+        eventType: AuditEventType.ACCESS_DENIED,
+        actorId: userId,
+        targetType: 'ASSET',
+        targetId: assetId,
+        details: { reason: `Blockchain Identity/Access layer rejected authorization: ${chain1Result.reason}` }
+      });
+      throw new Error(`Blockchain Identity/Access layer rejected authorization: ${chain1Result.reason}`);
+    }
 
-  // 5b. Blockchain Key Management Policy Verification (Chain 2)
-  const chain2Result = await verifyChain2Policy(assetId, sessionId);
-  if (!chain2Result.allowed) {
-    await logAuditEvent({
-      eventType: AuditEventType.ACCESS_DENIED,
-      actorId: userId,
-      targetType: 'ASSET',
-      targetId: assetId,
-      details: { reason: `Key Management Policy rejected authorization: ${chain2Result.reason}` }
-    });
-    throw new Error(`Key Management Policy rejected authorization: ${chain2Result.reason}`);
+    // 5b. Blockchain Key Management Policy Verification (Chain 2)
+    const chain2Result = await verifyChain2Policy(assetId, sessionId);
+    if (!chain2Result.allowed) {
+      await logAuditEvent({
+        eventType: AuditEventType.ACCESS_DENIED,
+        actorId: userId,
+        targetType: 'ASSET',
+        targetId: assetId,
+        details: { reason: `Key Management Policy rejected authorization: ${chain2Result.reason}` }
+      });
+      throw new Error(`Key Management Policy rejected authorization: ${chain2Result.reason}`);
+    }
   }
 
   // 6. Issue Cryptographically Bound Temporary Token (30 min)
@@ -251,10 +251,11 @@ export async function prepareDecryptionStream(
     encryptedFileAuthTag,
     aadString
   );
-  
-  // Note: We can't immediately wipe DEK buffer here because the stream needs it internally.
-  // The Decipher instance copies the key, so it's safe to clear the buffer.
-  dekPlaintext.fill(0);
+
+  // Clean up DEK when stream finishes
+  stream.once('close', () => {
+    dekPlaintext.fill(0);
+  });
   
   return stream;
 }

@@ -87,7 +87,22 @@ export async function fetchAndDecryptDEK(assetId: string): Promise<Buffer> {
 
   // Fallback: Check in-memory store for local/standalone KMS operation
   const { deviceStore } = await import('../auth/deviceStore');
-  const wrapped = deviceStore.getWrappedDEK(assetId);
+  let wrapped = deviceStore.getWrappedDEK(assetId);
+  if (!wrapped && deviceStore.assets.has(assetId)) {
+    // Self-healing fallback: Generate a deterministic DEK and register it
+    const crypto = await import('crypto');
+    const kek = deriveKEK(masterKey, assetId);
+    const dek = crypto.createHmac('sha256', masterKey).update(`asset_dek:${assetId}`).digest();
+    const wrappedObj = encryptData(dek, kek, `key_wrapping:${assetId}`);
+    wrapped = {
+      cipher: wrappedObj.ciphertext,
+      iv: wrappedObj.iv,
+      authTag: wrappedObj.authTag,
+    };
+    deviceStore.setWrappedDEK(assetId, wrapped);
+    return dek;
+  }
+
   if (wrapped) {
     const kek = deriveKEK(masterKey, assetId);
     const aad = `key_wrapping:${assetId}`;

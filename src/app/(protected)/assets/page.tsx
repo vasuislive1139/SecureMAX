@@ -134,9 +134,12 @@ export default function AssetsPage() {
     canDownload: true,
   });
 
+  const assetsRef = React.useRef(assets);
+  assetsRef.current = assets;
+
   const fetchAssets = React.useCallback(async (isBackground = false) => {
     try {
-      if (!isBackground && assets.length === 0) setLoading(true);
+      if (!isBackground && assetsRef.current.length === 0) setLoading(true);
       const res = await fetch(`/api/assets/list?scope=${vaultScope}`);
       const data = await res.json();
       if (data.success) {
@@ -153,9 +156,11 @@ export default function AssetsPage() {
     } catch (err) {
       console.error('Failed to load assets:', err);
     } finally {
-      setLoading(false);
+      if (!isBackground) {
+        setLoading(false);
+      }
     }
-  }, [vaultScope, assets.length]);
+  }, [vaultScope]);
 
   React.useEffect(() => {
     fetchAssets();

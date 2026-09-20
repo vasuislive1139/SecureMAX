@@ -25,7 +25,7 @@ export async function GET(req: Request) {
       status: item.status,
       description: item.asset.description,
       canRead: isAdminCaller || item.can_read,
-      canDecrypt: isAdminCaller || item.can_decrypt,
+      canDecrypt: item.can_decrypt,
       canDownload: isAdminCaller || item.can_download,
       canEdit: item.can_edit,
       canDelete: item.can_delete,
