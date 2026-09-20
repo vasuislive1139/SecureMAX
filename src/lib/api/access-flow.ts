@@ -85,8 +85,6 @@ export async function authorizeAssetAccess(
   }
 
   // 4. Asset Assignment Check & Permission Validation
-  const isAdmin = user.role === UserRole.ADMIN || userId === 'usr_admin_001' || userId?.startsWith('admin');
-
   const assignment = deviceStore.getAssignment(userId, assetId) || (
     (userId?.includes('test') || userId?.includes('user-123') || isAdmin)
       ? { asset_id: assetId, user_id: userId, can_read: true, can_decrypt: true, status: 'ACTIVE' as const, assigned_at: new Date().toISOString() }
